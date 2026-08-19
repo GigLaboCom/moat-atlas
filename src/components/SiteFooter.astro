@@ -1,0 +1,58 @@
+---
+import type { Locale } from "../i18n/config";
+import { getTranslations, getLocalizedPath } from "../i18n/index";
+
+export interface Props {
+  lang: Locale;
+}
+
+const { lang } = Astro.props;
+const t = getTranslations(lang);
+
+const links = [
+  { href: "/", label: t.ui.footer.atlas },
+  { href: "/moats/", label: t.ui.footer.catalogue },
+  { href: "/calculator/", label: t.ui.footer.calculator },
+  { href: "/credits/", label: t.ui.footer.credits },
+  { href: "/cookies/", label: t.ui.footer.cookiePolicy },
+];
+---
+
+<footer class="site-footer">
+  <span class="tagline">{t.ui.tagline}</span>
+  <nav class="footer-links">
+    {links.map((l) => (
+      <a href={getLocalizedPath(l.href, lang)} class="footer-link">{l.label}</a>
+    ))}
+  </nav>
+</footer>
+
+<style>
+  .site-footer {
+    margin-top: 48px;
+    padding-top: 18px;
+    border-top: 1px solid var(--line);
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 8px 18px;
+    font-family: var(--mono);
+    font-size: 11px;
+    letter-spacing: 0.08em;
+    color: var(--ink-faint);
+  }
+
+  .footer-links { display: flex; flex-wrap: wrap; gap: 8px 16px; margin-left: auto; }
+
+  .footer-link {
+    color: var(--ink-faint);
+    text-decoration: underline;
+    text-underline-offset: 3px;
+  }
+
+  .footer-link:hover { color: var(--ink); }
+
+  @media (max-width: 640px) {
+    .footer-links { margin-left: 0; }
+  }
+</style>

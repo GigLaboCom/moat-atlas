@@ -1,0 +1,101 @@
+---
+import PageLayout from "../../layouts/PageLayout.astro";
+import type { Locale } from "../../i18n/config";
+import { getTranslations, getLocalizedPath } from "../../i18n/index";
+import { getAllMoatStrings } from "../../i18n/translations/moats/index";
+import { MOATS, ROCK_COLORS, TERNARY_GLYPH, AI_GLYPH } from "../../data/moats";
+
+const headerLocale = Astro.request.headers.get("x-locale") as Locale | null;
+const lang: Locale = headerLocale ?? "en";
+const t = getTranslations(lang);
+const names = getAllMoatStrings(lang);
+const c = t.catalogue;
+---
+
+<PageLayout
+  lang={lang}
+  title={c.meta.title}
+  description={c.meta.description}
+  basePath="/moats/"
+  section={c.heading}
+  wide={true}
+>
+  <div class="eyebrow">{c.tagline}</div>
+  <h1>{c.heading}</h1>
+  <p class="intro">{c.intro}</p>
+
+  <div class="table-wrap">
+    <table>
+      <thead>
+        <tr>
+          <th class="num">{c.columns.n}</th>
+          <th>{c.columns.name}</th>
+          <th>{c.columns.rock}</th>
+          <th>{c.columns.depth}</th>
+          <th class="mid">{c.columns.cap}</th>
+          <th class="mid">{c.columns.solo}</th>
+          <th class="mid">{c.columns.ai}</th>
+          <th class="mid">{c.columns.rent}</th>
+        </tr>
+      </thead>
+      <tbody>
+        {MOATS.map((m) => (
+          <tr>
+            <td class="num">{m.n}</td>
+            <td>
+              <a href={getLocalizedPath(`/moats/${m.n}/`, lang)}>{names[m.n].name}</a>
+            </td>
+            <td>
+              <span class="rock">
+                <i style={`background:${ROCK_COLORS[m.rock]}`}></i>
+                {t.rocks[m.rock]}
+              </span>
+            </td>
+            <td class="mono">{m.d}</td>
+            <td class="mid mono">{m.cap}</td>
+            <td class="mid mono">{TERNARY_GLYPH[m.solo]}</td>
+            <td class="mid mono">{AI_GLYPH[m.ai]}</td>
+            <td class="mid mono">{TERNARY_GLYPH[m.rent]}</td>
+          </tr>
+        ))}
+      </tbody>
+    </table>
+  </div>
+
+  <p class="back"><a href={getLocalizedPath("/", lang)}>{c.backToAtlas}</a></p>
+</PageLayout>
+
+<style>
+  .table-wrap { overflow-x: auto; -webkit-overflow-scrolling: touch; }
+
+  table { width: 100%; border-collapse: collapse; font-size: 13px; }
+
+  th, td {
+    text-align: left;
+    padding: 9px 12px;
+    border-bottom: 1px solid var(--line);
+    white-space: nowrap;
+  }
+
+  th {
+    font-family: var(--mono);
+    font-size: 10px;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    color: var(--ink-faint);
+    font-weight: 400;
+  }
+
+  td { color: var(--ink-dim); }
+
+  tbody tr:hover { background: color-mix(in srgb, var(--ink) 4%, transparent); }
+
+  .num { width: 44px; font-family: var(--mono); color: var(--ink-faint); }
+  .mid { text-align: center; }
+  .mono { font-family: var(--mono); }
+
+  .rock { display: inline-flex; align-items: center; gap: 8px; }
+  .rock i { width: 9px; height: 9px; flex: 0 0 auto; }
+
+  .back { margin-top: 28px; font-family: var(--mono); font-size: 11px; letter-spacing: 0.08em; }
+</style>

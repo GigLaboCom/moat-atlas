@@ -1,0 +1,12 @@
+---
+import { MOATS } from '../../../data/moats';
+
+export function getStaticPaths() {
+  return MOATS.map((m) => ({ params: { n: String(m.n) } }));
+}
+
+const { n } = Astro.params;
+const url = new URL(`/moats/${n}/`, Astro.url);
+const headers = new Headers({ 'x-locale': 'ru' });
+return Astro.rewrite(new Request(url, { headers }));
+---

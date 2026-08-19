@@ -1,0 +1,20 @@
+{
+  "name": "moat-atlas",
+  "version": "0.0.1",
+  "type": "module",
+  "private": true,
+  "scripts": {
+    "dev": "astro dev",
+    "build": "astro build",
+    "preview": "astro preview",
+    "lint": "eslint ."
+  },
+  "dependencies": {
+    "astro": "^5.17.1"
+  },
+  "devDependencies": {
+    "eslint": "^9",
+    "eslint-plugin-astro": "^1",
+    "typescript-eslint": "^8"
+  }
+}

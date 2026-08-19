@@ -1,0 +1,180 @@
+---
+import { locales, defaultLocale, type Locale } from "../i18n/config";
+import { getLocalizedPath } from "../i18n/index";
+import { siteUrl } from "../lib/url";
+import CookieConsentLoader from "../components/cookie-consent/CookieConsentLoader.astro";
+
+const GA_ID = import.meta.env.PUBLIC_GA_ID as string | undefined;
+
+export interface Props {
+  title?: string;
+  description?: string;
+  lang?: Locale;
+  ogImage?: string;
+  /** Full-bleed pages (the 3D section) opt out of page scrolling. */
+  fixed?: boolean;
+}
+
+const {
+  title = "Moat Atlas",
+  description = "The geology of defensibility.",
+  lang: langProp,
+  ogImage,
+  fixed = false,
+} = Astro.props;
+
+const headerLocale = Astro.request.headers.get("x-locale") as Locale | null;
+const lang: Locale = langProp ?? headerLocale ?? defaultLocale;
+
+// Locale-neutral path — the base for hreflang alternates and the canonical.
+// Non-default locales arrive here through a rewrite, so `Astro.url.pathname`
+// is already the unprefixed path; the loop only guards direct hits.
+const pathname = Astro.url.pathname;
+let basePath = pathname;
+for (const l of locales) {
+  if (l !== defaultLocale && pathname.startsWith(`/${l}/`)) {
+    basePath = pathname.slice(l.length + 1);
+    break;
+  }
+}
+
+// Canonical must be the URL this locale is actually served at — for a rewritten
+// /ru/ page that is the prefixed path, not the path Astro rendered.
+const canonicalPath = getLocalizedPath(basePath, lang);
+---
+
+<!DOCTYPE html>
+<html lang={lang} data-theme="dark">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <meta name="theme-color" content="#14100c" />
+    <meta name="generator" content={Astro.generator} />
+    <title>{title}</title>
+    <meta name="description" content={description} />
+    <meta property="og:title" content={title} />
+    <meta property="og:description" content={description} />
+    <meta property="og:type" content="website" />
+    <meta property="og:image" content={siteUrl(ogImage ?? `/og/og-${lang}.png`)} />
+    <meta property="og:image:width" content="1200" />
+    <meta property="og:image:height" content="630" />
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:image" content={siteUrl(ogImage ?? `/og/og-${lang}.png`)} />
+    {locales.map((l) => (
+      <link rel="alternate" hreflang={l} href={siteUrl(getLocalizedPath(basePath, l))} />
+    ))}
+    <link rel="alternate" hreflang="x-default" href={siteUrl(getLocalizedPath(basePath, defaultLocale))} />
+    <link rel="canonical" href={siteUrl(canonicalPath)} />
+    <slot name="head" />
+    <script is:inline>
+      (function () {
+        const stored = localStorage.getItem('moat-atlas-theme');
+        const theme = stored === 'light' || stored === 'dark'
+          ? stored
+          : window.matchMedia('(prefers-color-scheme: light)').matches ? 'light' : 'dark';
+        document.documentElement.setAttribute('data-theme', theme);
+      })();
+    </script>
+    {GA_ID && (
+      <script is:inline define:vars={{ GA_ID }}>
+        window.dataLayer = window.dataLayer || [];
+        function gtag(){dataLayer.push(arguments);} // eslint-disable-line prefer-rest-params
+        window.gtag = gtag;
+        gtag('consent', 'default', {
+          ad_storage: 'denied',
+          ad_user_data: 'denied',
+          ad_personalization: 'denied',
+          analytics_storage: 'denied',
+          functionality_storage: 'denied',
+          personalization_storage: 'denied',
+          security_storage: 'granted',
+          wait_for_update: 500,
+        });
+        gtag('js', new Date());
+        gtag('config', GA_ID, { send_page_view: false });
+      </script>
+    )}
+    {GA_ID && (
+      <script is:inline src={`https://www.googletagmanager.com/gtag/js?id=${GA_ID}`} async></script>
+    )}
+  </head>
+  <body class:list={[{ fixed }]}>
+    <slot />
+    <cookie-consent-banner lang={lang}></cookie-consent-banner>
+    <CookieConsentLoader />
+  </body>
+</html>
+
+<style is:global>
+  :root,
+  :root[data-theme="dark"] {
+    color-scheme: dark;
+    --earth: #14100c;
+    --panel: rgba(24, 19, 14, 0.86);
+    --panel-solid: #18130e;
+    --line: #3d3123;
+    --ink: #ede3d1;
+    --ink-dim: #a8987f;
+    --ink-faint: #6f6250;
+  }
+
+  :root[data-theme="light"] {
+    color-scheme: light;
+    --earth: #f2ece0;
+    --panel: rgba(255, 253, 248, 0.9);
+    --panel-solid: #fffdf8;
+    --line: #cdbfa6;
+    --ink: #2a2118;
+    --ink-dim: #6b5b45;
+    --ink-faint: #948467;
+  }
+
+  :root {
+    /* Rock palette — shared by the 3D section, the legend and the sheets. */
+    --rock-networks: #2fbfa5;
+    --rock-minds: #d97ba6;
+    --rock-assets: #d6a644;
+    --rock-math: #5e8fbf;
+    --rock-rules: #c0453a;
+    --rock-locks: #9b76d9;
+    --rock-position: #c8cfc2;
+
+    --display: Georgia, "Times New Roman", serif;
+    --mono: ui-monospace, "SF Mono", "Cascadia Mono", Consolas, "Liberation Mono", monospace;
+    --body: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  }
+
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  html { -webkit-font-smoothing: antialiased; }
+
+  body {
+    background: var(--earth);
+    color: var(--ink);
+    font-family: var(--body);
+    min-height: 100svh;
+  }
+
+  /* The cross-section owns the viewport — no page scroll behind it. */
+  body.fixed { height: 100%; overflow: hidden; }
+
+  a { color: inherit; text-decoration: none; }
+
+  .skip-link {
+    position: absolute;
+    left: -9999px;
+    top: 0;
+    z-index: 1000000;
+    background: var(--panel-solid);
+    border: 1px solid var(--line);
+    color: var(--ink);
+    padding: 10px 16px;
+    font-family: var(--mono);
+    font-size: 12px;
+  }
+
+  .skip-link:focus { left: 12px; top: 12px; }
+
+  :focus-visible { outline: 1px solid var(--ink); outline-offset: 2px; }
+</style>

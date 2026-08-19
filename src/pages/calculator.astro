@@ -1,0 +1,138 @@
+---
+import PageLayout from "../layouts/PageLayout.astro";
+import type { Locale } from "../i18n/config";
+import { getTranslations, getLocalizedPath } from "../i18n/index";
+import { ROCK_COLORS } from "../data/moats";
+
+const headerLocale = Astro.request.headers.get("x-locale") as Locale | null;
+const lang: Locale = headerLocale ?? "en";
+const t = getTranslations(lang);
+const c = t.calculator;
+
+const TOTAL_QUESTIONS = 12;
+
+/**
+ * Skeleton readout — the survey engine is not wired up yet, so the segments
+ * show the rocks a finished section would be composed of, all at zero.
+ */
+const segments = ["networks", "locks", "position", "rules"] as const;
+---
+
+<PageLayout
+  lang={lang}
+  title={c.meta.title}
+  description={c.meta.description}
+  basePath="/calculator/"
+  section={c.heading}
+>
+  <div class="eyebrow">{c.tagline}</div>
+  <h1>{c.heading}</h1>
+
+  <div class="calc">
+    <section class="question">
+      <div class="prog">
+        <span>{c.progress.replace("{current}", "1").replace("{total}", String(TOTAL_QUESTIONS))}</span>
+        <div class="bar"><i style={`width:${(1 / TOTAL_QUESTIONS) * 100}%`}></i></div>
+      </div>
+
+      <!-- TODO(survey): questions, scoring and the depth verdict come from the
+           survey engine; this is the shape they land in. -->
+      <p class="placeholder">{c.note}</p>
+
+      <button class="btn" type="button" disabled>{c.start}</button>
+    </section>
+
+    <aside class="readout">
+      <div class="eyebrow">{c.readout.eyebrow}0000</div>
+      <h2>{c.heading}</h2>
+      <dl>
+        <div class="row"><dt>{c.readout.index}</dt><dd>{c.readout.empty}</dd></div>
+        <div class="row"><dt>{c.readout.depth}</dt><dd>{c.readout.empty}</dd></div>
+        <div class="row"><dt>{c.readout.verdict}</dt><dd>{c.readout.empty}</dd></div>
+      </dl>
+      <ul>
+        {segments.map((rock) => (
+          <li><i style={`background:${ROCK_COLORS[rock]}`}></i>{t.rocks[rock]}</li>
+        ))}
+      </ul>
+    </aside>
+  </div>
+
+  <p class="back"><a href={getLocalizedPath("/", lang)}>{t.catalogue.backToAtlas}</a></p>
+</PageLayout>
+
+<style>
+  .calc { display: grid; grid-template-columns: 1fr 260px; gap: 24px; align-items: start; }
+
+  .question, .readout { border: 1px solid var(--line); padding: 18px 20px; }
+
+  .prog { display: flex; align-items: center; gap: 12px; margin-bottom: 16px; }
+
+  .prog span {
+    font-family: var(--mono);
+    font-size: 10px;
+    letter-spacing: 0.18em;
+    color: var(--ink-dim);
+    white-space: nowrap;
+  }
+
+  .bar { flex: 1; height: 2px; background: var(--line); }
+  .bar i { display: block; height: 100%; background: var(--ink-dim); }
+
+  .placeholder { font-size: 13px; color: var(--ink-faint); margin-bottom: 18px; }
+
+  .btn {
+    border: 1px solid var(--line);
+    background: transparent;
+    color: var(--ink-dim);
+    padding: 10px 18px;
+    font-family: var(--mono);
+    font-size: 11px;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    cursor: pointer;
+  }
+
+  .btn[disabled] { opacity: 0.5; cursor: not-allowed; }
+
+  .readout h2 {
+    font-family: var(--display);
+    font-weight: 400;
+    font-size: 18px;
+    letter-spacing: 0.04em;
+    margin: 8px 0 10px;
+  }
+
+  .readout dl { border-top: 1px solid var(--line); }
+
+  .row {
+    display: flex;
+    justify-content: space-between;
+    gap: 12px;
+    padding: 7px 0;
+    font-size: 12px;
+  }
+
+  .row dt { color: var(--ink-faint); }
+  .row dd { font-family: var(--mono); color: var(--ink); }
+
+  .readout ul {
+    list-style: none;
+    display: grid;
+    gap: 6px;
+    border-top: 1px solid var(--line);
+    margin-top: 10px;
+    padding-top: 10px;
+    font-size: 11px;
+    color: var(--ink-dim);
+  }
+
+  .readout li { display: flex; align-items: center; gap: 8px; }
+  .readout i { width: 9px; height: 9px; }
+
+  .back { margin-top: 28px; font-family: var(--mono); font-size: 11px; letter-spacing: 0.08em; }
+
+  @media (max-width: 720px) {
+    .calc { grid-template-columns: 1fr; }
+  }
+</style>

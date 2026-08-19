@@ -1,0 +1,8 @@
+<!--
+  Wrapper component so the cookie-consent script is always loaded.
+  Astro's module-script indexing in Layout.astro skips unconditional scripts
+  when conditional scripts exist; a separate component avoids that.
+-->
+<script>
+  import './index.ts';
+</script>

@@ -1,0 +1,5 @@
+---
+const url = new URL('/credits/', Astro.url);
+const headers = new Headers({ 'x-locale': 'ru' });
+return Astro.rewrite(new Request(url, { headers }));
+---

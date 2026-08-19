@@ -1,0 +1,31 @@
+{
+  "permissions": {
+    "allow": [
+      "Read",
+      "Edit",
+      "Write",
+      "Bash",
+      "WebFetch",
+      "mcp__lazy-shot__*",
+      "mcp__context7__*",
+      "mcp__watchword__*",
+      "WebSearch",
+      "Skill"
+    ],
+    "deny": [
+      "Read(./.claude/settings.json)",
+      "Read(./.claude/settings.local.json)",
+      "Read(./docs/LAUNCH-CHECKLIST.md)",
+      "Read(./.env)",
+      "Read(./**/.env*)",
+      "Read(~/.ssh/**)",
+      "Read(~/.aws/**)"
+    ]
+  },
+  "enableAllProjectMcpServers": true,
+  "enabledMcpjsonServers": [
+    "watchword",
+    "context7",
+    "lazy-shot"
+  ]
+}

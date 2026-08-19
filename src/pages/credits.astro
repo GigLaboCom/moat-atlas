@@ -1,0 +1,114 @@
+---
+import PageLayout from "../layouts/PageLayout.astro";
+import type { Locale } from "../i18n/config";
+import { getTranslations, getLocalizedPath } from "../i18n/index";
+import { creditsPage } from "../i18n/translations/pages/credits";
+import { MOAT_COUNT } from "../data/moats";
+
+const headerLocale = Astro.request.headers.get("x-locale") as Locale | null;
+const lang: Locale = headerLocale ?? "en";
+const t = getTranslations(lang);
+const s = creditsPage[lang] ?? creditsPage.en;
+
+const stack = [s.stack_astro, s.stack_three, s.stack_ga, s.stack_claude];
+
+/** Sections whose copy is still being written render a dash, not a gap. */
+const openSections = [
+  { title: s.section_sources_title, text: s.section_sources_text },
+  { title: s.section_contact_title, text: s.section_contact_text },
+  { title: s.section_license_title, text: s.section_license_text },
+];
+---
+
+<PageLayout
+  lang={lang}
+  title={s.title}
+  description={s.description}
+  basePath="/credits/"
+  section={s.heading}
+>
+  <div class="eyebrow">{s.eyebrow}</div>
+  <h1>{s.heading}</h1>
+  <p class="intro">{s.intro}</p>
+
+  <section>
+    <h2>{s.section_project_title}</h2>
+    <p>{s.section_project_text}</p>
+    <p class="count">
+      <a href={getLocalizedPath("/moats/", lang)}>{MOAT_COUNT} — {t.ui.footer.catalogue}</a>
+    </p>
+  </section>
+
+  <section>
+    <h2>{s.section_author_title}</h2>
+    <div class="byline">
+      <span class="name">{s.author_name}</span>
+      <span class="role">{s.author_role}</span>
+    </div>
+    <p>{s.section_author_note}</p>
+  </section>
+
+  <section>
+    <h2>{s.section_method_title}</h2>
+    <p>{s.section_method_text}</p>
+  </section>
+
+  <section>
+    <h2>{s.section_stack_title}</h2>
+    <ul class="stack">
+      {stack.map((line) => <li>{line}</li>)}
+    </ul>
+  </section>
+
+  {openSections.map((sec) => (
+    <section>
+      <h2>{sec.title}</h2>
+      {sec.text ? <p>{sec.text}</p> : <p class="placeholder">{s.empty}</p>}
+    </section>
+  ))}
+</PageLayout>
+
+<style>
+  .count { margin-top: 12px; font-family: var(--mono); font-size: 11px; letter-spacing: 0.08em; }
+
+  .byline {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    gap: 6px 14px;
+    padding: 12px 0;
+    border-top: 1px solid var(--line);
+    border-bottom: 1px solid var(--line);
+    margin-bottom: 14px;
+  }
+
+  .name { font-family: var(--display); font-size: 18px; letter-spacing: 0.03em; }
+
+  .role {
+    font-family: var(--mono);
+    font-size: 10px;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    color: var(--ink-faint);
+  }
+
+  .stack { list-style: none; display: grid; gap: 8px; }
+
+  .stack li {
+    font-size: 13px;
+    line-height: 1.6;
+    color: var(--ink-dim);
+    padding-left: 16px;
+    position: relative;
+  }
+
+  .stack li::before {
+    content: "▚";
+    position: absolute;
+    left: 0;
+    color: var(--ink-faint);
+    font-size: 10px;
+  }
+
+  .placeholder { color: var(--ink-faint); font-family: var(--mono); }
+</style>

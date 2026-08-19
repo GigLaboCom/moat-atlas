@@ -1,0 +1,343 @@
+---
+import PageLayout from "../../layouts/PageLayout.astro";
+import type { Locale } from "../../i18n/config";
+import { getLocalizedPath } from "../../i18n/index";
+import { cookiesPage } from "../../i18n/translations/pages/cookies";
+
+const headerLocale = Astro.request.headers.get("x-locale") as Locale | null;
+const lang: Locale = headerLocale ?? "en";
+const s = cookiesPage[lang] ?? cookiesPage.en;
+
+const categories = [
+  { title: s.cat_essential_title, text: s.cat_essential_text },
+  { title: s.cat_analytics_title, text: s.cat_analytics_text },
+  { title: s.cat_marketing_title, text: s.cat_marketing_text },
+  { title: s.cat_personalization_title, text: s.cat_personalization_text },
+];
+
+const storage = [
+  {
+    name: s.cookie_consent_name,
+    purpose: s.cookie_consent_purpose,
+    duration: s.cookie_consent_duration,
+    category: s.cookie_consent_category,
+  },
+  {
+    name: s.cookie_theme_name,
+    purpose: s.cookie_theme_purpose,
+    duration: s.cookie_theme_duration,
+    category: s.cookie_theme_category,
+  },
+  {
+    name: s.cookie_ga_name,
+    purpose: s.cookie_ga_purpose,
+    duration: s.cookie_ga_duration,
+    category: s.cookie_ga_category,
+  },
+];
+
+const toggles = [
+  { key: "analytics", label: s.manage_analytics_label, desc: s.manage_analytics_desc },
+  { key: "marketing", label: s.manage_marketing_label, desc: s.manage_marketing_desc },
+  { key: "personalization", label: s.manage_personalization_label, desc: s.manage_personalization_desc },
+];
+---
+
+<PageLayout
+  lang={lang}
+  title={s.title}
+  description={s.description}
+  basePath="/cookies/"
+  section={s.heading}
+>
+  <h1>{s.heading}</h1>
+  <p class="updated">{s.last_updated}</p>
+  <p class="intro">{s.intro}</p>
+
+  <section>
+    <h2>{s.section_what_title}</h2>
+    <p>{s.section_what_text}</p>
+  </section>
+
+  <section>
+    <h2>{s.section_categories_title}</h2>
+    {categories.map((cat) => (
+      <div class="category-card">
+        <h3>{cat.title}</h3>
+        <p>{cat.text}</p>
+      </div>
+    ))}
+  </section>
+
+  <section>
+    <h2>{s.section_specific_title}</h2>
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>{s.table_name}</th>
+            <th>{s.table_purpose}</th>
+            <th>{s.table_duration}</th>
+            <th>{s.table_category}</th>
+          </tr>
+        </thead>
+        <tbody>
+          {storage.map((row) => (
+            <tr>
+              <td><code>{row.name}</code></td>
+              <td>{row.purpose}</td>
+              <td>{row.duration}</td>
+              <td>{row.category}</td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <section>
+    <h2>{s.section_manage_title}</h2>
+    <p>{s.section_manage_text}</p>
+
+    <div class="preferences-panel">
+      <div class="pref-row">
+        <div class="pref-info">
+          <p class="pref-label">{s.manage_essential_label}</p>
+          <p class="pref-desc">{s.manage_essential_desc}</p>
+        </div>
+        <span class="always-active">{s.always_active}</span>
+      </div>
+
+      {toggles.map((row) => (
+        <div class="pref-row">
+          <div class="pref-info">
+            <p class="pref-label">{row.label}</p>
+            <p class="pref-desc">{row.desc}</p>
+          </div>
+          <button
+            type="button"
+            role="switch"
+            aria-checked="false"
+            aria-label={row.label}
+            data-category={row.key}
+            class="toggle-btn"
+          >
+            <span class="toggle-knob"></span>
+          </button>
+        </div>
+      ))}
+
+      <div class="pref-actions">
+        <button class="btn" id="reject-all-btn">{s.reject_all}</button>
+        <button class="btn" id="save-cookies-btn">{s.manage_button}</button>
+        <button class="btn btn-primary" id="accept-all-btn">{s.accept_all}</button>
+      </div>
+
+      <p class="saved-msg" id="saved-msg" role="status">{s.preferences_saved}</p>
+    </div>
+  </section>
+
+  <section>
+    <h2>{s.section_contact_title}</h2>
+    <p>
+      {s.section_contact_text}{" "}
+      <a href={getLocalizedPath("/credits/", lang)}>{s.contact_link}</a>.
+    </p>
+  </section>
+</PageLayout>
+
+<script>
+  import {
+    loadConsent, saveConsent, buildConsentParams, applyToGtag, grantAll, denyAll,
+  } from '../../lib/cookie-consent';
+  import type { ConsentCategories } from '../../lib/cookie-consent';
+  import { trackEvent } from '../../lib/analytics';
+
+  type OptionalCategory = keyof Omit<ConsentCategories, 'essential'>;
+
+  const toggles = document.querySelectorAll<HTMLButtonElement>('button[data-category]');
+
+  function setToggle(btn: HTMLButtonElement, on: boolean) {
+    btn.setAttribute('aria-checked', String(on));
+    btn.classList.toggle('active', on);
+  }
+
+  function setAllToggles(on: boolean) {
+    toggles.forEach((btn) => setToggle(btn, on));
+  }
+
+  function readCategories(): ConsentCategories {
+    const categories: ConsentCategories = {
+      essential: true,
+      analytics: false,
+      marketing: false,
+      personalization: false,
+    };
+    toggles.forEach((btn) => {
+      const cat = btn.dataset.category as OptionalCategory;
+      categories[cat] = btn.getAttribute('aria-checked') === 'true';
+    });
+    return categories;
+  }
+
+  function showSaved() {
+    const msg = document.getElementById('saved-msg');
+    if (!msg) return;
+    msg.classList.add('visible');
+    setTimeout(() => msg.classList.remove('visible'), 2000);
+  }
+
+  function applyAndSave(categories: ConsentCategories, action: string) {
+    saveConsent(categories);
+    applyToGtag(buildConsentParams(categories));
+    trackEvent('cookie_consent', {
+      action,
+      analytics: categories.analytics,
+      marketing: categories.marketing,
+      personalization: categories.personalization,
+    });
+    showSaved();
+  }
+
+  // Reflect the stored choice.
+  const stored = loadConsent();
+  if (stored) {
+    toggles.forEach((btn) => {
+      const cat = btn.dataset.category as OptionalCategory;
+      setToggle(btn, stored.categories[cat]);
+    });
+  }
+
+  toggles.forEach((btn) => {
+    btn.addEventListener('click', () => {
+      setToggle(btn, btn.getAttribute('aria-checked') !== 'true');
+    });
+  });
+
+  document.getElementById('reject-all-btn')?.addEventListener('click', () => {
+    setAllToggles(false);
+    applyAndSave(denyAll(), 'reject_all');
+  });
+
+  document.getElementById('accept-all-btn')?.addEventListener('click', () => {
+    setAllToggles(true);
+    applyAndSave(grantAll(), 'accept_all');
+  });
+
+  document.getElementById('save-cookies-btn')?.addEventListener('click', () => {
+    applyAndSave(readCategories(), 'page_save');
+  });
+</script>
+
+<style>
+  .updated { font-family: var(--mono); font-size: 11px; color: var(--ink-faint); margin-bottom: 24px; }
+
+  .category-card { border: 1px solid var(--line); padding: 14px 16px; margin-bottom: 10px; }
+
+  .table-wrap { overflow-x: auto; -webkit-overflow-scrolling: touch; }
+
+  table { width: 100%; border-collapse: collapse; font-size: 13px; }
+
+  th, td { text-align: left; padding: 9px 12px; border-bottom: 1px solid var(--line); }
+
+  th {
+    font-family: var(--mono);
+    font-size: 10px;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    color: var(--ink-faint);
+    font-weight: 400;
+    white-space: nowrap;
+  }
+
+  td { color: var(--ink-dim); }
+
+  .preferences-panel { margin-top: 20px; border: 1px solid var(--line); padding: 20px; }
+
+  .pref-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+    padding: 14px 0;
+    border-bottom: 1px solid var(--line);
+  }
+
+  .pref-row:last-of-type { border-bottom: 0; }
+
+  .pref-info { flex: 1; min-width: 0; }
+  .pref-label { font-size: 13px; font-weight: 600; color: var(--ink); margin-bottom: 2px; }
+  .pref-desc { font-size: 12px; color: var(--ink-faint); }
+
+  .always-active {
+    font-family: var(--mono);
+    font-size: 10px;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--ink-faint);
+    white-space: nowrap;
+  }
+
+  .toggle-btn {
+    position: relative;
+    display: inline-flex;
+    align-items: center;
+    width: 44px;
+    height: 24px;
+    flex-shrink: 0;
+    cursor: pointer;
+    border: 1px solid var(--line);
+    border-radius: 9999px;
+    background: transparent;
+    padding: 0 2px;
+    transition: background 0.2s, border-color 0.2s;
+  }
+
+  .toggle-btn.active { background: color-mix(in srgb, var(--ink) 20%, transparent); border-color: var(--ink-dim); }
+
+  .toggle-knob {
+    display: inline-block;
+    width: 16px;
+    height: 16px;
+    border-radius: 50%;
+    background: var(--ink-dim);
+    transition: transform 0.2s, background 0.2s;
+    pointer-events: none;
+  }
+
+  .toggle-btn.active .toggle-knob { transform: translateX(20px); background: var(--ink); }
+
+  .pref-actions { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 20px; }
+
+  .btn {
+    border: 1px solid var(--line);
+    background: transparent;
+    color: var(--ink-dim);
+    padding: 10px 18px;
+    font-family: var(--mono);
+    font-size: 11px;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    cursor: pointer;
+    transition: color 0.2s, border-color 0.2s, background 0.2s;
+  }
+
+  .btn:hover { color: var(--ink); border-color: var(--ink-dim); }
+  .btn-primary { color: var(--ink); border-color: var(--ink-dim); background: color-mix(in srgb, var(--ink) 8%, transparent); }
+
+  .saved-msg {
+    margin-top: 14px;
+    font-family: var(--mono);
+    font-size: 11px;
+    letter-spacing: 0.08em;
+    color: var(--ink);
+    opacity: 0;
+    transition: opacity 0.3s;
+  }
+
+  .saved-msg.visible { opacity: 1; }
+
+  @media (max-width: 640px) {
+    .pref-actions .btn { flex: 1 1 auto; text-align: center; }
+  }
+</style>

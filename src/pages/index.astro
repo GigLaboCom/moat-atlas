@@ -1,0 +1,455 @@
+---
+import Layout from "../layouts/Layout.astro";
+import SiteHeader from "../components/SiteHeader.astro";
+import type { Locale } from "../i18n/config";
+import { getTranslations, getLocalizedPath } from "../i18n/index";
+import { getAllMoatStrings } from "../i18n/translations/moats/index";
+import {
+  MOATS,
+  ROCK_ORDER,
+  DEPTH_LEVELS,
+  GROUPING_AXES,
+  ROCK_COLORS,
+} from "../data/moats";
+
+const headerLocale = Astro.request.headers.get("x-locale") as Locale | null;
+const lang: Locale = headerLocale ?? "en";
+const t = getTranslations(lang);
+const names = getAllMoatStrings(lang);
+
+const rockCounts = ROCK_ORDER.map((rock) => ({
+  rock,
+  count: MOATS.filter((m) => m.rock === rock).length,
+}));
+
+/** Serialised for the scene script — keeps the 3D layer language-aware. */
+const sceneData = {
+  lang,
+  moats: MOATS.map((m) => ({ ...m, name: names[m.n].name })),
+  sheetBase: getLocalizedPath("/moats/", lang),
+};
+---
+
+<Layout
+  title={t.meta.title}
+  description={t.meta.description}
+  lang={lang}
+  fixed={true}
+>
+  <canvas id="scene" aria-hidden="true"></canvas>
+
+  <noscript>
+    <div class="noscript">
+      <p>{t.atlas.fallback}</p>
+      <a href={getLocalizedPath("/moats/", lang)}>{t.atlas.fallbackLink}</a>
+    </div>
+  </noscript>
+
+  <!-- header plate + mode tabs -->
+  <header class="hud top">
+    <div class="plate">
+      <div class="eyebrow">{t.atlas.eyebrow}</div>
+      <h1>{t.atlas.title}</h1>
+      <div class="rule"></div>
+      <p class="sub">{t.atlas.subtitle}</p>
+    </div>
+
+    <div class="top-right">
+      <SiteHeader lang={lang} basePath="/" />
+      <nav class="tabs" aria-label={t.atlas.tabs.atlas.title}>
+        <span class="tab active">
+          <strong>{t.atlas.tabs.atlas.title}</strong>
+          <span>{t.atlas.tabs.atlas.sub}</span>
+        </span>
+        <a class="tab" href={getLocalizedPath("/calculator/", lang)}>
+          <strong>{t.atlas.tabs.calc.title}</strong>
+          <span>{t.atlas.tabs.calc.sub}</span>
+        </a>
+      </nav>
+    </div>
+  </header>
+
+  <!-- depth ruler -->
+  <aside class="hud ruler" aria-label={t.atlas.ruler.heading}>
+    {DEPTH_LEVELS.map((lvl) => (
+      <div class="mark">
+        <span class="lvl">{lvl}</span>
+        <span class="tool">
+          {t.atlas.ruler[lvl].tool}
+          <em class="yrs">{t.atlas.ruler[lvl].years}</em>
+        </span>
+      </div>
+    ))}
+  </aside>
+
+  <!-- grouping + rock isolation -->
+  <aside class="hud legend">
+    <h3>{t.atlas.legend.grouping}</h3>
+    <div class="groupers" id="groupers">
+      {GROUPING_AXES.map((axis, i) => (
+        <button class:list={["grp", { on: i === 0 }]} data-axis={axis} type="button">
+          {t.atlas.axes[axis]}
+        </button>
+      ))}
+    </div>
+
+    <h3>{t.atlas.legend.rocks}</h3>
+    <ul id="legend-list">
+      {rockCounts.map(({ rock, count }) => (
+        <li data-rock={rock}>
+          <i style={`background:${ROCK_COLORS[rock]}`}></i>
+          {t.rocks[rock]}
+          <em>{count}</em>
+        </li>
+      ))}
+    </ul>
+
+    <div class="foot" set:html={t.atlas.legend.foot}></div>
+  </aside>
+
+  <!-- specimen card -->
+  <aside class="hud card specimen" id="specimen">
+    <button class="close" id="card-close" hidden aria-label={t.atlas.specimen.close}>✕</button>
+    <div class="eyebrow" id="card-eyebrow">{t.atlas.specimen.empty_eyebrow}</div>
+    <h2 id="card-title">{t.atlas.specimen.empty_title}</h2>
+    <div class="stats" id="card-stats" hidden>
+      <div>{t.atlas.specimen.stats.depth} <b id="s-depth"></b></div>
+      <div>{t.atlas.specimen.stats.cap} <b id="s-cap"></b></div>
+      <div>{t.atlas.specimen.stats.solo} <b id="s-solo"></b></div>
+      <div>{t.atlas.specimen.stats.ai} <b id="s-ai"></b></div>
+      <div>{t.atlas.specimen.stats.rent} <b id="s-rent"></b></div>
+    </div>
+    <p id="card-body">{t.atlas.specimen.empty_body}</p>
+    <a href="#" id="card-link" hidden>{t.atlas.specimen.link}</a>
+  </aside>
+
+  <!-- status line + interaction hint -->
+  <div class="hud status"><span id="tooltip">{t.atlas.loading}</span></div>
+  <div class="hud hint"><span>{t.atlas.hint}</span></div>
+
+  <script define:vars={{ sceneData }} is:inline>
+    // Handed to the scene module below; kept inline so the 3D layer stays
+    // language-aware without a second fetch.
+    window.__ATLAS__ = sceneData;
+  </script>
+</Layout>
+
+<style>
+  #scene {
+    position: fixed;
+    inset: 0;
+    display: block;
+    cursor: grab;
+    /* TODO(scene): the three.js cross-section mounts here. Until then the HUD
+       sits on the plain earth background. */
+    background: var(--earth);
+  }
+
+  #scene.dragging { cursor: grabbing; }
+
+  .noscript {
+    position: fixed;
+    inset: 50% auto auto 50%;
+    transform: translate(-50%, -50%);
+    z-index: 20;
+    max-width: 420px;
+    text-align: center;
+    background: var(--panel);
+    border: 1px solid var(--line);
+    padding: 20px 24px;
+    font-size: 13px;
+    color: var(--ink-dim);
+  }
+
+  .noscript a { color: var(--ink); text-decoration: underline; text-underline-offset: 3px; }
+
+  .hud { position: fixed; z-index: 10; pointer-events: none; }
+  .hud > * { pointer-events: auto; }
+
+  /* header */
+  .top {
+    top: 0;
+    left: 0;
+    right: 0;
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    padding: 22px 26px;
+    gap: 16px;
+  }
+
+  .top-right { display: flex; flex-direction: column; align-items: flex-end; gap: 12px; }
+  .top-right :global(.site-header) { border-bottom: 0; padding-bottom: 0; }
+  .top-right :global(.logo) { display: none; }
+
+  .plate .eyebrow {
+    font-family: var(--mono);
+    font-size: 10px;
+    letter-spacing: 0.28em;
+    text-transform: uppercase;
+    color: var(--ink-faint);
+    margin-bottom: 8px;
+  }
+
+  .plate h1 {
+    font-family: var(--display);
+    font-weight: 400;
+    font-size: clamp(26px, 4vw, 44px);
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    line-height: 1;
+  }
+
+  .plate .rule { width: 64px; height: 1px; background: var(--ink-dim); margin: 10px 0 8px; }
+  .plate .sub { font-size: 12px; color: var(--ink-dim); max-width: 340px; line-height: 1.5; }
+
+  /* mode tabs */
+  .tabs {
+    display: flex;
+    border: 1px solid var(--line);
+    background: var(--panel);
+    backdrop-filter: blur(6px);
+  }
+
+  .tab {
+    padding: 12px 18px 10px;
+    text-align: left;
+    color: var(--ink-dim);
+    border-left: 1px solid var(--line);
+    cursor: pointer;
+  }
+
+  .tab:first-child { border-left: 0; }
+
+  .tab strong {
+    display: block;
+    font-family: var(--display);
+    font-size: 15px;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    font-weight: 400;
+  }
+
+  .tab span {
+    display: block;
+    font-family: var(--mono);
+    font-size: 9px;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    margin-top: 4px;
+    color: var(--ink-faint);
+  }
+
+  .tab.active { color: var(--ink); background: color-mix(in srgb, var(--ink) 6%, transparent); }
+  .tab.active span { color: var(--ink-dim); }
+
+  /* depth ruler */
+  .ruler {
+    left: 26px;
+    top: 50%;
+    transform: translateY(-42%);
+    display: flex;
+    flex-direction: column;
+    gap: 26px;
+  }
+
+  .ruler .mark {
+    display: flex;
+    align-items: baseline;
+    gap: 10px;
+    border-left: 1px solid var(--line);
+    padding-left: 12px;
+  }
+
+  .ruler .lvl { font-family: var(--mono); font-size: 18px; color: var(--ink-dim); }
+
+  .ruler .tool {
+    font-family: var(--mono);
+    font-size: 10px;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+  }
+
+  .ruler .yrs {
+    display: block;
+    font-size: 10px;
+    font-style: normal;
+    color: var(--ink-faint);
+    letter-spacing: 0.05em;
+    margin-top: 2px;
+  }
+
+  /* legend */
+  .legend {
+    left: 26px;
+    bottom: 24px;
+    background: var(--panel);
+    border: 1px solid var(--line);
+    backdrop-filter: blur(6px);
+    padding: 14px 16px;
+    max-width: 280px;
+  }
+
+  .legend h3 {
+    font-family: var(--mono);
+    font-size: 9px;
+    letter-spacing: 0.24em;
+    text-transform: uppercase;
+    color: var(--ink-faint);
+    margin-bottom: 9px;
+  }
+
+  .groupers + h3 { margin-top: 12px; }
+  .groupers { display: flex; flex-wrap: wrap; gap: 4px; }
+
+  .grp {
+    border: 1px solid var(--line);
+    background: transparent;
+    color: var(--ink-dim);
+    font-family: var(--mono);
+    font-size: 10px;
+    letter-spacing: 0.08em;
+    padding: 5px 8px;
+    cursor: pointer;
+  }
+
+  .grp:hover { color: var(--ink); border-color: var(--ink-dim); }
+  .grp.on { color: var(--ink); background: color-mix(in srgb, var(--ink) 8%, transparent); border-color: var(--ink-dim); }
+
+  .legend ul { list-style: none; display: grid; gap: 4px; }
+
+  .legend li {
+    display: flex;
+    align-items: center;
+    gap: 9px;
+    font-size: 12px;
+    color: var(--ink-dim);
+    cursor: pointer;
+    padding: 3px 6px;
+    border: 1px solid transparent;
+  }
+
+  .legend li:hover { color: var(--ink); }
+  .legend li.on { color: var(--ink); border-color: var(--line); background: color-mix(in srgb, var(--ink) 5%, transparent); }
+  .legend i { width: 10px; height: 10px; flex: 0 0 auto; }
+  .legend em { font-style: normal; color: var(--ink-faint); font-family: var(--mono); font-size: 10px; margin-left: auto; }
+
+  .legend .foot {
+    margin-top: 10px;
+    font-family: var(--mono);
+    font-size: 9px;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--ink-faint);
+    line-height: 1.6;
+  }
+
+  /* specimen card */
+  .specimen {
+    right: 26px;
+    top: 50%;
+    transform: translateY(-46%);
+    width: 296px;
+    background: var(--panel);
+    border: 1px solid var(--line);
+    backdrop-filter: blur(6px);
+    padding: 18px;
+  }
+
+  .specimen .close {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    border: 1px solid var(--line);
+    background: transparent;
+    color: var(--ink-dim);
+    width: 24px;
+    height: 24px;
+    cursor: pointer;
+    font-size: 11px;
+    line-height: 1;
+  }
+
+  .specimen .close:hover { color: var(--ink); border-color: var(--ink-dim); }
+  .specimen .close[hidden] { display: none; }
+
+  .specimen .eyebrow {
+    font-family: var(--mono);
+    font-size: 9px;
+    letter-spacing: 0.24em;
+    text-transform: uppercase;
+    color: var(--ink-faint);
+  }
+
+  .specimen h2 {
+    font-family: var(--display);
+    font-weight: 400;
+    font-size: 22px;
+    letter-spacing: 0.03em;
+    margin: 8px 0 12px;
+  }
+
+  .specimen .stats {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 6px 14px;
+    font-family: var(--mono);
+    font-size: 11px;
+    color: var(--ink-dim);
+    border-top: 1px solid var(--line);
+    border-bottom: 1px solid var(--line);
+    padding: 10px 0;
+    margin-bottom: 12px;
+  }
+
+  .specimen .stats[hidden] { display: none; }
+  .specimen .stats b { color: var(--ink); font-weight: 500; }
+  .specimen p { font-size: 12px; line-height: 1.55; color: var(--ink-dim); }
+
+  .specimen a {
+    display: inline-block;
+    margin-top: 14px;
+    color: var(--ink);
+    font-family: var(--mono);
+    font-size: 11px;
+    letter-spacing: 0.1em;
+    border-bottom: 1px solid var(--ink-dim);
+    padding-bottom: 2px;
+  }
+
+  .specimen a:hover { border-color: var(--ink); }
+  .specimen a[hidden] { display: none; }
+
+  /* status line + hint */
+  .status { left: 50%; bottom: 24px; transform: translateX(-50%); text-align: center; }
+
+  .status span {
+    display: inline-block;
+    background: var(--panel);
+    border: 1px solid var(--line);
+    padding: 8px 16px;
+    font-family: var(--mono);
+    font-size: 11px;
+    letter-spacing: 0.06em;
+    color: var(--ink-dim);
+    max-width: calc(100vw - 40px);
+  }
+
+  .hint { right: 26px; bottom: 24px; }
+
+  .hint span {
+    font-family: var(--mono);
+    font-size: 9px;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--ink-faint);
+  }
+
+  /* Below the tablet breakpoint the HUD panels overlap; the catalogue is the
+     honest reading surface there, so the side panels stand down. */
+  @media (max-width: 900px) {
+    .ruler, .hint { display: none; }
+    .legend { left: 16px; right: 16px; bottom: 16px; max-width: none; }
+    .specimen { position: static; width: auto; margin: 140px 16px 0; transform: none; }
+  }
+</style>

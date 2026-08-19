@@ -1,0 +1,23 @@
+---
+import PageLayout from "../layouts/PageLayout.astro";
+import { defaultLocale } from "../i18n/config";
+import { getTranslations, getLocalizedPath } from "../i18n/index";
+
+// A static 404 cannot know the locale of the URL that missed — it answers in
+// the default locale and offers the language switcher like every other page.
+const lang = defaultLocale;
+const t = getTranslations(lang);
+---
+
+<PageLayout
+  lang={lang}
+  title={t.notFound.title}
+  description={t.notFound.description}
+  basePath="/"
+  section={t.notFound.heading}
+>
+  <div class="eyebrow">{t.notFound.heading}</div>
+  <h1>{t.notFound.title}</h1>
+  <p class="intro">{t.notFound.message}</p>
+  <p><a href={getLocalizedPath("/", lang)}>{t.notFound.home}</a></p>
+</PageLayout>

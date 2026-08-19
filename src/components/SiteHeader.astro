@@ -1,0 +1,170 @@
+---
+import type { Locale } from "../i18n/config";
+import { locales } from "../i18n/config";
+import { getTranslations, getLocalizedPath } from "../i18n/index";
+
+export interface Props {
+  lang: Locale;
+  /** Locale-neutral path of the current page, used by the language switcher. */
+  basePath: string;
+  /** Page title shown next to the logo (omit on the atlas itself). */
+  section?: string;
+}
+
+const { lang, basePath, section } = Astro.props;
+const t = getTranslations(lang);
+---
+
+<header class="site-header">
+  <a href={getLocalizedPath("/", lang)} class="logo">
+    <span class="logo-mark" aria-hidden="true">▚</span>
+    <span class="logo-text">{t.atlas.title}</span>
+    {section && <span class="logo-section">/ {section}</span>}
+  </a>
+
+  <div class="controls">
+    <nav class="lang-switcher" aria-label={t.ui.langLabel}>
+      {locales.map((l) => (
+        <a
+          href={getLocalizedPath(basePath, l)}
+          class:list={["lang-link", { active: l === lang }]}
+          aria-current={l === lang ? "page" : undefined}
+          data-locale={l}
+        >
+          {l.toUpperCase()}
+        </a>
+      ))}
+    </nav>
+
+    <button
+      class="theme-toggle"
+      id="theme-toggle"
+      type="button"
+      aria-label="Toggle color theme"
+      data-label-dark={t.ui.themeDark}
+      data-label-light={t.ui.themeLight}
+    >
+      <span data-theme-icon>☾</span>
+      <span data-theme-label>{t.ui.themeDark}</span>
+    </button>
+  </div>
+</header>
+
+<script>
+  import { trackThemeChange, trackLocaleChange } from '../lib/analytics';
+
+  const KEY = 'moat-atlas-theme';
+  const root = document.documentElement;
+  const toggle = document.getElementById('theme-toggle');
+
+  if (toggle) {
+    const icon = toggle.querySelector('[data-theme-icon]');
+    const label = toggle.querySelector('[data-theme-label]');
+    const labelDark = toggle.getAttribute('data-label-dark') || 'Dark';
+    const labelLight = toggle.getAttribute('data-label-light') || 'Light';
+
+    const syncUI = () => {
+      const theme = root.getAttribute('data-theme');
+      if (icon) icon.textContent = theme === 'light' ? '☀' : '☾';
+      if (label) label.textContent = theme === 'light' ? labelLight : labelDark;
+    };
+
+    syncUI();
+
+    toggle.addEventListener('click', () => {
+      const next = root.getAttribute('data-theme') === 'light' ? 'dark' : 'light';
+      root.setAttribute('data-theme', next);
+      localStorage.setItem(KEY, next);
+      syncUI();
+      trackThemeChange(next);
+    });
+
+    if (!localStorage.getItem(KEY)) {
+      window.matchMedia('(prefers-color-scheme: light)').addEventListener('change', (e) => {
+        if (localStorage.getItem(KEY)) return;
+        root.setAttribute('data-theme', e.matches ? 'light' : 'dark');
+        syncUI();
+      });
+    }
+  }
+
+  document.querySelectorAll<HTMLAnchorElement>('.lang-link').forEach((link) => {
+    link.addEventListener('click', () => {
+      const locale = link.dataset.locale;
+      if (locale && locale !== document.documentElement.lang) trackLocaleChange(locale);
+    });
+  });
+</script>
+
+<style>
+  .site-header {
+    display: flex;
+    align-items: center;
+    gap: 24px;
+    padding-bottom: 20px;
+    border-bottom: 1px solid var(--line);
+  }
+
+  .logo {
+    display: flex;
+    align-items: baseline;
+    gap: 10px;
+    font-family: var(--display);
+    font-size: 15px;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    color: var(--ink);
+  }
+
+  .logo-mark { color: var(--ink-dim); }
+  .logo-section { color: var(--ink-faint); letter-spacing: 0.08em; }
+
+  .controls { margin-left: auto; display: flex; align-items: center; gap: 12px; }
+
+  .lang-switcher {
+    display: inline-flex;
+    align-items: center;
+    border: 1px solid var(--line);
+    height: 32px;
+    font-family: var(--mono);
+    font-size: 11px;
+    letter-spacing: 0.08em;
+  }
+
+  .lang-link {
+    display: flex;
+    align-items: center;
+    padding: 0 10px;
+    height: 100%;
+    color: var(--ink-dim);
+    transition: color 0.2s ease, background 0.2s ease;
+  }
+
+  .lang-link:hover { color: var(--ink); background: color-mix(in srgb, var(--ink) 6%, transparent); }
+  .lang-link.active { color: var(--ink); background: color-mix(in srgb, var(--ink) 9%, transparent); }
+  .lang-link + .lang-link { border-left: 1px solid var(--line); }
+
+  .theme-toggle {
+    border: 1px solid var(--line);
+    background: transparent;
+    color: var(--ink-dim);
+    height: 32px;
+    padding: 0 10px;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    font-family: var(--mono);
+    font-size: 11px;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    cursor: pointer;
+    transition: color 0.2s ease, border-color 0.2s ease;
+  }
+
+  .theme-toggle:hover { color: var(--ink); border-color: var(--ink-dim); }
+
+  @media (max-width: 640px) {
+    .site-header { gap: 12px; flex-wrap: wrap; }
+    .logo-section { display: none; }
+  }
+</style>

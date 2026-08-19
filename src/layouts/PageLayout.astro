@@ -1,0 +1,107 @@
+---
+import Layout from "./Layout.astro";
+import SiteHeader from "../components/SiteHeader.astro";
+import SiteFooter from "../components/SiteFooter.astro";
+import type { Locale } from "../i18n/config";
+import { getTranslations } from "../i18n/index";
+
+export interface Props {
+  lang: Locale;
+  title: string;
+  description: string;
+  /** Locale-neutral path, e.g. "/moats/7/" — drives the language switcher. */
+  basePath: string;
+  /** Shown next to the logo. */
+  section?: string;
+  /** Wide pages (the catalogue table) drop the reading-column cap. */
+  wide?: boolean;
+}
+
+const { lang, title, description, basePath, section, wide = false } = Astro.props;
+const t = getTranslations(lang);
+---
+
+<Layout title={title} description={description} lang={lang}>
+  <slot name="head" slot="head" />
+
+  <a href="#content" class="skip-link">{t.ui.skipToContent}</a>
+
+  <div class="page">
+    <SiteHeader lang={lang} basePath={basePath} section={section} />
+    <main id="content" class:list={["page-main", { wide }]}>
+      <slot />
+    </main>
+    <SiteFooter lang={lang} />
+  </div>
+</Layout>
+
+<style>
+  .page {
+    min-height: 100svh;
+    display: flex;
+    flex-direction: column;
+    max-width: 1280px;
+    margin: 0 auto;
+    padding: 40px 32px;
+  }
+
+  .page-main { flex: 1; max-width: 760px; padding-top: 48px; }
+  .page-main.wide { max-width: none; }
+
+  @media (max-width: 640px) {
+    .page { padding: 24px 16px; }
+    .page-main { padding-top: 32px; }
+  }
+</style>
+
+<style is:global>
+  /* Shared prose scale for content pages. */
+  .page-main h1 {
+    font-family: var(--display);
+    font-weight: 400;
+    font-size: clamp(28px, 4vw, 40px);
+    letter-spacing: 0.04em;
+    margin-bottom: 8px;
+  }
+
+  .page-main .eyebrow {
+    font-family: var(--mono);
+    font-size: 10px;
+    letter-spacing: 0.24em;
+    text-transform: uppercase;
+    color: var(--ink-faint);
+    margin-bottom: 10px;
+  }
+
+  .page-main h2 {
+    font-family: var(--display);
+    font-weight: 400;
+    font-size: 20px;
+    letter-spacing: 0.03em;
+    margin-bottom: 10px;
+  }
+
+  .page-main h3 { font-size: 15px; font-weight: 600; margin-bottom: 6px; }
+
+  .page-main p { font-size: 14px; line-height: 1.7; color: var(--ink-dim); }
+
+  .page-main section { margin-bottom: 36px; }
+
+  .page-main .intro { font-size: 15px; margin-bottom: 36px; }
+
+  .page-main a:not(.btn) {
+    color: var(--ink);
+    text-decoration: underline;
+    text-underline-offset: 3px;
+    text-decoration-color: var(--ink-faint);
+  }
+
+  .page-main a:not(.btn):hover { text-decoration-color: var(--ink); }
+
+  .page-main code {
+    font-family: var(--mono);
+    font-size: 0.85em;
+    border: 1px solid var(--line);
+    padding: 2px 6px;
+  }
+</style>

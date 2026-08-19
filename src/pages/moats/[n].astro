@@ -1,0 +1,147 @@
+---
+import PageLayout from "../../layouts/PageLayout.astro";
+import type { Locale } from "../../i18n/config";
+import { getTranslations, getLocalizedPath } from "../../i18n/index";
+import { getMoatStrings, isDraft } from "../../i18n/translations/moats/index";
+import { MOATS, byNumber, ROCK_COLORS, MOAT_COUNT } from "../../data/moats";
+
+export function getStaticPaths() {
+  return MOATS.map((m) => ({ params: { n: String(m.n) } }));
+}
+
+const headerLocale = Astro.request.headers.get("x-locale") as Locale | null;
+const lang: Locale = headerLocale ?? "en";
+const t = getTranslations(lang);
+
+const n = Number(Astro.params.n);
+const moat = byNumber[n];
+const s = getMoatStrings(lang, n);
+const draft = isDraft(s);
+
+const depthLevel = Math.round(moat.d) as 1 | 2 | 3 | 4;
+const capLevel = Math.round(moat.capN) as 1 | 2 | 3 | 4;
+
+const passport = [
+  { label: t.catalogue.columns.rock, value: t.rocks[moat.rock] },
+  { label: t.catalogue.columns.depth, value: `${moat.d} · ${t.atlas.ruler[depthLevel].tool}` },
+  { label: t.sheet.years, value: t.atlas.ruler[depthLevel].years },
+  { label: t.catalogue.columns.cap, value: `${moat.cap} · ${t.values.cap[capLevel]}` },
+  { label: t.catalogue.columns.solo, value: t.values.solo[moat.solo] },
+  { label: t.catalogue.columns.ai, value: t.values.ai[moat.ai] },
+  { label: t.catalogue.columns.rent, value: t.values.rent[moat.rent] },
+];
+
+const prev = n > 1 ? n - 1 : null;
+const next = n < MOAT_COUNT ? n + 1 : null;
+
+const title = `${s.name} — ${t.atlas.title}`;
+const description = s.essence || t.catalogue.meta.description;
+---
+
+<PageLayout
+  lang={lang}
+  title={title}
+  description={description}
+  basePath={`/moats/${n}/`}
+  section={`${t.sheet.eyebrow} ${n}`}
+>
+  <div class="eyebrow">
+    {t.sheet.eyebrow} {n} / {MOAT_COUNT}
+    <span class="rock-tag">
+      <i style={`background:${ROCK_COLORS[moat.rock]}`}></i>{t.rocks[moat.rock]}
+    </span>
+  </div>
+  <h1>{s.name}</h1>
+
+  {draft && <p class="draft">{t.sheet.draft}</p>}
+
+  <section class="passport">
+    <h2>{t.sheet.passport}</h2>
+    <dl>
+      {passport.map((row) => (
+        <div class="row">
+          <dt>{row.label}</dt>
+          <dd>{row.value}</dd>
+        </div>
+      ))}
+    </dl>
+  </section>
+
+  <section>
+    <h2>{t.sheet.essence}</h2>
+    {s.essence ? <p>{s.essence}</p> : <p class="placeholder">—</p>}
+  </section>
+
+  <section>
+    <h2>{t.sheet.build}</h2>
+    {s.build ? <p>{s.build}</p> : <p class="placeholder">—</p>}
+  </section>
+
+  <section>
+    <h2>{t.sheet.bypass}</h2>
+    {s.bypass ? <p>{s.bypass}</p> : <p class="placeholder">—</p>}
+  </section>
+
+  <nav class="sheet-nav">
+    {prev ? <a href={getLocalizedPath(`/moats/${prev}/`, lang)}>{t.sheet.prev}</a> : <span></span>}
+    <a href={`${getLocalizedPath("/", lang)}#moat-${n}`} class="mid">{t.sheet.showInAtlas}</a>
+    {next ? <a href={getLocalizedPath(`/moats/${next}/`, lang)}>{t.sheet.next}</a> : <span></span>}
+  </nav>
+</PageLayout>
+
+<style>
+  .eyebrow { display: flex; align-items: center; gap: 14px; }
+
+  .rock-tag { display: inline-flex; align-items: center; gap: 6px; letter-spacing: 0.16em; }
+  .rock-tag i { width: 8px; height: 8px; }
+
+  .draft {
+    border: 1px solid var(--line);
+    border-left: 2px solid var(--ink-dim);
+    padding: 12px 14px;
+    font-size: 13px;
+    margin: 20px 0 36px;
+  }
+
+  .passport dl { border-top: 1px solid var(--line); }
+
+  .row {
+    display: flex;
+    gap: 16px;
+    padding: 9px 0;
+    border-bottom: 1px solid var(--line);
+    font-size: 13px;
+  }
+
+  dt {
+    font-family: var(--mono);
+    font-size: 10px;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    color: var(--ink-faint);
+    min-width: 140px;
+  }
+
+  dd { color: var(--ink); margin-left: auto; text-align: right; }
+
+  .placeholder { color: var(--ink-faint); font-family: var(--mono); }
+
+  .sheet-nav {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 16px;
+    margin-top: 40px;
+    padding-top: 18px;
+    border-top: 1px solid var(--line);
+    font-family: var(--mono);
+    font-size: 11px;
+    letter-spacing: 0.08em;
+  }
+
+  @media (max-width: 640px) {
+    .row { flex-direction: column; gap: 4px; }
+    dd { margin-left: 0; text-align: left; }
+    .sheet-nav { flex-direction: column; align-items: flex-start; }
+  }
+</style>
