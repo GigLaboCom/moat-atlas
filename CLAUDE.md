@@ -10,6 +10,7 @@ npm run build     # static build to dist/
 npm run preview
 npm run lint
 npm run og        # re-render public/og/og-{lang}.png (Playwright)
+npm run icons     # re-render favicons/manifests/browserconfig from icons/*.svg
 ```
 
 No test runner is configured. **After touching any file, run `npm run lint && npm run build`** — the build is the authoritative correctness check.
@@ -44,6 +45,15 @@ per component, with the shared palette and type scale as custom properties in
   `/moats/7/`, translation key `7`. Do not renumber.
 - **Empty copy**: a moat sheet with no prose renders a draft notice and dashes.
   That is intentional — leave the fields empty rather than inventing text.
+
+## Icons
+
+Masters live in `icons/` (`icon.svg`, `icon-maskable.svg`, `icon-mono.svg`);
+`npm run icons` regenerates every favicon, app icon, `favicon.ico`,
+`safari-pinned-tab.svg`, `browserconfig.xml` and the per-locale manifests into
+`public/`. Those outputs are generated — edit the master and re-run, never the
+files under `public/`. Manifest copy comes from the locale dictionaries and the
+tile/theme colour from the dark palette in `Layout.astro`.
 
 ## Open Graph cards
 

@@ -1,0 +1,66 @@
+{
+  "name": "Moat Atlas — the geology of defensibility",
+  "short_name": "Moat Atlas",
+  "description": "An interactive cross-section of 35 defensibility mechanics: rock types, depths, digging tools, and a survey to measure your own moat.",
+  "lang": "en",
+  "id": "/",
+  "scope": "/",
+  "start_url": "/?utm_source=web_app_manifest",
+  "display": "standalone",
+  "theme_color": "#14100c",
+  "background_color": "#14100c",
+  "icons": [
+    {
+      "src": "/android-chrome-36x36.png",
+      "sizes": "36x36",
+      "type": "image/png"
+    },
+    {
+      "src": "/android-chrome-48x48.png",
+      "sizes": "48x48",
+      "type": "image/png"
+    },
+    {
+      "src": "/android-chrome-72x72.png",
+      "sizes": "72x72",
+      "type": "image/png"
+    },
+    {
+      "src": "/android-chrome-96x96.png",
+      "sizes": "96x96",
+      "type": "image/png"
+    },
+    {
+      "src": "/android-chrome-144x144.png",
+      "sizes": "144x144",
+      "type": "image/png"
+    },
+    {
+      "src": "/android-chrome-192x192.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "/android-chrome-256x256.png",
+      "sizes": "256x256",
+      "type": "image/png"
+    },
+    {
+      "src": "/android-chrome-512x512.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    },
+    {
+      "src": "/maskable-192x192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "maskable"
+    },
+    {
+      "src": "/maskable-512x512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
+    }
+  ]
+}

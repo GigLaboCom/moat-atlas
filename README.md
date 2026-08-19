@@ -11,6 +11,7 @@ npm run build     # static build to dist/
 npm run preview   # preview the production build
 npm run lint      # ESLint 9 (flat config)
 npm run og        # re-render the Open Graph cards into public/og/
+npm run icons     # re-render favicons, app icons, manifests, browserconfig
 ```
 
 Run `npm run lint && npm run build` before finishing any change — the build is the authoritative correctness check.
@@ -76,6 +77,27 @@ for the deep link (`/#moat-7`) and the sheet route (`/moats/7/`).
   and lets non-EU visitors skip the banner. Without it — and whenever the lookup
   fails — the banner is shown to everyone.
 - Every analytics event carries the current locale (`src/lib/analytics.ts`).
+
+## Icons
+
+Everything a browser can ask for is generated from three masters in `icons/` —
+`icon.svg`, `icon-maskable.svg` (Android safe zone) and `icon-mono.svg` (Safari
+pinned tab):
+
+```bash
+npm run icons
+```
+
+`scripts/generate-icons.mjs` renders it with the same Playwright Chromium the OG
+cards use — no Inkscape or ImageMagick — and writes into `public/`:
+`favicon.ico` (16/32/48/256, assembled by the script), `favicon.svg`,
+`favicon-*.png`, `android-chrome-36…512`, `maskable-192/512`,
+`apple-touch-icon.png`, `safari-pinned-tab.svg`,
+`assets/images/favicon-128…1024`, `assets/images/mstile/*`, `browserconfig.xml`
+and one manifest per locale (`site.webmanifest`, `site.ru.webmanifest` — names
+and descriptions come from the dictionaries, so the RU install prompt is in
+Russian). `Layout.astro` links all of it. Edit a master, re-run, commit the
+output; see `icons/README.md` for the full table.
 
 ## Open Graph cards
 

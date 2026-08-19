@@ -8,7 +8,8 @@
     "build": "astro build",
     "preview": "astro preview",
     "lint": "eslint .",
-    "og": "node scripts/generate-og-images.mjs"
+    "og": "node scripts/generate-og-images.mjs",
+    "icons": "node scripts/generate-icons.mjs"
   },
   "dependencies": {
     "astro": "^5.17.1"
