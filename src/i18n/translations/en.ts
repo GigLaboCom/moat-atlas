@@ -148,6 +148,14 @@ export default {
       updated: "Updated",
     },
   },
+  /** Open Graph card — `npm run og`; the numbers come from src/data/moats.ts. */
+  og: {
+    stats: {
+      moats: "mechanics",
+      rocks: "rock types",
+      depths: "depths",
+    },
+  },
   notFound: {
     title: "Page not found",
     description: "This shaft has not been drilled.",

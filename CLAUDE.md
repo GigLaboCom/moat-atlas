@@ -9,6 +9,7 @@ npm run dev       # localhost:4321
 npm run build     # static build to dist/
 npm run preview
 npm run lint
+npm run og        # re-render public/og/og-{lang}.png (Playwright)
 ```
 
 No test runner is configured. **After touching any file, run `npm run lint && npm run build`** — the build is the authoritative correctness check.
@@ -43,6 +44,14 @@ per component, with the shared palette and type scale as custom properties in
   `/moats/7/`, translation key `7`. Do not renumber.
 - **Empty copy**: a moat sheet with no prose renders a draft notice and dashes.
   That is intentional — leave the fields empty rather than inventing text.
+
+## Open Graph cards
+
+`npm run og` renders `public/og/og-{lang}.png` from `scripts/og/template.mjs`
+(palette and fonts mirrored from `Layout.astro`, copy from the locale
+dictionaries, specimens from `src/data/moats.ts`). Re-run and commit the PNGs
+after changing the card copy — `og.stats`, `atlas.*`, `ui.tagline`, `rocks.*` —
+or the matrix. Never hard-code card text in the script.
 
 ## Adding a moat sheet's prose
 

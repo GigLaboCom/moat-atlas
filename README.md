@@ -10,6 +10,7 @@ npm run dev       # dev server at localhost:4321
 npm run build     # static build to dist/
 npm run preview   # preview the production build
 npm run lint      # ESLint 9 (flat config)
+npm run og        # re-render the Open Graph cards into public/og/
 ```
 
 Run `npm run lint && npm run build` before finishing any change — the build is the authoritative correctness check.
@@ -76,6 +77,32 @@ for the deep link (`/#moat-7`) and the sheet route (`/moats/7/`).
   fails — the banner is shown to everyone.
 - Every analytics event carries the current locale (`src/lib/analytics.ts`).
 
+## Open Graph cards
+
+`/og/og-{lang}.png` — the image every page points at, one per locale, 1200×630.
+They are generated, not hand-drawn:
+
+```bash
+npm run og                # both locales into public/og/
+npm run og -- ru          # one locale
+npm run og -- --html      # also dump the rendered HTML next to the PNG
+npm run og -- --out /tmp  # render somewhere else
+```
+
+`scripts/og/template.mjs` builds a self-contained HTML card — the dark-theme
+palette and system font stacks from `src/layouts/Layout.astro`, the copy from
+the locale dictionary (`og.stats`, `atlas.*`, `ui.tagline`, `rocks.*`) and the
+specimens from `src/data/moats.ts`: one chip per mechanic, laid into its depth
+band, coloured by rock, width by the capital it takes.
+`scripts/generate-og-images.mjs` screenshots it with Playwright.
+
+Re-run it after changing that copy, the matrix, or the card design, and commit
+the PNGs — the build only copies `public/` across. It needs Node ≥ 22.18 (the
+script imports the `.ts` sources through native type stripping) and the
+Playwright Chromium build (`npx playwright install chromium`). Fonts are
+resolved locally, so the card looks the way it does on macOS; regenerate on the
+same machine family to keep the two locales consistent.
+
 ## Environment
 
 | Variable              | Effect                                          |
@@ -89,4 +116,3 @@ for the deep link (`/#moat-7`) and the sheet route (`/moats/7/`).
 - the three.js cross-section on `/` (shafts, strata, six groupings, core cards)
 - the survey engine and scoring behind `/calculator/`
 - sheet prose for all 35 mechanics (`essence`, `build`, `bypass` are empty)
-- OG images at `/og/og-{lang}.png`

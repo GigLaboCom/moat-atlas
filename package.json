@@ -7,7 +7,8 @@
     "dev": "astro dev",
     "build": "astro build",
     "preview": "astro preview",
-    "lint": "eslint ."
+    "lint": "eslint .",
+    "og": "node scripts/generate-og-images.mjs"
   },
   "dependencies": {
     "astro": "^5.17.1"
@@ -15,6 +16,7 @@
   "devDependencies": {
     "eslint": "^9",
     "eslint-plugin-astro": "^1",
+    "playwright": "^1.62.1",
     "typescript-eslint": "^8"
   }
 }

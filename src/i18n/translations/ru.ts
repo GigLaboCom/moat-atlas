@@ -148,6 +148,14 @@ export default {
       updated: "Обновлено",
     },
   },
+  /** Карточка Open Graph — `npm run og`; числа берутся из src/data/moats.ts. */
+  og: {
+    stats: {
+      moats: "механик",
+      rocks: "пород",
+      depths: "глубины",
+    },
+  },
   notFound: {
     title: "Страница не найдена",
     description: "Эта шахта не пробурена.",
