@@ -60,6 +60,31 @@ export function trackSheetOpen(n: number, source: string): void {
   trackEvent("sheet_open", { moat_id: n, source });
 }
 
+/** Sheet II — the survey was started (or restarted). */
+export function trackSurveyStart(resumed: boolean): void {
+  trackEvent("survey_start", { resumed });
+}
+
+/** One question answered. `weight` is the 0–100 the option is worth. */
+export function trackSurveyAnswer(question: string, weight: number, step: number): void {
+  trackEvent("survey_answer", { question, weight, step });
+}
+
+/** All twelve answered — the section is measured. */
+export function trackSurveyComplete(
+  index: number,
+  depth: number,
+  strongest: string,
+  weakest: string,
+): void {
+  trackEvent("survey_complete", { moat_index: index, depth, strongest, weakest });
+}
+
+/** The result link was copied. */
+export function trackSurveyShare(index: number): void {
+  trackEvent("survey_share", { moat_index: index });
+}
+
 export function trackThemeChange(theme: string): void {
   trackEvent("theme_change", { theme });
 }

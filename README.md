@@ -87,6 +87,34 @@ cross-section shape encode the rock, thickness the capital, length the depth.
   `prefers-reduced-motion`, and falls back to the catalogue link if WebGL is
   missing.
 
+## The calculator (sheet II)
+
+`/calculator/` measures the moat you actually have. Twelve questions in four
+segments of three — Pull, Ground, Grip, Leverage — each answered on a five-rung
+ladder worth 0, 25, 50, 75 or 100.
+
+- **Shape and scoring** live in `src/data/survey.ts`, language-neutral like the
+  matrix: the segments, the questions, the weights, `scoreSurvey()`, and the
+  hash codec. Every question also names the mechanics it probes; between them
+  the twelve cover all 35 rows of the matrix exactly once (`SURVEY_COVERS_MATRIX`
+  asserts it).
+- **Copy** lives in `src/i18n/translations/pages/calculator.ts`, keyed by
+  question id, with the five options in ascending order. Changing a question is
+  a copy change; changing what it probes is a `survey.ts` change.
+- **The result** is an index 0–100, a depth on the same 1–4 ruler as sheet I (so
+  the verdict is the tool a rival would need), the four segment scores, and two
+  lists drawn from the matrix: the mechanics behind your deepest answers, and
+  the ones behind your shallowest, cheapest and quickest first. Both link
+  straight to their sheets.
+- **Answers live in the URL hash** (`#s=432102441032`, one digit per question,
+  `-` for skipped) and nowhere else. The link is the section: it survives a
+  reload, it is shareable, and the survey touches no storage, so it needs no
+  consent category.
+- `src/scripts/calculator.ts` is the engine; like the 3D scene it takes every
+  string through `window.__SURVEY__` and writes none of its own. Keys `1`–`5`
+  pick an option, `←` steps back. Without JavaScript the page states as much and
+  the start button stays disabled.
+
 ## Cookies and analytics
 
 - GA4 loads only when `PUBLIC_GA_ID` is set, in Consent Mode v2 with everything
@@ -156,5 +184,4 @@ same machine family to keep the two locales consistent.
 
 ## Still to build
 
-- the survey engine and scoring behind `/calculator/`
 - sheet prose for all 35 mechanics (`essence`, `build`, `bypass` are empty)

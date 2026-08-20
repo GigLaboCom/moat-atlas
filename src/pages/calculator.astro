@@ -2,20 +2,66 @@
 import PageLayout from "../layouts/PageLayout.astro";
 import type { Locale } from "../i18n/config";
 import { getTranslations, getLocalizedPath } from "../i18n/index";
-import { ROCK_COLORS } from "../data/moats";
+import { calculatorPage } from "../i18n/translations/pages/calculator";
+import { getMoatStrings } from "../i18n/translations/moats/index";
+import { MOATS, ROCK_COLORS, DEPTH_LEVELS } from "../data/moats";
+import {
+  QUESTIONS,
+  SEGMENT_KEYS,
+  SEGMENT_ROCK,
+  OPTION_WEIGHTS,
+} from "../data/survey";
 
 const headerLocale = Astro.request.headers.get("x-locale") as Locale | null;
 const lang: Locale = headerLocale ?? "en";
 const t = getTranslations(lang);
 const c = t.calculator;
-
-const TOTAL_QUESTIONS = 12;
+const s = calculatorPage[lang] ?? calculatorPage.en;
 
 /**
- * Skeleton readout — the survey engine is not wired up yet, so the segments
- * show the rocks a finished section would be composed of, all at zero.
+ * Everything the survey engine needs, handed over as one payload — same
+ * arrangement as the cross-section: no user-visible string is written inside
+ * `src/scripts/calculator.ts`.
  */
-const segments = ["networks", "locks", "position", "rules"] as const;
+const surveyData = {
+  weights: OPTION_WEIGHTS,
+  questions: QUESTIONS.map((q) => ({
+    id: q.id,
+    segment: q.segment,
+    rock: SEGMENT_ROCK[q.segment],
+    ...s.questions[q.id],
+  })),
+  segments: Object.fromEntries(
+    SEGMENT_KEYS.map((key) => [
+      key,
+      { ...s.segments[key], rock: SEGMENT_ROCK[key], color: ROCK_COLORS[SEGMENT_ROCK[key]] },
+    ]),
+  ),
+  rockNames: t.rocks,
+  rockLabel: c.rockLabel,
+  progress: c.progress,
+  ruler: Object.fromEntries(
+    DEPTH_LEVELS.map((l) => [String(l), { tool: t.atlas.ruler[l].tool, years: t.atlas.ruler[l].years }]),
+  ),
+  depthLabels: t.values.depth,
+  verdicts: s.verdicts,
+  result: s.result,
+  nav: s.nav,
+  readout: c.readout,
+  moats: Object.fromEntries(
+    MOATS.map((m) => [
+      m.n,
+      {
+        name: getMoatStrings(lang, m.n).name,
+        rock: t.rocks[m.rock],
+        color: ROCK_COLORS[m.rock],
+        depth: `${m.d} · ${t.atlas.ruler[Math.round(m.d) as 1 | 2 | 3 | 4].tool}`,
+        href: getLocalizedPath(`/moats/${m.n}/`, lang),
+      },
+    ]),
+  ),
+  catalogueHref: getLocalizedPath("/moats/", lang),
+};
 ---
 
 <PageLayout
@@ -29,42 +75,123 @@ const segments = ["networks", "locks", "position", "rules"] as const;
   <h1>{c.heading}</h1>
 
   <div class="calc">
-    <section class="question">
-      <div class="prog">
-        <span>{c.progress.replace("{current}", "1").replace("{total}", String(TOTAL_QUESTIONS))}</span>
-        <div class="bar"><i style={`width:${(1 / TOTAL_QUESTIONS) * 100}%`}></i></div>
-      </div>
+    <div class="stage">
+      <section class="panel" id="panel-intro">
+        <p class="lead">{s.intro}</p>
+        <p class="note">{c.note}</p>
+        <button class="btn" type="button" id="start" disabled>{c.start}</button>
+        <p class="needs-js" id="needs-js">{s.needsJs}</p>
+      </section>
 
-      <!-- TODO(survey): questions, scoring and the depth verdict come from the
-           survey engine; this is the shape they land in. -->
-      <p class="placeholder">{c.note}</p>
+      <section class="panel" id="panel-question" hidden>
+        <div class="prog">
+          <span id="q-progress"></span>
+          <div class="bar"><i id="q-bar"></i></div>
+          <span class="rock" id="q-rock"><i></i><em></em></span>
+        </div>
+        <div class="eyebrow" id="q-eyebrow"></div>
+        <h2 id="q-title"></h2>
+        <div class="options" id="q-options"></div>
+        <div class="qnav">
+          <button class="ghost" type="button" id="q-back"></button>
+          <button class="ghost" type="button" id="q-skip"></button>
+        </div>
+      </section>
 
-      <button class="btn" type="button" disabled>{c.start}</button>
-    </section>
+      <section class="panel result" id="panel-result" hidden>
+        <div class="eyebrow" id="r-eyebrow"></div>
+        <h2 id="r-heading"></h2>
+        <p class="lead" id="r-lead"></p>
+
+        <div class="verdict">
+          <div class="gauge">
+            <strong id="r-index"></strong>
+            <span id="r-depth"></span>
+          </div>
+          <div>
+            <p id="r-verdict"></p>
+            <p class="rival" id="r-rival"></p>
+          </div>
+        </div>
+
+        <h3 id="r-seg-title"></h3>
+        <ul class="segbars" id="r-segments"></ul>
+
+        <div class="finds">
+          <div class="find" id="r-holding" hidden>
+            <h3 id="r-holding-title"></h3>
+            <p id="r-holding-lead"></p>
+            <ul id="r-holding-list"></ul>
+          </div>
+          <div class="find" id="r-dig" hidden>
+            <h3 id="r-dig-title"></h3>
+            <p id="r-dig-lead"></p>
+            <ul id="r-dig-list"></ul>
+          </div>
+        </div>
+
+        <div class="actions">
+          <button class="btn" type="button" id="r-restart"></button>
+          <button class="ghost" type="button" id="r-share"></button>
+          <a class="ghost-link" id="r-catalogue" href={surveyData.catalogueHref}></a>
+        </div>
+      </section>
+    </div>
 
     <aside class="readout">
-      <div class="eyebrow">{c.readout.eyebrow}0000</div>
+      <div class="eyebrow"><span>{c.readout.eyebrow}</span><code id="o-code"></code></div>
       <h2>{c.heading}</h2>
       <dl>
-        <div class="row"><dt>{c.readout.index}</dt><dd>{c.readout.empty}</dd></div>
-        <div class="row"><dt>{c.readout.depth}</dt><dd>{c.readout.empty}</dd></div>
-        <div class="row"><dt>{c.readout.verdict}</dt><dd>{c.readout.empty}</dd></div>
+        <div class="row"><dt>{c.readout.index}</dt><dd id="o-index">{c.readout.empty}</dd></div>
+        <div class="row"><dt>{c.readout.depth}</dt><dd id="o-depth">{c.readout.empty}</dd></div>
+        <div class="row"><dt>{c.readout.verdict}</dt><dd id="o-verdict">{c.readout.empty}</dd></div>
       </dl>
-      <ul>
-        {segments.map((rock) => (
-          <li><i style={`background:${ROCK_COLORS[rock]}`}></i>{t.rocks[rock]}</li>
+
+      <div class="sectionbox">
+        <div class="ground"><span>{s.section.ground}</span></div>
+        <div class="bars" id="o-bars">
+          {QUESTIONS.map((q) => (
+            <i data-q={q.id} style={`--c:${ROCK_COLORS[SEGMENT_ROCK[q.segment]]}`}></i>
+          ))}
+        </div>
+        <p class="hint">{s.section.hint}</p>
+      </div>
+
+      <ul class="legend">
+        {SEGMENT_KEYS.map((key) => (
+          <li>
+            <i style={`background:${ROCK_COLORS[SEGMENT_ROCK[key]]}`}></i>
+            <span>{s.segments[key].name}</span>
+            <b data-segment={key}>{c.readout.empty}</b>
+          </li>
         ))}
       </ul>
     </aside>
   </div>
 
   <p class="back"><a href={getLocalizedPath("/", lang)}>{t.catalogue.backToAtlas}</a></p>
+
+  <script define:vars={{ surveyData }} is:inline>
+    // Handed to the engine below; inline so the survey stays language-aware
+    // without a second fetch.
+    window.__SURVEY__ = surveyData;
+  </script>
+
+  <script>
+    import "../scripts/calculator";
+  </script>
 </PageLayout>
 
 <style>
   .calc { display: grid; grid-template-columns: 1fr 260px; gap: 24px; align-items: start; }
 
-  .question, .readout { border: 1px solid var(--line); padding: 18px 20px; }
+  .panel, .readout { border: 1px solid var(--line); padding: 18px 20px; }
+
+  .lead { font-size: 14px; line-height: 1.65; color: var(--ink-dim); margin-bottom: 14px; }
+  .note { font-size: 13px; color: var(--ink-faint); margin-bottom: 18px; }
+
+  /* The engine hides this the moment it boots — without JS the notice stands. */
+  .needs-js { font-size: 12px; color: var(--ink-faint); margin-top: 12px; }
 
   .prog { display: flex; align-items: center; gap: 12px; margin-bottom: 16px; }
 
@@ -76,12 +203,58 @@ const segments = ["networks", "locks", "position", "rules"] as const;
     white-space: nowrap;
   }
 
+  .prog .rock { display: flex; align-items: center; gap: 6px; }
+  .prog .rock i { width: 8px; height: 8px; }
+  .prog .rock em { font-style: normal; }
+
   .bar { flex: 1; height: 2px; background: var(--line); }
-  .bar i { display: block; height: 100%; background: var(--ink-dim); }
+  .bar i { display: block; height: 100%; background: var(--ink-dim); transition: width 0.25s ease; }
 
-  .placeholder { font-size: 13px; color: var(--ink-faint); margin-bottom: 18px; }
+  #panel-question h2, .result h2 {
+    font-family: var(--display);
+    font-weight: 400;
+    font-size: 22px;
+    line-height: 1.3;
+    letter-spacing: 0.02em;
+    margin-bottom: 16px;
+  }
 
-  .btn {
+  .options { display: grid; gap: 8px; }
+
+  /* Options, segment bars and the two find-lists are built by the engine, so
+     their rules must escape the scope Astro stamps on server-rendered markup. */
+  .options :global(button) {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 14px;
+    width: 100%;
+    text-align: left;
+    border: 1px solid var(--line);
+    background: transparent;
+    color: var(--ink);
+    padding: 11px 14px;
+    font-family: inherit;
+    font-size: 13.5px;
+    line-height: 1.45;
+    cursor: pointer;
+    transition: border-color 0.15s ease, background 0.15s ease;
+  }
+
+  .options :global(button:hover) { border-color: var(--ink-dim); }
+  .options :global(button[aria-pressed="true"]) { border-color: var(--ink); background: var(--panel); }
+
+  .options :global(button span) {
+    font-family: var(--mono);
+    font-size: 10px;
+    letter-spacing: 0.1em;
+    color: var(--ink-faint);
+    white-space: nowrap;
+  }
+
+  .qnav { display: flex; justify-content: space-between; margin-top: 16px; }
+
+  .btn, .ghost {
     border: 1px solid var(--line);
     background: transparent;
     color: var(--ink-dim);
@@ -93,7 +266,108 @@ const segments = ["networks", "locks", "position", "rules"] as const;
     cursor: pointer;
   }
 
+  .btn:hover:not([disabled]), .ghost:hover { color: var(--ink); border-color: var(--ink-dim); }
   .btn[disabled] { opacity: 0.5; cursor: not-allowed; }
+  .ghost { border-color: transparent; padding: 10px 0; }
+  .ghost:hover { border-color: transparent; }
+  .qnav .ghost[hidden] { display: none; }
+
+  .ghost-link {
+    font-family: var(--mono);
+    font-size: 11px;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--ink-faint);
+    align-self: center;
+  }
+
+  .ghost-link:hover { color: var(--ink); }
+
+  /* ── result ─────────────────────────────────────────── */
+  .verdict {
+    display: grid;
+    grid-template-columns: 96px 1fr;
+    gap: 18px;
+    align-items: start;
+    border-top: 1px solid var(--line);
+    border-bottom: 1px solid var(--line);
+    padding: 16px 0;
+    margin-bottom: 18px;
+  }
+
+  .gauge { text-align: center; }
+
+  .gauge strong {
+    display: block;
+    font-family: var(--display);
+    font-weight: 400;
+    font-size: 42px;
+    line-height: 1;
+    color: var(--ink);
+  }
+
+  .gauge span {
+    display: block;
+    margin-top: 6px;
+    font-family: var(--mono);
+    font-size: 10px;
+    letter-spacing: 0.12em;
+    color: var(--ink-dim);
+  }
+
+  .verdict p { font-size: 14px; line-height: 1.6; }
+  .verdict .rival { margin-top: 8px; font-size: 12px; color: var(--ink-faint); }
+
+  .result h3 {
+    font-family: var(--mono);
+    font-size: 10px;
+    font-weight: 400;
+    letter-spacing: 0.24em;
+    text-transform: uppercase;
+    color: var(--ink-faint);
+    margin-bottom: 10px;
+  }
+
+  .segbars { list-style: none; display: grid; gap: 9px; margin-bottom: 22px; }
+
+  .segbars :global(li) { display: grid; grid-template-columns: 96px 1fr 34px; gap: 10px; align-items: center; }
+  .segbars :global(b) { font-weight: 400; font-size: 12.5px; }
+  .segbars :global(.track) { height: 6px; background: var(--line); }
+  .segbars :global(.track i) { display: block; height: 100%; transition: width 0.3s ease; }
+  .segbars :global(.pct) { font-family: var(--mono); font-size: 11px; color: var(--ink-dim); text-align: right; }
+  /* Block, so the tag sits under the name in every locale instead of wrapping. */
+  .segbars :global(.tag) {
+    display: block;
+    font-family: var(--mono);
+    font-size: 9px;
+    letter-spacing: 0.14em;
+    color: var(--ink-faint);
+  }
+
+  .finds { display: grid; gap: 20px; margin-bottom: 22px; }
+  .find p { font-size: 12.5px; color: var(--ink-faint); margin-bottom: 10px; }
+  .find ul { list-style: none; display: grid; gap: 1px; }
+
+  .find :global(li a) {
+    display: grid;
+    grid-template-columns: 26px 1fr auto;
+    gap: 10px;
+    align-items: baseline;
+    padding: 7px 0;
+    border-bottom: 1px solid var(--line);
+    font-size: 13px;
+  }
+
+  .find :global(li a:hover) { color: var(--ink); }
+  .find :global(li a:hover .name) { text-decoration: underline; }
+  .find :global(.n) { font-family: var(--mono); font-size: 11px; color: var(--ink-faint); }
+  .find :global(.meta) { font-family: var(--mono); font-size: 10px; letter-spacing: 0.08em; color: var(--ink-faint); }
+
+  .actions { display: flex; flex-wrap: wrap; gap: 16px; align-items: center; }
+
+  /* ── readout ────────────────────────────────────────── */
+  .readout .eyebrow { display: flex; justify-content: space-between; gap: 8px; }
+  .readout code { font-family: var(--mono); letter-spacing: 0.08em; color: var(--ink-faint); }
 
   .readout h2 {
     font-family: var(--display);
@@ -114,25 +388,71 @@ const segments = ["networks", "locks", "position", "rules"] as const;
   }
 
   .row dt { color: var(--ink-faint); }
-  .row dd { font-family: var(--mono); color: var(--ink); }
+  .row dd { font-family: var(--mono); color: var(--ink); text-align: right; }
 
-  .readout ul {
+  .sectionbox { margin-top: 14px; }
+
+  .ground {
+    border-top: 1px solid var(--ink-faint);
+    font-family: var(--mono);
+    font-size: 9px;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--ink-faint);
+    padding-top: 3px;
+  }
+
+  /* Bars hang from the ground line, like the shafts on sheet I. */
+  .bars {
+    display: flex;
+    align-items: flex-start;
+    gap: 3px;
+    height: 96px;
+    /* Guide lines every quarter — the 1–4 ruler of the atlas. */
+    background: repeating-linear-gradient(
+      to bottom,
+      transparent 0 23px,
+      var(--line) 23px 24px
+    );
+  }
+
+  .bars i {
+    flex: 1;
+    min-width: 0;
+    height: 0;
+    background: var(--c);
+    opacity: 0.85;
+    transition: height 0.3s ease;
+  }
+
+  .sectionbox .hint {
+    margin-top: 6px;
+    font-family: var(--mono);
+    font-size: 9px;
+    letter-spacing: 0.08em;
+    color: var(--ink-faint);
+  }
+
+  .legend {
     list-style: none;
     display: grid;
     gap: 6px;
     border-top: 1px solid var(--line);
-    margin-top: 10px;
+    margin-top: 12px;
     padding-top: 10px;
     font-size: 11px;
     color: var(--ink-dim);
   }
 
-  .readout li { display: flex; align-items: center; gap: 8px; }
-  .readout i { width: 9px; height: 9px; }
+  .legend li { display: grid; grid-template-columns: 9px 1fr auto; gap: 8px; align-items: center; }
+  .legend i { width: 9px; height: 9px; }
+  .legend b { font-family: var(--mono); font-weight: 400; color: var(--ink-faint); }
 
   .back { margin-top: 28px; font-family: var(--mono); font-size: 11px; letter-spacing: 0.08em; }
 
   @media (max-width: 720px) {
     .calc { grid-template-columns: 1fr; }
+    .verdict { grid-template-columns: 1fr; }
+    .gauge { text-align: left; display: flex; align-items: baseline; gap: 12px; }
   }
 </style>

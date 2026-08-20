@@ -120,7 +120,7 @@ export default {
     tagline: "sheet II",
     progress: "Question {current} / {total}",
     rockLabel: "rock:",
-    note: "Prototype — scoring is not wired up. Answers deepen the segment of the moat.",
+    note: "Each answer deepens its segment of the moat — twelve of them make the section.",
     readout: {
       eyebrow: "Section no.",
       index: "Index",

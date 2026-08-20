@@ -24,9 +24,12 @@ per component, with the shared palette and type scale as custom properties in
 - `src/layouts/Layout.astro` — html/head, hreflang, canonical, theme bootstrap, GA4 consent defaults, cookie banner
 - `src/layouts/PageLayout.astro` — Layout + header + footer + reading column, used by every content page
 - `src/pages/index.astro` — sheet I, the cross-section HUD
+- `src/pages/calculator.astro` — sheet II, the survey
 - `src/scripts/atlas.ts` — the three.js scene: shafts, six groupings, core
   selection, rock isolation, `#moat-N` deep links
 - `src/data/moats.ts` — the 35-row survey matrix, language-neutral
+- `src/data/survey.ts` — sheet II: 12 questions, four segments, the scoring
+- `src/scripts/calculator.ts` — the survey engine behind `/calculator/`
 - `src/i18n/` — locales, dictionaries, per-page and per-moat copy
 - `src/lib/` — consent, analytics, URL helpers
 - `src/components/cookie-consent/` — shadow-DOM consent banner
@@ -72,6 +75,23 @@ takes every string through `window.__ATLAS__`, which `index.astro` fills from
 the dictionary — add a string to the payload rather than writing text in the
 script. Grouping buckets come from `AXIS_BUCKETS` + `bucketOf()`; their row
 labels are `t.values.<axis>` (and `t.rocks` for the rock axis).
+
+## The calculator
+
+`src/data/survey.ts` holds the shape of sheet II — four segments of three
+questions, weights `0/25/50/75/100`, `scoreSurvey()` and the hash codec — and no
+strings. The words live in `src/i18n/translations/pages/calculator.ts`, keyed by
+question id, options in ascending order; `src/scripts/calculator.ts` takes them
+through `window.__SURVEY__` the way the cross-section takes `window.__ATLAS__`.
+
+- Each question lists the mechanics it probes, and together the twelve cover all
+  35 rows exactly once — keep it that way when editing, `SURVEY_COVERS_MATRIX`
+  is the check.
+- Answers live in the URL hash and nowhere else. Do not add storage here: the
+  page deliberately needs no consent category and no row on `/cookies/`.
+- Elements the engine builds (options, segment bars, the two find-lists) are not
+  stamped with Astro's scope attribute — their CSS in `calculator.astro` has to
+  go through `:global()` under a server-rendered ancestor.
 
 ## Adding a moat sheet's prose
 
