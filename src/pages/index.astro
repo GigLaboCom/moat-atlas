@@ -1,6 +1,7 @@
 ---
 import Layout from "../layouts/Layout.astro";
 import SiteHeader from "../components/SiteHeader.astro";
+import SiteFooter from "../components/SiteFooter.astro";
 import type { Locale } from "../i18n/config";
 import { getTranslations, getLocalizedPath } from "../i18n/index";
 import { getAllMoatStrings } from "../i18n/translations/moats/index";
@@ -133,6 +134,22 @@ const sceneData = {
     </ul>
   </aside>
 
+  <!-- specimen card -->
+  <aside class="hud card specimen" id="specimen">
+    <button class="close" id="card-close" hidden aria-label={t.atlas.specimen.close}>✕</button>
+    <div class="eyebrow" id="card-eyebrow">{t.atlas.specimen.empty_eyebrow}</div>
+    <h2 id="card-title">{t.atlas.specimen.empty_title}</h2>
+    <div class="stats" id="card-stats" hidden>
+      <div>{t.atlas.specimen.stats.depth} <b id="s-depth"></b></div>
+      <div>{t.atlas.specimen.stats.cap} <b id="s-cap"></b></div>
+      <div>{t.atlas.specimen.stats.solo} <b id="s-solo"></b></div>
+      <div>{t.atlas.specimen.stats.ai} <b id="s-ai"></b></div>
+      <div>{t.atlas.specimen.stats.rent} <b id="s-rent"></b></div>
+    </div>
+    <p id="card-body">{t.atlas.specimen.empty_body}</p>
+    <a href="#" id="card-link" hidden>{t.atlas.specimen.link}</a>
+  </aside>
+
   <!-- grouping + rock isolation -->
   <aside class="hud legend">
     <h3>{t.atlas.legend.grouping}</h3>
@@ -156,22 +173,6 @@ const sceneData = {
     </ul>
 
     <div class="foot" set:html={t.atlas.legend.foot}></div>
-  </aside>
-
-  <!-- specimen card -->
-  <aside class="hud card specimen" id="specimen">
-    <button class="close" id="card-close" hidden aria-label={t.atlas.specimen.close}>✕</button>
-    <div class="eyebrow" id="card-eyebrow">{t.atlas.specimen.empty_eyebrow}</div>
-    <h2 id="card-title">{t.atlas.specimen.empty_title}</h2>
-    <div class="stats" id="card-stats" hidden>
-      <div>{t.atlas.specimen.stats.depth} <b id="s-depth"></b></div>
-      <div>{t.atlas.specimen.stats.cap} <b id="s-cap"></b></div>
-      <div>{t.atlas.specimen.stats.solo} <b id="s-solo"></b></div>
-      <div>{t.atlas.specimen.stats.ai} <b id="s-ai"></b></div>
-      <div>{t.atlas.specimen.stats.rent} <b id="s-rent"></b></div>
-    </div>
-    <p id="card-body">{t.atlas.specimen.empty_body}</p>
-    <a href="#" id="card-link" hidden>{t.atlas.specimen.link}</a>
   </aside>
 
   <!-- the full sheet, over the section — the page at /moats/N/ stays as it is -->
@@ -199,6 +200,13 @@ const sceneData = {
   <!-- status line + interaction hint -->
   <div class="hud status"><span id="tooltip">{t.atlas.loading}</span></div>
   <div class="hud hint"><span>{t.atlas.hint}</span></div>
+
+  <!-- The section is the one page with no page chrome, so the site footer joins
+       the HUD: the catalogue, the colophon and the cookie policy have to be one
+       click from here too. Same component as every other page. -->
+  <div class="hud footer-hud">
+    <SiteFooter lang={lang} />
+  </div>
 
   <script define:vars={{ sceneData }} is:inline>
     // Handed to the scene module below; kept inline so the 3D layer stays
@@ -402,8 +410,9 @@ const sceneData = {
      the 35 lie that deep. */
   .ruler {
     left: 26px;
-    top: 50%;
-    transform: translateY(-50%);
+    /* Under the title plate, not centred: centred it drifted into the legend
+       below it on anything shorter than a desktop screen. */
+    top: 176px;
     background: var(--panel);
     border: 1px solid var(--line);
     backdrop-filter: blur(6px);
@@ -767,7 +776,9 @@ const sceneData = {
   .specimen a[hidden] { display: none; }
 
   /* status line + hint */
-  .status { left: 50%; bottom: 24px; transform: translateX(-50%); text-align: center; }
+  /* Centred by a full-width strip, not by `left: 50%` — that one gave the pill
+     only half the viewport to lay its line out in, and it wrapped early. */
+  .status { left: 0; right: 0; bottom: 24px; text-align: center; }
 
   .status span {
     display: inline-block;
@@ -781,7 +792,56 @@ const sceneData = {
     max-width: calc(100vw - 40px);
   }
 
-  .hint { right: 26px; bottom: 24px; }
+  /* The right corner stacks upwards: the status pill owns the bottom line,
+     the footer sits above it and the scene's hint above that. Their widths are
+     copy-driven, so sharing a band would put them on top of each other. */
+  .hint { right: 26px; bottom: 112px; }
+
+  /* The left column holds the plate, the ruler and the legend. On a short
+     screen the ruler folds: the caption goes (the guide says the same at
+     length) and the years move onto the tool's line. Shorter still and it
+     stands down altogether. */
+  @media (max-height: 880px) {
+    .ruler .caption { display: none; }
+    .ruler .yrs { display: inline; margin-left: 8px; }
+    .ruler .tool { white-space: nowrap; }
+    .ruler { width: 268px; }
+    .ruler li { padding: 4px 6px; }
+  }
+
+  @media (max-height: 730px) {
+    .ruler { display: none; }
+  }
+
+  /* Narrow desktops cannot hold the hint beside the footer — and the guide
+     spells the controls out anyway. The status pill centres in what is left
+     beside the legend rather than in the viewport, or it runs under it. */
+  @media (max-width: 1100px) {
+    .hint { display: none; }
+    .status { left: 320px; right: 26px; }
+  }
+
+  /* The footer sits above the hint in the same corner; it keeps the component's
+     own layout and only trades its rule for the plate the other panels wear. */
+  /* Held clear of the legend in the opposite corner: when the line no longer
+     fits beside it, the links drop under the tagline instead of colliding. */
+  .footer-hud { right: 26px; bottom: 76px; max-width: calc(100vw - 356px); }
+
+  .footer-hud :global(.site-footer) {
+    margin-top: 0;
+    padding: 7px 12px;
+    border-top: 0;
+    border: 1px solid var(--line);
+    background: var(--panel);
+    backdrop-filter: blur(6px);
+    justify-content: flex-end;
+    flex-wrap: wrap;
+    white-space: nowrap;
+    font-size: 10px;
+    gap: 6px 14px;
+  }
+
+  .footer-hud :global(.footer-links) { gap: 6px 14px; }
 
   .hint span {
     font-family: var(--mono);
@@ -797,7 +857,11 @@ const sceneData = {
     /* The hint describes a mouse, and the status line would sit on top of the
        legend — on touch the specimen card says the same things. */
     .ruler, .hint, .status { display: none; }
-    .legend { left: 16px; right: 16px; bottom: 16px; max-width: none; }
+    /* Nothing is pinned any more: the panels stack in source order and the
+       page scrolls over the canvas, which keeps its own gestures. */
+    :global(body.fixed) { height: auto; overflow: auto; }
+    #scene { touch-action: none; }
+    .legend { position: relative; inset: auto; max-width: none; margin: 12px 16px 16px; }
     /* There is no room for a corner stack beside the title: the header stops
        being an overlay and becomes the top of the page, its controls a
        wrapping strip, and the specimen simply follows it in flow. */
@@ -808,5 +872,8 @@ const sceneData = {
     .tab { padding: 9px 12px 8px; }
     .tab strong { font-size: 13px; }
     .specimen { position: relative; inset: auto; width: auto; margin: 0 16px; transform: none; }
+    .footer-hud { position: relative; inset: auto; max-width: none; margin: 12px 16px; }
+    .footer-hud :global(.site-footer) { justify-content: flex-start; white-space: normal; }
+    .footer-hud :global(.footer-links) { margin-left: 0; }
   }
 </style>

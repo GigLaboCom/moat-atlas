@@ -53,7 +53,7 @@ export default {
       },
     },
     status: {
-      atlas: "Hover a shaft · click to take a core · double-click opens its sheet",
+      atlas: "Hover a shaft · click for a core · double-click for the sheet",
       grouping: "Grouping:",
       isolated: "Isolated rock:",
       isolatedDepth: "Isolated depth:",

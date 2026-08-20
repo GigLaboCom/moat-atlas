@@ -93,6 +93,13 @@ cross-section shape encode the rock, thickness the capital, length the depth.
   groupings, the filters, the controls and the caveats. `src/scripts/guide.ts`
   only opens and closes it — it is deliberately outside the 3D module so the
   guide survives a machine without WebGL.
+- **The footer** is the same `SiteFooter` every other page ends with, parked in
+  the HUD: the section is the one page without page chrome, and the catalogue,
+  the colophon and the cookie policy have to be reachable from it too.
+- **Below 900px** nothing is pinned: the header, the core card, the legend and
+  the footer stack in source order and scroll over the fixed canvas, which keeps
+  its own gestures (`touch-action: none`). The ruler, the hint and the status
+  line stand down — the guide and the card carry what they said.
 - The scene imports the matrix directly and receives every string through
   `window.__ATLAS__`, filled by `index.astro` from the locale dictionary — no
   user-visible text lives in the script. It follows the theme toggle, honours
