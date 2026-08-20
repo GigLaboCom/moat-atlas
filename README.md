@@ -115,6 +115,31 @@ ladder worth 0, 25, 50, 75 or 100.
   pick an option, `←` steps back. Without JavaScript the page states as much and
   the start button stays disabled.
 
+## The sheets
+
+Each of the 35 mechanics has a sheet at `/moats/N/`: a passport straight from
+the matrix, the essence, three worked examples of how the moat gets built, three
+of how it gets bypassed, and a verdict. The prose lives in
+`src/i18n/translations/moats/{en,ru}.ts` under the same number as the deep link.
+
+- **Import.** `node scripts/import-catalogue.mjs <catalogue.md> --ts
+  src/i18n/translations/moats/ru.ts` parses the source catalogue and writes the
+  Russian file: it checks that every moat has three build and three bypass
+  examples with leads, strips the document's footnotes, rules and italics, and
+  keeps the sheet names already in the file. `--json out.json` dumps the parsed
+  structure instead, which is what the English translation is written from.
+- **The sample figures** (share of apps, no-rate, median price) that the first
+  thirteen mechanics carry live on the matrix as numbers, not prose, and render
+  as their own passport block where they exist.
+- **For machines.** Every sheet emits schema.org JSON-LD: a `DefinedTerm` with
+  the essence as its description and every axis of the matrix — plus the sample
+  figures — as `PropertyValue` entries, so the catalogue can be read without
+  scraping the tables.
+- **In the atlas.** The specimen card's link opens the sheet in a modal over the
+  cross-section: the modal fetches `/moats/N/` and clones `#sheet-article` out of
+  it, so the page stays the single renderer. A modified click, or a failed
+  fetch, falls through to the page itself.
+
 ## Cookies and analytics
 
 - GA4 loads only when `PUBLIC_GA_ID` is set, in Consent Mode v2 with everything
@@ -184,4 +209,6 @@ same machine family to keep the two locales consistent.
 
 ## Still to build
 
-- sheet prose for all 35 mechanics (`essence`, `build`, `bypass` are empty)
+- the appendices of the source catalogue (the seven rocks, the four depths, the
+  cross-cutting patterns) have no page yet
+- `sources`, `contact` and `licence` on `/credits/` are still empty

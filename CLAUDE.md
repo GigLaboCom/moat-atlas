@@ -93,8 +93,32 @@ through `window.__SURVEY__` the way the cross-section takes `window.__ATLAS__`.
   stamped with Astro's scope attribute — their CSS in `calculator.astro` has to
   go through `:global()` under a server-rendered ancestor.
 
-## Adding a moat sheet's prose
+## Moat sheets
 
-Fill `essence`, `build` and `bypass` for that number in **both**
-`src/i18n/translations/moats/en.ts` and `ru.ts`. The draft notice disappears on
-its own once any of the three is non-empty.
+A sheet is `{ name, essence, build[], bypass[], verdict }` — see
+`src/i18n/translations/moats/types.ts`. `build` and `bypass` hold three worked
+examples each, `{ lead, text }`; the draft notice returns the moment all of
+`essence`, `build` and `bypass` are empty.
+
+The Russian file is generated from the source catalogue:
+
+```bash
+node scripts/import-catalogue.mjs <catalogue.md> --ts src/i18n/translations/moats/ru.ts
+node scripts/import-catalogue.mjs <catalogue.md> --json /tmp/catalogue.json
+```
+
+The importer keeps the sheet names already in the target file and refuses to run
+if a moat is missing its essence, its examples or its verdict. English is a
+translation of the same structure, written by hand. Small edits go straight into
+the `.ts` files; a re-import of the catalogue overwrites `ru.ts` wholesale, so
+re-run it only when the source itself changed.
+
+`moat.sample` on the matrix carries the canivibecodeit figures for the first
+thirteen mechanics as numbers; the labels are in the dictionaries and the sheet
+renders the block only where the figures exist. Each sheet also emits
+schema.org JSON-LD with the whole passport as properties — keep it in step with
+the matrix when the axes change.
+
+The atlas opens a sheet in a modal by fetching `/moats/N/` and cloning
+`#sheet-article`; if the sheet markup around that element changes, check the
+modal's `:global()` rules in `index.astro` still cover it.
