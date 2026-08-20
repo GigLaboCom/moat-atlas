@@ -464,8 +464,30 @@ const sceneData = {
     margin-bottom: 10px;
   }
 
+  .sheet-modal :global(h3) {
+    font-family: var(--body);
+    font-size: 14px;
+    font-weight: 600;
+    line-height: 1.4;
+    color: var(--ink);
+    margin-bottom: 4px;
+  }
+
   .sheet-modal :global(p) { font-size: 14px; line-height: 1.7; color: var(--ink-dim); }
   .sheet-modal :global(section) { margin-bottom: 28px; }
+  .sheet-modal :global(section:last-of-type) { margin-bottom: 0; }
+
+  .sheet-modal :global(.example) { margin-bottom: 18px; }
+  .sheet-modal :global(.example:last-child) { margin-bottom: 0; }
+
+  .sheet-modal :global(.verdict) { border-left: 2px solid var(--ink-faint); padding-left: 16px; }
+
+  .sheet-modal :global(.sample .note) {
+    margin-top: 10px;
+    font-size: 11.5px;
+    line-height: 1.6;
+    color: var(--ink-faint);
+  }
 
   .sheet-modal :global(.draft) {
     border: 1px solid var(--line);
@@ -475,9 +497,10 @@ const sceneData = {
     margin: 18px 0 30px;
   }
 
-  .sheet-modal :global(.passport dl) { border-top: 1px solid var(--line); }
+  /* Both the passport and the sample block are the same two-column list. */
+  .sheet-modal :global(dl) { border-top: 1px solid var(--line); }
 
-  .sheet-modal :global(.passport .row) {
+  .sheet-modal :global(.row) {
     display: flex;
     gap: 16px;
     padding: 9px 0;
@@ -485,7 +508,7 @@ const sceneData = {
     font-size: 13px;
   }
 
-  .sheet-modal :global(.passport dt) {
+  .sheet-modal :global(dt) {
     font-family: var(--mono);
     font-size: 10px;
     letter-spacing: 0.16em;
@@ -494,13 +517,13 @@ const sceneData = {
     min-width: 140px;
   }
 
-  .sheet-modal :global(.passport dd) { color: var(--ink); margin-left: auto; text-align: right; }
+  .sheet-modal :global(dd) { color: var(--ink); margin-left: auto; text-align: right; }
   .sheet-modal :global(.placeholder) { color: var(--ink-faint); font-family: var(--mono); }
 
   @media (max-width: 640px) {
     .sheet-modal { padding: 26px 18px 22px; }
-    .sheet-modal :global(.passport .row) { flex-direction: column; gap: 4px; }
-    .sheet-modal :global(.passport dd) { margin-left: 0; text-align: left; }
+    .sheet-modal :global(.row) { flex-direction: column; gap: 4px; }
+    .sheet-modal :global(dd) { margin-left: 0; text-align: left; }
   }
 
   /* specimen card */

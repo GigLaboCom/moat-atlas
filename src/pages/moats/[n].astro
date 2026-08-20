@@ -26,7 +26,9 @@ const passport = [
   { label: t.catalogue.columns.rock, value: t.rocks[moat.rock] },
   { label: t.catalogue.columns.depth, value: `${moat.d} · ${t.atlas.ruler[depthLevel].tool}` },
   { label: t.sheet.years, value: t.atlas.ruler[depthLevel].years },
-  { label: t.catalogue.columns.cap, value: `${moat.cap} · ${t.values.cap[capLevel]}` },
+  // The dictionary value leads with its own glyph ("● high"); the matrix glyph
+  // is kept because it can be a range ("◐–●"), so only the word is taken here.
+  { label: t.catalogue.columns.cap, value: `${moat.cap} · ${t.values.cap[capLevel].replace(/^\S+\s+/, "")}` },
   { label: t.catalogue.columns.solo, value: t.values.solo[moat.solo] },
   { label: t.catalogue.columns.ai, value: t.values.ai[moat.ai] },
   { label: t.catalogue.columns.rent, value: t.values.rent[moat.rent] },
