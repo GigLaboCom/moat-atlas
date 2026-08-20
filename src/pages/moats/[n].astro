@@ -4,7 +4,7 @@ import type { Locale } from "../../i18n/config";
 import { getTranslations, getLocalizedPath } from "../../i18n/index";
 import { getMoatStrings, isDraft } from "../../i18n/translations/moats/index";
 import { MOATS, byNumber, ROCK_COLORS, MOAT_COUNT } from "../../data/moats";
-import { siteUrl } from "../../lib/url";
+import { sheetMeta } from "../../lib/seo/pages";
 
 export function getStaticPaths() {
   return MOATS.map((m) => ({ params: { n: String(m.n) } }));
@@ -46,46 +46,12 @@ const sampleNote = moat.sample?.n
   ? t.sheet.sample.small.replace("{n}", String(moat.sample.n))
   : null;
 
-/**
- * The same passport, for machines: the sheet is a term in the atlas, and every
- * axis of the matrix rides along as a property so it can be read without
- * scraping the table.
- */
-const jsonLd = {
-  "@context": "https://schema.org",
-  "@type": "DefinedTerm",
-  "@id": siteUrl(getLocalizedPath(`/moats/${n}/`, lang)),
-  identifier: String(n),
-  name: s.name,
-  description: s.essence || undefined,
-  inLanguage: lang,
-  inDefinedTermSet: {
-    "@type": "DefinedTermSet",
-    name: t.atlas.title,
-    url: siteUrl(getLocalizedPath("/moats/", lang)),
-  },
-  additionalProperty: [
-    { "@type": "PropertyValue", name: "rock", value: moat.rock },
-    { "@type": "PropertyValue", name: "depth", value: moat.d, maxValue: 4 },
-    { "@type": "PropertyValue", name: "capital", value: moat.capN, maxValue: 4 },
-    { "@type": "PropertyValue", name: "solo", value: moat.solo },
-    { "@type": "PropertyValue", name: "ai", value: moat.ai },
-    { "@type": "PropertyValue", name: "rent", value: moat.rent },
-    ...(moat.sample
-      ? [
-          { "@type": "PropertyValue", name: "sampleShare", value: moat.sample.share, unitText: "%" },
-          { "@type": "PropertyValue", name: "sampleNoRate", value: moat.sample.noRate, unitText: "%" },
-          { "@type": "PropertyValue", name: "sampleMedianPrice", value: moat.sample.median, unitText: "USD" },
-        ]
-      : []),
-  ],
-};
-
 const prev = n > 1 ? n - 1 : null;
 const next = n < MOAT_COUNT ? n + 1 : null;
 
-const title = `${s.name} — ${t.atlas.title}`;
-const description = s.essence || t.catalogue.meta.description;
+// Shared with the sheet's `.md` twin and its llms.txt entry so the three can
+// never drift; the structured data is emitted by the layout from the same index.
+const { title, description } = sheetMeta(lang, n);
 ---
 
 <PageLayout
@@ -95,8 +61,6 @@ const description = s.essence || t.catalogue.meta.description;
   basePath={`/moats/${n}/`}
   section={`${t.sheet.eyebrow} ${n}`}
 >
-  <script type="application/ld+json" slot="head" set:html={JSON.stringify(jsonLd)} is:inline />
-
   <!-- The atlas fetches this page and lifts #sheet-article into its modal, so
        everything the modal should show lives inside it and the page chrome
        (prev/next) stays outside. -->

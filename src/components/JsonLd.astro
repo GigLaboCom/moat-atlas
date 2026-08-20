@@ -1,0 +1,19 @@
+---
+/**
+ * The page's structured data. One `@graph` per document — see
+ * `src/lib/seo/ld.ts` for what goes into it and why.
+ */
+import type { Locale } from "../i18n/config";
+import { graphFor, serializeLd } from "../lib/seo/ld";
+
+export interface Props {
+  lang: Locale;
+  /** Locale-neutral path of the page, e.g. "/moats/7/". */
+  basePath: string;
+}
+
+const { lang, basePath } = Astro.props;
+const graph = graphFor(lang, basePath);
+---
+
+{graph && <script type="application/ld+json" is:inline set:html={serializeLd(graph)} />}
