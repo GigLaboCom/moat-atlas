@@ -11,9 +11,32 @@ npm run preview
 npm run lint
 npm run og        # re-render public/og/og-{lang}.png (Playwright)
 npm run icons     # re-render favicons/manifests/browserconfig from icons/*.svg
+npm run audit     # audit /llms.txt, the .md twins and the sitemap of a running build
 ```
 
 No test runner is configured. **After touching any file, run `npm run lint && npm run build`** — the build is the authoritative correctness check.
+
+## Docker and CI
+
+`Dockerfile` builds the site with Node and serves `dist/` from `nginx:alpine` as
+the unprivileged `nginx` user on port 8080; the nginx config lives in `docker/`.
+The `PUBLIC_` variables are build arguments — Astro inlines them, so an image is
+tied to one host. Every location in the server block has to
+`include /etc/nginx/snippets/headers.conf`: `add_header` does not inherit into a
+location that declares one of its own.
+
+`.github/workflows/ci.yml` lints, builds and smoke-tests the image on every push
+and pull request. `.github/workflows/release.yml` fires on a `v*.*.*` tag:
+same checks, then a multi-arch push to `ghcr.io/giglabocom/moat-atlas` and a
+GitHub release. Releases are cut by tag, never by a push to `main`.
+
+Both workflows scan for leaked credentials with the gitleaks CLI (the action
+needs a licence for an organisation's repositories) before anything else runs.
+The same scanner guards the working copy: `.githooks/pre-commit` scans the
+staged diff, `npm run hooks` points `core.hooksPath` at `.githooks/`, and
+`.gitleaks.toml` holds the rules — the gitleaks defaults plus an allowlist for
+generated artefacts. A missing gitleaks binary makes the hook warn and pass, so
+CI is the backstop; keep the version in the two workflows in step.
 
 ## Architecture
 
@@ -34,6 +57,8 @@ per component, with the shared palette and type scale as custom properties in
 - `src/scripts/calculator.ts` — the survey engine behind `/calculator/`
 - `src/i18n/` — locales, dictionaries, per-page and per-moat copy
 - `src/lib/` — consent, analytics, URL helpers
+- `src/lib/seo/` — the machine-readable layer: the page index, JSON-LD,
+  `/llms.txt` and the `.md` page twins
 - `src/components/cookie-consent/` — shadow-DOM consent banner
 
 ## Conventions
@@ -45,13 +70,69 @@ per component, with the shared palette and type scale as custom properties in
   Shared UI copy goes to `src/i18n/translations/{en,ru}.ts`; single-page copy to
   `src/i18n/translations/pages/`; moat sheets to `src/i18n/translations/moats/`.
 - **Analytics**: every event carries the locale — use the helpers in
-  `src/lib/analytics.ts` rather than calling `gtag` directly.
+  `src/lib/analytics.ts` rather than calling `gtag` directly. GA4's own page
+  view is off; `Analytics.astro` sends it through `trackPageView()` so the hit
+  carries the locale too.
 - **Cookies**: anything stored beyond the consent record itself belongs to a
   category documented on `/cookies/`; add the row there when you add storage.
+- **Region**: the banner asks `/api-shared/ip` on its own origin — the same path
+  the sibling sites call, served by the shared service behind the ingress, and
+  not by this image; `PUBLIC_GEO_ENDPOINT` overrides it. The answer is
+  `{ status, ip: { isEu } }`; the endpoint reads the address from its own proxy
+  headers, so a static site never sees an IP and only that boolean arrives.
+  Anything that is not an explicit boolean — FAIL, a 404, a timeout — means
+  "show the banner", never "auto-grant", and is not cached, so a route that
+  comes back is retried on the next page. `PUBLIC_GEO_SIMULATE=eu|non-eu` walks
+  both branches in `npm run dev`.
 - **Moat identity**: the number is the id — deep link `/#moat-7`, sheet
   `/moats/7/`, translation key `7`. Do not renumber.
 - **Empty copy**: a moat sheet with no prose renders a draft notice and dashes.
   That is intentional — leave the fields empty rather than inventing text.
+
+## The machine-readable layer
+
+Everything an agent reads rather than a person: JSON-LD, `/llms.txt`, a plain
+Markdown twin of every page, `/sitemap.xml` and `/robots.txt`. It all hangs off
+one walker, `src/lib/seo/pages.ts` — **never enumerate pages anywhere else.** A
+page hand-listed in llms.txt is a future dead link; a twin generated for a path
+the sitemap hides is a URL nobody meant to publish. Both disappear when every
+consumer walks the same index, and `scripts/audit-agents.sh` proves it did.
+
+| File | Role |
+|---|---|
+| `src/lib/seo/pages.ts` | The page index: path, locale, title, description, kind, per locale. Titles come from the same dictionary keys the pages render. |
+| `src/lib/seo/ld.ts` | One JSON-LD `@graph` per page — site, org, author, the page, breadcrumbs, and the page's own entity. |
+| `src/lib/seo/llms.config.ts` | **All curated llms.txt prose.** Almost every edit lands here. |
+| `src/lib/seo/llms.ts` | Pure renderer: config + index → text. |
+| `src/lib/seo/md-twin.ts` | The twin document — front matter, provenance, `## Related`. Carries the decisions table for the URL form and the headers. |
+| `src/lib/seo/md-bodies.ts` | The twin bodies, synthesized per page kind from `src/data/` and the dictionaries. |
+| `src/pages/[...slug].md.ts` | Every twin, both URL forms, both locales. |
+| `src/pages/{llms.txt,sitemap.xml,robots.txt}.ts` | The three endpoints. |
+| `src/components/JsonLd.astro` | Emits the graph; `Layout.astro` renders it for every real page. |
+| `scripts/audit-agents.sh` | The audit, also run in CI against the container. |
+
+Rules:
+
+- **A twin exists for exactly the pages `/llms.txt` lists.** Both walk
+  `pages.ts`, so adding a page to the index adds all of it at once — sitemap
+  entry, twin in both URL forms, JSON-LD, head links.
+- **Twins are never listed in `sitemap.xml`.** Each twin sends
+  `Link: rel="canonical"` at its HTML page; listing it would have the two assert
+  opposite things. Discovery is `/llms.txt` plus the `<head>` link.
+- **No `noindex` anywhere in this layer** — an agent that honours it refuses to
+  use the file it just fetched.
+- **No invented strings.** A twin heading is a dictionary key or it does not
+  exist; the guidance lines (provenance, `Related`, llms.txt prose) are English
+  in both locales because they address the model, not the reader.
+- **Never hand-write a `.md` file into `public/`.** A snapshot goes stale and
+  nobody notices.
+- The nginx side lives in `docker/`: the `text/markdown` type, `inline`
+  disposition, the `Link` canonical built by the `$md_canonical` map, CORS, and
+  the `^(.*)/\.md$ → $1/index.md` rewrite that serves the `/.md` form Astro
+  cannot emit. A `.md` 404 answers `text/plain`, never the HTML error page.
+- After changing anything here: `npm run build`, then `docker build` and
+  `npm run audit -- http://localhost:PORT`. The audit checks coverage both
+  ways, both URL forms, head links, sitemap agreement and the 404 shape.
 
 ## Icons
 
@@ -61,6 +142,20 @@ Masters live in `icons/` (`icon.svg`, `icon-maskable.svg`, `icon-mono.svg`);
 `public/`. Those outputs are generated — edit the master and re-run, never the
 files under `public/`. Manifest copy comes from the locale dictionaries and the
 tile/theme colour from the dark palette in `Layout.astro`.
+
+## Brand glyphs
+
+`src/assets/brands/*.svg` are Font Awesome Pro brand marks under the commercial
+licence (`FONTAWESOME-LICENSE.txt` sits beside them) — copied files, never the
+webfont or the CDN. `src/components/BrandIcon.astro` inlines one by file name
+and sizes it; the masters already paint with `currentColor`, so a glyph takes
+the colour of whatever it sits in. Every brand icon on the site goes through
+that component — add the `.svg` to the folder rather than pasting a path.
+
+Outbound addresses live in `src/lib/links.ts`: the repository, the sibling
+GigLabo projects, and `CONTACTS`, which is per-locale because the author writes
+in a different place in each language. Network names and handles are proper
+nouns and stay in that file; the prose around them is in the dictionaries.
 
 ## Open Graph cards
 

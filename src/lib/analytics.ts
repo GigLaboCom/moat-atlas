@@ -102,3 +102,8 @@ export function trackThemeChange(theme: string): void {
 export function trackLocaleChange(locale: string): void {
   trackEvent("locale_change", { new_locale: locale });
 }
+
+/** A link off the site was followed — the repository or a sibling project. */
+export function trackOutbound(target: string, url: string): void {
+  trackEvent("outbound_click", { target, url });
+}

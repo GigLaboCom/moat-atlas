@@ -14,11 +14,30 @@ import { trackEvent } from '../../lib/analytics';
 const EU_CACHE_KEY = 'moat-atlas-eu-check';
 
 /**
- * Optional geo endpoint returning `{ ip: { isEu: boolean } }` (or `{ is_eu }`).
- * When it is not configured the banner is shown to everyone — the conservative
- * default for a site that does not know where its visitor is.
+ * The region check, same shape as the sibling sites: a same-origin
+ * `/api-shared/ip` served by the shared service behind the ingress, with the
+ * env variable as the override for a deployment that puts it elsewhere.
+ *
+ * It answers `{ status: 'OK', ip: { isEu: boolean } }` — a flat `{ is_eu }` is
+ * accepted too — and `{ status: 'FAIL' }` when it could not place the visitor.
+ * The address is never read here: a static site sees no IP, so the endpoint
+ * takes it from its own proxy headers (cf-connecting-ip, x-real-ip,
+ * x-forwarded-for) and only the boolean crosses the wire.
+ *
+ * Anything that is not an explicit boolean — FAIL, a 404 from a deployment
+ * where the route is not wired up, a timeout, a bad shape — counts as EU. The
+ * conservative default for a site that does not know where its visitor is, is
+ * to ask; failing the other way would auto-grant consent for Europeans.
  */
-const GEO_ENDPOINT = (import.meta.env.PUBLIC_GEO_ENDPOINT as string | undefined) ?? '';
+const GEO_ENDPOINT =
+  (import.meta.env.PUBLIC_GEO_ENDPOINT as string | undefined) || '/api-shared/ip';
+
+/**
+ * Dev-only stand-in for the lookup — `'eu'` or `'non-eu'` — so both branches
+ * can be walked without a geo service, the way the endpoint itself answers a
+ * fixed test address outside production. Ignored in a production build.
+ */
+const GEO_SIMULATE = (import.meta.env.PUBLIC_GEO_SIMULATE as string | undefined) ?? '';
 
 export class CookieConsentBanner extends HTMLElement {
   private _lang = 'en';
@@ -65,9 +84,9 @@ export class CookieConsentBanner extends HTMLElement {
     }
   }
 
-  /** EU visitors always get the banner; without a geo endpoint, so does everyone. */
+  /** EU visitors get the banner; so does everyone the check could not place. */
   private async _needsBanner(): Promise<boolean> {
-    if (!GEO_ENDPOINT) return true;
+    if (import.meta.env.DEV && GEO_SIMULATE) return GEO_SIMULATE !== 'non-eu';
 
     const cached = sessionStorage.getItem(EU_CACHE_KEY);
     if (cached !== null) return cached === 'true';
@@ -80,12 +99,15 @@ export class CookieConsentBanner extends HTMLElement {
 
       if (!res.ok) throw new Error(`HTTP ${res.status}`);
       const data = await res.json();
-      const isEu = Boolean(data?.ip?.isEu ?? data?.is_eu);
+      const isEu = data?.ip?.isEu ?? data?.is_eu;
+      // `{ status: 'FAIL' }` carries no verdict — a missing flag is not a "no".
+      if (typeof isEu !== 'boolean') throw new Error(`no verdict (${data?.status ?? 'unknown'})`);
+      // Only a real verdict is cached. A failure is not: an endpoint that comes
+      // back gets another chance on the next page, instead of the banner being
+      // pinned to the tab by one blip.
       sessionStorage.setItem(EU_CACHE_KEY, String(isEu));
       return isEu;
     } catch {
-      // Detection failed — show the banner rather than assume consent.
-      sessionStorage.setItem(EU_CACHE_KEY, 'true');
       return true;
     }
   }

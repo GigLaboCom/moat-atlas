@@ -199,6 +199,7 @@ export default {
     themeDark: "Dark",
     themeLight: "Light",
     langLabel: "Language",
+    github: "Source on GitHub",
     skipToContent: "Skip to content",
     footer: {
       atlas: "Atlas",
@@ -206,6 +207,7 @@ export default {
       calculator: "Calculator",
       credits: "Who made this",
       cookiePolicy: "Cookie Policy",
+      giglabo: "GigLabo ↗",
       updated: "Updated",
     },
   },

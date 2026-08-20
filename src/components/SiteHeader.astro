@@ -2,6 +2,8 @@
 import type { Locale } from "../i18n/config";
 import { locales } from "../i18n/config";
 import { getTranslations, getLocalizedPath } from "../i18n/index";
+import { REPO_URL } from "../lib/links";
+import BrandIcon from "./BrandIcon.astro";
 
 export interface Props {
   lang: Locale;
@@ -47,11 +49,23 @@ const t = getTranslations(lang);
       <span data-theme-icon>☾</span>
       <span data-theme-label>{t.ui.themeDark}</span>
     </button>
+
+    <a
+      class="gh-link"
+      id="gh-link"
+      href={REPO_URL}
+      target="_blank"
+      rel="noopener"
+      title={t.ui.github}
+      aria-label={t.ui.github}
+    >
+      <BrandIcon name="github" size={15} />
+    </a>
   </div>
 </header>
 
 <script>
-  import { trackThemeChange, trackLocaleChange } from '../lib/analytics';
+  import { trackThemeChange, trackLocaleChange, trackOutbound } from '../lib/analytics';
 
   const KEY = 'moat-atlas-theme';
   const root = document.documentElement;
@@ -87,6 +101,9 @@ const t = getTranslations(lang);
       });
     }
   }
+
+  const gh = document.getElementById('gh-link') as HTMLAnchorElement | null;
+  if (gh) gh.addEventListener('click', () => trackOutbound('repo', gh.href));
 
   document.querySelectorAll<HTMLAnchorElement>('.lang-link').forEach((link) => {
     link.addEventListener('click', () => {
@@ -162,6 +179,19 @@ const t = getTranslations(lang);
   }
 
   .theme-toggle:hover { color: var(--ink); border-color: var(--ink-dim); }
+
+  .gh-link {
+    border: 1px solid var(--line);
+    color: var(--ink-dim);
+    height: 32px;
+    width: 32px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    transition: color 0.2s ease, border-color 0.2s ease;
+  }
+
+  .gh-link:hover { color: var(--ink); border-color: var(--ink-dim); }
 
   @media (max-width: 640px) {
     .site-header { gap: 12px; flex-wrap: wrap; }

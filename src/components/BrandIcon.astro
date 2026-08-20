@@ -1,0 +1,35 @@
+---
+/**
+ * One brand glyph, inlined as SVG.
+ *
+ * The masters in src/assets/brands/ are Font Awesome Pro brand assets under
+ * the commercial licence (see FONTAWESOME-LICENSE.txt there) — copied files,
+ * not a webfont: nothing loads at runtime, the glyph inherits the colour of
+ * the text around it, and every icon on the site comes from this one set.
+ */
+export interface Props {
+  /** File name under src/assets/brands/, without the extension. */
+  name: string;
+  /** Square side in px — the glyphs are all on a square canvas. */
+  size?: number;
+}
+
+const { name, size = 15 } = Astro.props;
+
+const sources = import.meta.glob("../assets/brands/*.svg", {
+  query: "?raw",
+  import: "default",
+  eager: true,
+}) as Record<string, string>;
+
+const source = sources[`../assets/brands/${name}.svg`];
+if (!source) throw new Error(`BrandIcon: no such glyph — ${name}`);
+
+/** The masters carry no size and already paint with currentColor. */
+const svg = source.replace(
+  "<svg ",
+  `<svg width="${size}" height="${size}" aria-hidden="true" focusable="false" `,
+);
+---
+
+<Fragment set:html={svg} />

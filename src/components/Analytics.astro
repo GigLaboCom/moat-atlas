@@ -1,0 +1,14 @@
+<!--
+  Page views are sent by hand. `Layout.astro` configures GA4 with
+  `send_page_view: false`, so the hit goes through `trackPageView()` and
+  carries the locale and the utm parameters every other event carries.
+
+  A separate component for the same reason as CookieConsentLoader: Astro's
+  module-script indexing in Layout.astro skips unconditional scripts when
+  conditional ones are present.
+-->
+<script>
+  import { trackPageView } from "../lib/analytics";
+
+  trackPageView();
+</script>

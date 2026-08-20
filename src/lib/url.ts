@@ -1,4 +1,4 @@
-const SITE_URL = (import.meta.env.PUBLIC_SITE_URL as string | undefined) ?? "https://moat-atlas.giglabo.com";
+const SITE_URL = (import.meta.env.PUBLIC_SITE_URL as string | undefined) ?? "https://moa.giglabo.com";
 
 /** Join a base URL with path segments, normalising double slashes. */
 export function urlJoin(...parts: string[]): string {

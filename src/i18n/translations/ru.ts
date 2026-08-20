@@ -199,6 +199,7 @@ export default {
     themeDark: "Тёмная",
     themeLight: "Светлая",
     langLabel: "Язык",
+    github: "Исходники на GitHub",
     skipToContent: "К содержимому",
     footer: {
       atlas: "Атлас",
@@ -206,6 +207,7 @@ export default {
       calculator: "Калькулятор",
       credits: "Кто сделал",
       cookiePolicy: "Политика cookie",
+      giglabo: "GigLabo ↗",
       updated: "Обновлено",
     },
   },

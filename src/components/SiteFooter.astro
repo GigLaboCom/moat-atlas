@@ -1,6 +1,7 @@
 ---
 import type { Locale } from "../i18n/config";
 import { getTranslations, getLocalizedPath } from "../i18n/index";
+import { GIGLABO_URL } from "../lib/links";
 
 export interface Props {
   lang: Locale;
@@ -24,8 +25,27 @@ const links = [
     {links.map((l) => (
       <a href={getLocalizedPath(l.href, lang)} class="footer-link">{l.label}</a>
     ))}
+    <a
+      href={GIGLABO_URL}
+      class="footer-link"
+      target="_blank"
+      rel="noopener"
+      data-footer-outbound="giglabo"
+    >
+      {t.ui.footer.giglabo}
+    </a>
   </nav>
 </footer>
+
+<script>
+  import { trackOutbound } from "../lib/analytics";
+
+  document.querySelectorAll<HTMLAnchorElement>("a[data-footer-outbound]").forEach((link) => {
+    link.addEventListener("click", () =>
+      trackOutbound(link.dataset.footerOutbound || "unknown", link.href),
+    );
+  });
+</script>
 
 <style>
   .site-footer {

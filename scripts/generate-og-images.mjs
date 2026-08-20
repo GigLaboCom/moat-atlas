@@ -37,7 +37,7 @@ const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const ROOT = path.resolve(__dirname, "..");
 const DEFAULT_OUT = path.join(ROOT, "public", "og");
 
-const SITE_URL = process.env.PUBLIC_SITE_URL ?? "https://moat-atlas.giglabo.com";
+const SITE_URL = process.env.PUBLIC_SITE_URL ?? "https://moa.giglabo.com";
 const DOMAIN = SITE_URL.replace(/^https?:\/\//, "").replace(/\/+$/, "");
 
 function parseArgs(argv) {

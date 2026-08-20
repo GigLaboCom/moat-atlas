@@ -2,7 +2,11 @@
 import { locales, defaultLocale, type Locale } from "../i18n/config";
 import { getLocalizedPath } from "../i18n/index";
 import { siteUrl } from "../lib/url";
+import { twinPath } from "../lib/seo/md-twin";
+import { pageAt } from "../lib/seo/pages";
+import JsonLd from "../components/JsonLd.astro";
 import CookieConsentLoader from "../components/cookie-consent/CookieConsentLoader.astro";
+import Analytics from "../components/Analytics.astro";
 
 const GA_ID = import.meta.env.PUBLIC_GA_ID as string | undefined;
 
@@ -41,6 +45,10 @@ for (const l of locales) {
 // Canonical must be the URL this locale is actually served at — for a rewritten
 // /ru/ page that is the prefixed path, not the path Astro rendered.
 const canonicalPath = getLocalizedPath(basePath, lang);
+
+// The machine-readable layer only exists for real pages: /404 has no twin, no
+// entry in llms.txt and no structured data, and must never advertise one.
+const isPage = pageAt(lang, basePath) !== undefined;
 ---
 
 <!DOCTYPE html>
@@ -76,6 +84,13 @@ const canonicalPath = getLocalizedPath(basePath, lang);
     ))}
     <link rel="alternate" hreflang="x-default" href={siteUrl(getLocalizedPath(basePath, defaultLocale))} />
     <link rel="canonical" href={siteUrl(canonicalPath)} />
+    <!-- The machine-readable half of the site: a plain-Markdown twin of this
+         page, and the map that lists every page. See src/lib/seo/. -->
+    {isPage && (
+      <link rel="alternate" type="text/markdown" href={siteUrl(twinPath(canonicalPath))} />
+    )}
+    <link rel="describedby" href={siteUrl("/llms.txt")} />
+    <JsonLd lang={lang} basePath={basePath} />
     <slot name="head" />
     <script is:inline>
       (function () {
@@ -113,6 +128,7 @@ const canonicalPath = getLocalizedPath(basePath, lang);
     <slot />
     <cookie-consent-banner lang={lang}></cookie-consent-banner>
     <CookieConsentLoader />
+    {GA_ID && <Analytics />}
   </body>
 </html>
 

@@ -20,7 +20,7 @@ export const creditsPage = {
     author_name: "Denis Esakov",
     author_role: "Survey, catalogue, design and code",
     section_author_note:
-      "Published under the Heretic banner. Corrections to the matrix are welcome — a mechanic in the wrong rock or at the wrong depth is a bug like any other.",
+      "Published under the Heretic banner, released under the MIT licence. Corrections to the matrix are welcome — a mechanic in the wrong rock or at the wrong depth is a bug like any other.",
 
     section_method_title: "Method",
     section_method_text:
@@ -36,10 +36,23 @@ export const creditsPage = {
     section_sources_text: "",
 
     section_contact_title: "Contact",
-    section_contact_text: "",
+    section_contact_text:
+      "Write in English — a correction to the matrix, a mechanic that is missing, or an argument about where one belongs.",
 
     section_license_title: "Licence",
-    section_license_text: "",
+    section_license_text:
+      "MIT. The code, the survey matrix and this copy — fork them, republish them, build on them; keep the copyright notice. The whole atlas is open on GitHub.",
+    license_repo: "The repository",
+
+    section_related_title: "Elsewhere",
+    section_related_text:
+      "The atlas is one of the things built at GigLabo — a studio for custom software, web apps and AI. Two neighbours from the same workshop:",
+    related_giglabo_label: "GigLabo",
+    related_giglabo_note: "The studio — custom software, web apps and AI solutions.",
+    related_hls_label: "Heretic Lazy Shot",
+    related_hls_note: "Capture, annotate and beautify screenshots.",
+    related_mvi_label: "MnemoVi!",
+    related_mvi_note: "A local video knowledge base — on-device search over everything your videos said and showed.",
 
     empty: "—",
   },
@@ -59,7 +72,7 @@ export const creditsPage = {
     author_name: "Денис Есаков",
     author_role: "Съёмка, каталог, дизайн и код",
     section_author_note:
-      "Издано под маркой Heretic. Правки к матрице приветствуются: механика не в той породе или не на той глубине — такой же баг, как любой другой.",
+      "Издано под маркой Heretic, распространяется по лицензии MIT. Правки к матрице приветствуются: механика не в той породе или не на той глубине — такой же баг, как любой другой.",
 
     section_method_title: "Метод",
     section_method_text:
@@ -75,10 +88,23 @@ export const creditsPage = {
     section_sources_text: "",
 
     section_contact_title: "Контакт",
-    section_contact_text: "",
+    section_contact_text:
+      "Пиши по-русски — правка к матрице, недостающая механика или спор о том, где чему место.",
 
     section_license_title: "Лицензия",
-    section_license_text: "",
+    section_license_text:
+      "MIT. Код, сводная матрица и тексты — форкай, публикуй, строй поверх; сохрани уведомление об авторстве. Весь атлас открыт на GitHub.",
+    license_repo: "Репозиторий",
+
+    section_related_title: "Рядом",
+    section_related_text:
+      "Атлас — одна из вещей, сделанных в GigLabo, студии заказной разработки, веба и AI. Два соседа из той же мастерской:",
+    related_giglabo_label: "GigLabo",
+    related_giglabo_note: "Студия — заказная разработка, веб-приложения и AI-решения.",
+    related_hls_label: "Heretic Lazy Shot",
+    related_hls_note: "Снимок экрана, разметка и красивая подача.",
+    related_mvi_label: "MnemoVi!",
+    related_mvi_note: "Локальная база знаний по видео — поиск на устройстве по всему, что в них сказали и показали.",
 
     empty: "—",
   },

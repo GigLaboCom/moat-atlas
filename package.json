@@ -1,5 +1,10 @@
 {
   "name": "moat-atlas",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/GigLaboCom/moat-atlas.git"
+  },
   "version": "0.0.1",
   "type": "module",
   "private": true,
@@ -8,6 +13,8 @@
     "build": "astro build",
     "preview": "astro preview",
     "lint": "eslint .",
+    "audit": "bash scripts/audit-agents.sh",
+    "hooks": "bash scripts/install-hooks.sh",
     "og": "node scripts/generate-og-images.mjs",
     "icons": "node scripts/generate-icons.mjs"
   },

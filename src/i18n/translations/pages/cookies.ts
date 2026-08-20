@@ -39,6 +39,11 @@ export const cookiesPage = {
     cookie_ga_purpose: "Google Analytics 4 — distinguishes unique visitors",
     cookie_ga_duration: "2 years",
     cookie_ga_category: "Analytics",
+    cookie_region_name: "moat-atlas-eu-check",
+    cookie_region_purpose:
+      "Remembers whether the banner is required in your region, so the check runs once",
+    cookie_region_duration: "Session (until the tab is closed)",
+    cookie_region_category: "Essential",
     section_manage_title: "Manage your preferences",
     section_manage_text:
       "Change your choice at any time with the toggles below. You can also clear cookies and site data through your browser settings.",
@@ -99,6 +104,11 @@ export const cookiesPage = {
     cookie_ga_purpose: "Google Analytics 4 — различает уникальных посетителей",
     cookie_ga_duration: "2 года",
     cookie_ga_category: "Аналитика",
+    cookie_region_name: "moat-atlas-eu-check",
+    cookie_region_purpose:
+      "Помнит, нужен ли баннер в вашем регионе, чтобы проверка выполнялась один раз",
+    cookie_region_duration: "Сессия (до закрытия вкладки)",
+    cookie_region_category: "Обязательные",
     section_manage_title: "Управление настройками",
     section_manage_text:
       "Изменить выбор можно в любой момент переключателями ниже. Ещё cookie и данные сайта можно очистить в настройках браузера.",

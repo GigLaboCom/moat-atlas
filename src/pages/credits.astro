@@ -4,6 +4,8 @@ import type { Locale } from "../i18n/config";
 import { getTranslations, getLocalizedPath } from "../i18n/index";
 import { creditsPage } from "../i18n/translations/pages/credits";
 import { MOAT_COUNT } from "../data/moats";
+import { REPO_URL, GIGLABO_URL, LAZY_SHOT_URL, MNEMOVI_URL, CONTACTS } from "../lib/links";
+import BrandIcon from "../components/BrandIcon.astro";
 
 const headerLocale = Astro.request.headers.get("x-locale") as Locale | null;
 const lang: Locale = headerLocale ?? "en";
@@ -13,10 +15,16 @@ const s = creditsPage[lang] ?? creditsPage.en;
 const stack = [s.stack_astro, s.stack_three, s.stack_ga, s.stack_claude];
 
 /** Sections whose copy is still being written render a dash, not a gap. */
-const openSections = [
-  { title: s.section_sources_title, text: s.section_sources_text },
-  { title: s.section_contact_title, text: s.section_contact_text },
-  { title: s.section_license_title, text: s.section_license_text },
+const openSections = [{ title: s.section_sources_title, text: s.section_sources_text }];
+
+/** Where to write — the accounts differ by language. */
+const contacts = CONTACTS[lang] ?? CONTACTS.en;
+
+/** The neighbouring projects the atlas cross-references. */
+const related = [
+  { href: GIGLABO_URL, label: s.related_giglabo_label, note: s.related_giglabo_note, target: "giglabo" },
+  { href: LAZY_SHOT_URL, label: s.related_hls_label, note: s.related_hls_note, target: "lazy-shot" },
+  { href: MNEMOVI_URL, label: s.related_mvi_label, note: s.related_mvi_note, target: "mnemovi" },
 ];
 ---
 
@@ -60,6 +68,43 @@ const openSections = [
     </ul>
   </section>
 
+  <section>
+    <h2>{s.section_contact_title}</h2>
+    <p>{s.section_contact_text}</p>
+    <ul class="contacts">
+      {contacts.map((c) => (
+        <li>
+          <a href={c.href} rel="noopener" target="_blank" data-outbound={c.id}>
+            <span class="glyph"><BrandIcon name={c.id} size={14} /></span>
+            <span class="network">{c.network}</span>
+            <span class="handle">{c.handle}</span>
+          </a>
+        </li>
+      ))}
+    </ul>
+  </section>
+
+  <section>
+    <h2>{s.section_license_title}</h2>
+    <p>{s.section_license_text}</p>
+    <p class="count">
+      <a href={REPO_URL} rel="noopener" target="_blank" data-outbound="repo">{s.license_repo} →</a>
+    </p>
+  </section>
+
+  <section>
+    <h2>{s.section_related_title}</h2>
+    <p>{s.section_related_text}</p>
+    <ul class="related">
+      {related.map((r) => (
+        <li>
+          <a href={r.href} rel="noopener" target="_blank" data-outbound={r.target}>{r.label}</a>
+          <span class="note">{r.note}</span>
+        </li>
+      ))}
+    </ul>
+  </section>
+
   {openSections.map((sec) => (
     <section>
       <h2>{sec.title}</h2>
@@ -67,6 +112,14 @@ const openSections = [
     </section>
   ))}
 </PageLayout>
+
+<script>
+  import { trackOutbound } from "../lib/analytics";
+
+  document.querySelectorAll<HTMLAnchorElement>("a[data-outbound]").forEach((link) => {
+    link.addEventListener("click", () => trackOutbound(link.dataset.outbound || "unknown", link.href));
+  });
+</script>
 
 <style>
   .count { margin-top: 12px; font-family: var(--mono); font-size: 11px; letter-spacing: 0.08em; }
@@ -111,4 +164,59 @@ const openSections = [
   }
 
   .placeholder { color: var(--ink-faint); font-family: var(--mono); }
+
+  .related { list-style: none; display: grid; gap: 10px; margin-top: 14px; }
+
+  .related li {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    gap: 4px 12px;
+    padding-left: 16px;
+    position: relative;
+  }
+
+  .related li::before {
+    content: "▚";
+    position: absolute;
+    left: 0;
+    top: 2px;
+    color: var(--ink-faint);
+    font-size: 10px;
+  }
+
+  .related a {
+    font-family: var(--mono);
+    font-size: 12px;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--ink);
+    text-decoration: underline;
+    text-underline-offset: 3px;
+  }
+
+  .related .note { font-size: 13px; line-height: 1.6; color: var(--ink-dim); }
+
+  .contacts { list-style: none; display: flex; flex-wrap: wrap; gap: 10px; margin-top: 14px; }
+
+  .contacts a {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    height: 32px;
+    padding: 0 12px;
+    border: 1px solid var(--line);
+    font-family: var(--mono);
+    font-size: 11px;
+    letter-spacing: 0.08em;
+    color: var(--ink-dim);
+    transition: color 0.2s ease, border-color 0.2s ease;
+  }
+
+  .contacts a:hover { color: var(--ink); border-color: var(--ink-dim); }
+
+  .glyph { display: inline-flex; align-items: center; color: var(--ink-faint); }
+  .contacts a:hover .glyph { color: var(--ink); }
+  .network { text-transform: uppercase; }
+  .handle { color: var(--ink-faint); }
 </style>
