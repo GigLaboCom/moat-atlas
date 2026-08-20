@@ -10,6 +10,7 @@ import {
   DEPTH_LEVELS,
   GROUPING_AXES,
   ROCK_COLORS,
+  moatsInBucket,
 } from "../data/moats";
 
 const headerLocale = Astro.request.headers.get("x-locale") as Locale | null;
@@ -21,6 +22,12 @@ const rockCounts = ROCK_ORDER.map((rock) => ({
   rock,
   count: MOATS.filter((m) => m.rock === rock).length,
 }));
+
+/** How many of the 35 sit at each depth — the tally bars on the ruler. */
+const depthCounts = Object.fromEntries(
+  DEPTH_LEVELS.map((l) => [l, moatsInBucket("depth", String(l)).length]),
+) as Record<(typeof DEPTH_LEVELS)[number], number>;
+const maxDepthCount = Math.max(...Object.values(depthCounts));
 
 /**
  * Everything the scene needs that the matrix cannot carry: the localized names,
@@ -48,6 +55,7 @@ const sceneData = {
     atlas: t.atlas.status.atlas,
     grouping: t.atlas.status.grouping,
     isolated: t.atlas.status.isolated,
+    isolatedDepth: t.atlas.status.isolatedDepth,
   },
   specimen: { eyebrow: t.atlas.specimen.eyebrow, rock: t.atlas.specimen.rock },
   draft: t.sheet.draft,
@@ -100,17 +108,25 @@ const sceneData = {
     </div>
   </header>
 
-  <!-- depth ruler -->
+  <!-- depth ruler: the key to the vertical axis, and the second isolation filter -->
   <aside class="hud ruler" aria-label={t.atlas.ruler.heading}>
-    {DEPTH_LEVELS.map((lvl) => (
-      <div class="mark">
-        <span class="lvl">{lvl}</span>
-        <span class="tool">
-          {t.atlas.ruler[lvl].tool}
-          <em class="yrs">{t.atlas.ruler[lvl].years}</em>
-        </span>
-      </div>
-    ))}
+    <h3>{t.atlas.ruler.heading}</h3>
+    <p class="caption">{t.atlas.ruler.caption}</p>
+    <ul id="depth-list">
+      {DEPTH_LEVELS.map((lvl) => (
+        <li data-depth={lvl}>
+          <span class="lvl">{lvl}</span>
+          <span class="tool">
+            {t.atlas.ruler[lvl].tool}
+            <em class="yrs">{t.atlas.ruler[lvl].years}</em>
+          </span>
+          <span class="tally">
+            <i style={`--w:${depthCounts[lvl] / maxDepthCount}`}></i>
+            <b>{depthCounts[lvl]}</b>
+          </span>
+        </li>
+      ))}
+    </ul>
   </aside>
 
   <!-- grouping + rock isolation -->
@@ -285,30 +301,63 @@ const sceneData = {
   .tab.active { color: var(--ink); background: color-mix(in srgb, var(--ink) 6%, transparent); }
   .tab.active span { color: var(--ink-dim); }
 
-  /* depth ruler */
+  /* Depth ruler — the key to the vertical axis. It reads like the legend
+     because it works like it: a row is a filter, and its bar is how many of
+     the 35 lie that deep. */
   .ruler {
     left: 26px;
     top: 50%;
-    transform: translateY(-42%);
-    display: flex;
-    flex-direction: column;
-    gap: 26px;
+    transform: translateY(-50%);
+    background: var(--panel);
+    border: 1px solid var(--line);
+    backdrop-filter: blur(6px);
+    padding: 14px 16px;
+    width: 244px;
   }
 
-  .ruler .mark {
-    display: flex;
-    align-items: baseline;
+  .ruler h3 {
+    font-family: var(--mono);
+    font-size: 9px;
+    letter-spacing: 0.24em;
+    text-transform: uppercase;
+    color: var(--ink-faint);
+  }
+
+  /* A whole sentence, so it drops the mono uppercase of the other captions. */
+  .ruler .caption {
+    margin: 7px 0 11px;
+    font-size: 10.5px;
+    line-height: 1.6;
+    color: var(--ink-faint);
+  }
+
+  .ruler ul { list-style: none; display: grid; gap: 2px; }
+
+  .ruler li {
+    display: grid;
+    grid-template-columns: 16px 1fr 48px;
+    align-items: center;
     gap: 10px;
-    border-left: 1px solid var(--line);
-    padding-left: 12px;
+    padding: 6px;
+    border: 1px solid transparent;
+    color: var(--ink-dim);
+    cursor: pointer;
   }
 
-  .ruler .lvl { font-family: var(--mono); font-size: 18px; color: var(--ink-dim); }
+  .ruler li:hover, .ruler li.on { color: var(--ink); }
+  .ruler li.on { border-color: var(--line); background: color-mix(in srgb, var(--ink) 5%, transparent); }
+
+  .ruler .lvl {
+    font-family: var(--mono);
+    font-size: 16px;
+    line-height: 1;
+    color: inherit;
+  }
 
   .ruler .tool {
     font-family: var(--mono);
     font-size: 10px;
-    letter-spacing: 0.18em;
+    letter-spacing: 0.16em;
     text-transform: uppercase;
   }
 
@@ -316,9 +365,24 @@ const sceneData = {
     display: block;
     font-size: 10px;
     font-style: normal;
+    text-transform: none;
     color: var(--ink-faint);
     letter-spacing: 0.05em;
-    margin-top: 2px;
+    margin-top: 3px;
+  }
+
+  /* The tally: a bar scaled against the fullest depth, then the count. */
+  .ruler .tally { display: flex; align-items: center; justify-content: flex-end; gap: 6px; }
+  .ruler .tally i { height: 3px; width: calc(var(--w) * 26px); background: var(--ink-faint); }
+  .ruler li:hover .tally i, .ruler li.on .tally i { background: var(--ink-dim); }
+
+  .ruler .tally b {
+    font-family: var(--mono);
+    font-size: 10px;
+    font-weight: 400;
+    color: var(--ink-faint);
+    min-width: 14px;
+    text-align: right;
   }
 
   /* legend */

@@ -14,7 +14,8 @@ export default {
       calc: { title: "Calculator", sub: "sheet II · your moat" },
     },
     ruler: {
-      heading: "Depth",
+      heading: "Depth · click to isolate",
+      caption: "the tool and the years a rival needs · how many of the 35 lie that deep",
       1: { tool: "Shovel", years: "weeks — months" },
       2: { tool: "Excavator", years: "1–3 years" },
       3: { tool: "Drill rig", years: "3–10 years" },
@@ -53,9 +54,9 @@ export default {
     },
     status: {
       atlas: "Hover a shaft · click to take a core",
-      calc: "Prototype — scoring is not wired up yet",
       grouping: "Grouping:",
       isolated: "Isolated rock:",
+      isolatedDepth: "Isolated depth:",
     },
     hint: "drag — rotate · wheel — zoom · esc — overview",
     loading: "Drilling the section…",

@@ -23,7 +23,7 @@ Run `npm run lint && npm run build` before finishing any change — the build is
 | `/`              | Sheet I — the interactive cross-section of all 35 mechanics  |
 | `/moats/`        | The catalogue — all 35 mechanics as a table                  |
 | `/moats/{1..35}/`| One sheet per mechanic: passport, essence, build, bypass     |
-| `/calculator/`   | Sheet II — the survey (skeleton; scoring pending)            |
+| `/calculator/`   | Sheet II — the survey: twelve questions, scored              |
 | `/credits/`      | Who made this — colophon                                     |
 | `/cookies/`      | Cookie policy + preference toggles                           |
 | `/404`           | Not found                                                    |
@@ -80,7 +80,11 @@ cross-section shape encode the rock, thickness the capital, length the depth.
   matrix, a ring marks the shaft, the camera dives to it and the URL becomes
   `#moat-N`. `Escape`, the card's ✕, or a click on empty ground clears it;
   `hashchange` is honoured, so `/#moat-7` works as a link from anywhere.
-- **Isolation.** Clicking a rock in the legend dims everything else.
+- **Isolation.** Clicking a rock in the legend dims everything else; the depth
+  ruler on the left works the same way, and the two are mutually exclusive.
+- **The depth ruler** is the key to the vertical axis: level, digging tool,
+  years and how many of the 35 lie that deep. Hovering a row lights that
+  level's stratum in the scene, clicking isolates it.
 - The scene imports the matrix directly and receives every string through
   `window.__ATLAS__`, filled by `index.astro` from the locale dictionary — no
   user-visible text lives in the script. It follows the theme toggle, honours

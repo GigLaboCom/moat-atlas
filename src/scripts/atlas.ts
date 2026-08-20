@@ -13,6 +13,7 @@ import * as THREE from "three";
 
 import {
   MOATS,
+  DEPTH_LEVELS,
   ROCK_ORDER,
   ROCK_COLORS,
   ROCK_SHAPE,
@@ -21,12 +22,14 @@ import {
   TERNARY_GLYPH,
   AI_GLYPH,
   bucketOf,
+  type DepthLevel,
   type GroupingAxis,
   type Moat,
   type RockKey,
 } from "../data/moats";
 import {
   trackCoreTaken,
+  trackDepthIsolate,
   trackGrouping,
   trackRockIsolate,
   trackSheetOpen,
@@ -43,7 +46,7 @@ export interface AtlasPayload {
   axisLabels: Record<GroupingAxis, string>;
   tools: Record<string, string>;
   depthLabels: Record<string, string>;
-  status: { atlas: string; grouping: string; isolated: string };
+  status: { atlas: string; grouping: string; isolated: string; isolatedDepth: string };
   specimen: { eyebrow: string; rock: string };
   draft: string;
 }
@@ -361,26 +364,43 @@ function boot(data: AtlasPayload): void {
     ring = null;
   }
 
-  /* ── selection and rock isolation ────────────────────── */
+  /* ── selection and isolation, by rock or by depth ────── */
   let selected: Shaft | null = null;
   let isolatedRock: RockKey | null = null;
+  let isolatedDepth: DepthLevel | null = null;
+  /** The depth row under the pointer — it lights its stratum without filtering. */
+  let hoveredDepth: DepthLevel | null = null;
+
+  /** Both filters are exclusive; with neither set, every shaft is in focus. */
+  function inFocus(m: Moat): boolean {
+    if (isolatedRock) return m.rock === isolatedRock;
+    if (isolatedDepth) return bucketOf(m, "depth") === String(isolatedDepth);
+    return true;
+  }
 
   function baseIntensity(mesh: THREE.Mesh): number {
     if (selected) return mesh === selected ? 0.95 : 0.07;
-    if (isolatedRock) return (mesh.userData as Moat).rock === isolatedRock ? 0.6 : 0.07;
+    if (isolatedRock || isolatedDepth) return inFocus(mesh.userData as Moat) ? 0.6 : 0.07;
     return 0.3;
   }
 
   function applyDimming(): void {
     for (const rec of records) {
       rec.shaft.material.emissiveIntensity = baseIntensity(rec.shaft);
-      const lit = selected
-        ? rec.shaft === selected
-        : isolatedRock
-          ? rec.moat.rock === isolatedRock
-          : true;
+      const lit = selected ? rec.shaft === selected : inFocus(rec.moat);
       rec.cap.material.opacity = lit ? 1 : 0.15;
       rec.label.material.opacity = lit ? 1 : 0.18;
+    }
+  }
+
+  /**
+   * The strata are the floors of the four depth levels; lighting one is what
+   * ties a row of the ruler to the drawing.
+   */
+  function paintStrata(): void {
+    const lit = hoveredDepth ?? isolatedDepth;
+    for (const [i, s] of strata.entries()) {
+      s.material.opacity = theme.strataOpacity * (i + 1 === lit ? 5 : 1);
     }
   }
 
@@ -461,7 +481,9 @@ function boot(data: AtlasPayload): void {
     const m = mesh.userData as Moat;
     selected = mesh;
     isolatedRock = null;
-    syncLegend();
+    isolatedDepth = null;
+    syncFilters();
+    paintStrata();
     applyDimming();
     placeRing(mesh);
     fillCard(m);
@@ -572,24 +594,58 @@ function boot(data: AtlasPayload): void {
     });
   }
 
-  /* ── rock legend doubles as an isolation filter ──────── */
-  const legendList = el("legend-list");
-  const legendItems = Array.from(legendList?.querySelectorAll<HTMLLIElement>("li") ?? []);
-  function syncLegend(): void {
+  /* ── rock legend and depth ruler are both isolation filters ── */
+  const legendItems = Array.from(
+    el("legend-list")?.querySelectorAll<HTMLLIElement>("li") ?? [],
+  );
+  const depthItems = Array.from(el("depth-list")?.querySelectorAll<HTMLLIElement>("li") ?? []);
+
+  function syncFilters(): void {
     for (const li of legendItems) li.classList.toggle("on", li.dataset.rock === isolatedRock);
+    for (const li of depthItems) {
+      li.classList.toggle("on", Number(li.dataset.depth) === isolatedDepth);
+    }
   }
+
   for (const li of legendItems) {
     const rock = li.dataset.rock as RockKey;
     if (!ROCK_ORDER.includes(rock)) continue;
     li.addEventListener("click", () => {
       deselect();
       isolatedRock = isolatedRock === rock ? null : rock;
-      syncLegend();
+      isolatedDepth = null;
+      syncFilters();
       applyDimming();
+      paintStrata();
       tooltip.textContent = isolatedRock
         ? `${data.status.isolated} ${data.rockNames[rock].toLowerCase()}`
         : data.status.atlas;
       trackRockIsolate(isolatedRock);
+    });
+  }
+
+  for (const li of depthItems) {
+    const level = Number(li.dataset.depth) as DepthLevel;
+    if (!DEPTH_LEVELS.includes(level)) continue;
+    li.addEventListener("pointerenter", () => {
+      hoveredDepth = level;
+      paintStrata();
+    });
+    li.addEventListener("pointerleave", () => {
+      hoveredDepth = null;
+      paintStrata();
+    });
+    li.addEventListener("click", () => {
+      deselect();
+      isolatedDepth = isolatedDepth === level ? null : level;
+      isolatedRock = null;
+      syncFilters();
+      applyDimming();
+      paintStrata();
+      tooltip.textContent = isolatedDepth
+        ? `${data.status.isolatedDepth} ${data.depthLabels[isolatedDepth]}`
+        : data.status.atlas;
+      trackDepthIsolate(isolatedDepth);
     });
   }
 
@@ -664,10 +720,8 @@ function boot(data: AtlasPayload): void {
     theme = currentTheme();
     (scene.background as THREE.Color).set(theme.earth);
     (scene.fog as THREE.Fog).color.set(theme.earth);
-    for (const s of strata) {
-      s.material.color.set(theme.stratum);
-      s.material.opacity = theme.strataOpacity;
-    }
+    for (const s of strata) s.material.color.set(theme.stratum);
+    paintStrata();
     atlas.remove(grid);
     grid.dispose();
     grid = new THREE.GridHelper(17, 34, theme.gridMajor, theme.gridMinor);

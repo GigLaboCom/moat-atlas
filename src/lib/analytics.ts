@@ -56,6 +56,11 @@ export function trackRockIsolate(rock: string | null): void {
   trackEvent("rock_isolate", { rock: rock ?? "all" });
 }
 
+/** A single depth band was isolated on the ruler (null = cleared). */
+export function trackDepthIsolate(level: number | null): void {
+  trackEvent("depth_isolate", { depth: level ?? "all" });
+}
+
 export function trackSheetOpen(n: number, source: string): void {
   trackEvent("sheet_open", { moat_id: n, source });
 }
