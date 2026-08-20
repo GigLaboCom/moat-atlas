@@ -61,6 +61,11 @@ export function trackDepthIsolate(level: number | null): void {
   trackEvent("depth_isolate", { depth: level ?? "all" });
 }
 
+/** The "how it works" guide was opened on the section. */
+export function trackGuideOpen(): void {
+  trackEvent("guide_open");
+}
+
 export function trackSheetOpen(n: number, source: string): void {
   trackEvent("sheet_open", { moat_id: n, source });
 }

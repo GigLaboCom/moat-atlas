@@ -27,6 +27,8 @@ per component, with the shared palette and type scale as custom properties in
 - `src/pages/calculator.astro` — sheet II, the survey
 - `src/scripts/atlas.ts` — the three.js scene: shafts, six groupings, core
   selection, rock isolation, `#moat-N` deep links
+- `src/scripts/guide.ts` — the "how it works" dialog on sheet I, outside the
+  3D module so it opens without WebGL
 - `src/data/moats.ts` — the 35-row survey matrix, language-neutral
 - `src/data/survey.ts` — sheet II: 12 questions, four segments, the scoring
 - `src/scripts/calculator.ts` — the survey engine behind `/calculator/`

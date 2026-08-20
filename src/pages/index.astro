@@ -105,6 +105,10 @@ const sceneData = {
           <span>{t.atlas.tabs.calc.sub}</span>
         </a>
       </nav>
+
+      <button class="guide-open" id="guide-open" type="button" aria-haspopup="dialog">
+        <span aria-hidden="true">?</span>{t.atlas.guide.open}
+      </button>
     </div>
   </header>
 
@@ -177,6 +181,21 @@ const sceneData = {
     <a class="modal-page" id="modal-page" href="#">{t.atlas.specimen.page}</a>
   </dialog>
 
+  <!-- the guide: what the drawing means, and what the section can be asked to do -->
+  <dialog class="guide-modal" id="guide-modal" aria-labelledby="guide-title">
+    <button class="close" id="guide-close" aria-label={t.atlas.guide.close}>✕</button>
+    <h2 id="guide-title">{t.atlas.guide.title}</h2>
+    <p class="lede">{t.atlas.guide.lede}</p>
+    <dl>
+      {t.atlas.guide.sections.map((section) => (
+        <div class="row">
+          <dt>{section.title}</dt>
+          <dd>{section.body}</dd>
+        </div>
+      ))}
+    </dl>
+  </dialog>
+
   <!-- status line + interaction hint -->
   <div class="hud status"><span id="tooltip">{t.atlas.loading}</span></div>
   <div class="hud hint"><span>{t.atlas.hint}</span></div>
@@ -189,6 +208,8 @@ const sceneData = {
 
   <script>
     import "../scripts/atlas";
+    // Separate from the scene: the guide has to open even where WebGL does not.
+    import "../scripts/guide";
   </script>
 </Layout>
 
@@ -300,6 +321,81 @@ const sceneData = {
 
   .tab.active { color: var(--ink); background: color-mix(in srgb, var(--ink) 6%, transparent); }
   .tab.active span { color: var(--ink-dim); }
+
+  /* "How it works" — the key to everything the section does. It sits under the
+     tabs in the corner stack and reads as a control, not as a link. */
+  .guide-open {
+    align-self: flex-end;
+    display: inline-flex;
+    align-items: center;
+    gap: 9px;
+    border: 1px solid var(--line);
+    background: var(--panel);
+    backdrop-filter: blur(6px);
+    color: var(--ink-dim);
+    font-family: var(--mono);
+    font-size: 10px;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    padding: 8px 13px;
+    cursor: pointer;
+  }
+
+  .guide-open:hover { color: var(--ink); border-color: var(--ink-dim); }
+
+  .guide-open span {
+    display: grid;
+    place-items: center;
+    width: 15px;
+    height: 15px;
+    border: 1px solid currentColor;
+    border-radius: 50%;
+    font-size: 9px;
+    line-height: 1;
+  }
+
+  /* The guide's own body — a definition list, the same shape as a passport. */
+  .guide-modal h2 {
+    font-family: var(--display);
+    font-weight: 400;
+    font-size: clamp(22px, 3vw, 30px);
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+  }
+
+  .guide-modal .lede {
+    margin: 12px 0 22px;
+    font-size: 14px;
+    line-height: 1.7;
+    color: var(--ink-dim);
+    max-width: 62ch;
+  }
+
+  .guide-modal dl { border-top: 1px solid var(--line); }
+
+  .guide-modal .row {
+    display: flex;
+    gap: 22px;
+    padding: 14px 0;
+    border-bottom: 1px solid var(--line);
+  }
+
+  .guide-modal dt {
+    flex: 0 0 128px;
+    padding-top: 2px;
+    font-family: var(--mono);
+    font-size: 10px;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    color: var(--ink-faint);
+  }
+
+  .guide-modal dd { font-size: 13.5px; line-height: 1.7; color: var(--ink-dim); }
+
+  @media (max-width: 640px) {
+    .guide-modal .row { flex-direction: column; gap: 6px; }
+    .guide-modal dt { flex: none; }
+  }
 
   /* Depth ruler — the key to the vertical axis. It reads like the legend
      because it works like it: a row is a filter, and its bar is how many of
@@ -454,7 +550,8 @@ const sceneData = {
   /* ── the sheet modal ─────────────────────────────────── */
   /* Its body is lifted out of /moats/N/, so it arrives without the scope
      attribute Astro stamps on this page — every rule below has to be global. */
-  .sheet-modal {
+  .sheet-modal,
+  .guide-modal {
     width: min(720px, calc(100vw - 32px));
     max-height: min(84vh, 900px);
     margin: auto;
@@ -466,9 +563,11 @@ const sceneData = {
     position: relative;
   }
 
-  .sheet-modal::backdrop { background: rgba(10, 8, 5, 0.66); }
+  .sheet-modal::backdrop,
+  .guide-modal::backdrop { background: rgba(10, 8, 5, 0.66); }
 
-  .sheet-modal .close {
+  .sheet-modal .close,
+  .guide-modal .close {
     position: absolute;
     top: 14px;
     right: 14px;
@@ -482,7 +581,8 @@ const sceneData = {
     cursor: pointer;
   }
 
-  .sheet-modal .close:hover { color: var(--ink); border-color: var(--ink-dim); }
+  .sheet-modal .close:hover,
+  .guide-modal .close:hover { color: var(--ink); border-color: var(--ink-dim); }
 
   .sheet-modal .modal-page {
     display: inline-block;
@@ -694,8 +794,19 @@ const sceneData = {
   /* Below the tablet breakpoint the HUD panels overlap; the catalogue is the
      honest reading surface there, so the side panels stand down. */
   @media (max-width: 900px) {
-    .ruler, .hint { display: none; }
+    /* The hint describes a mouse, and the status line would sit on top of the
+       legend — on touch the specimen card says the same things. */
+    .ruler, .hint, .status { display: none; }
     .legend { left: 16px; right: 16px; bottom: 16px; max-width: none; }
-    .specimen { position: static; width: auto; margin: 140px 16px 0; transform: none; }
+    /* There is no room for a corner stack beside the title: the header stops
+       being an overlay and becomes the top of the page, its controls a
+       wrapping strip, and the specimen simply follows it in flow. */
+    .top { position: relative; inset: auto; flex-wrap: wrap; padding: 16px; gap: 10px; }
+    .plate, .top-right { flex: 1 1 100%; }
+    .plate .sub { max-width: none; }
+    .top-right { flex-direction: row; flex-wrap: wrap; align-items: center; gap: 8px; }
+    .tab { padding: 9px 12px 8px; }
+    .tab strong { font-size: 13px; }
+    .specimen { position: relative; inset: auto; width: auto; margin: 0 16px; transform: none; }
   }
 </style>

@@ -478,6 +478,9 @@ function boot(data: AtlasPayload): void {
   }
 
   function select(mesh: Shaft, silent = false): void {
+    // The first half of a double-click, or a second click on the same shaft:
+    // the core is already out, so nothing to re-aim and nothing to count.
+    if (mesh === selected) return;
     const m = mesh.userData as Moat;
     selected = mesh;
     isolatedRock = null;
@@ -518,14 +521,14 @@ function boot(data: AtlasPayload): void {
   /** Fetched sheets, kept for the session — a re-open costs nothing. */
   const sheetCache = new Map<number, string>();
 
-  async function openSheet(n: number): Promise<void> {
+  async function openSheet(n: number, source = "modal"): Promise<void> {
     if (!modal || !modalBody || !modalPage) return;
     const url = `${data.sheetBase}${n}/`;
     modalPage.href = url;
     modalBody.textContent = data.loading;
     modal.showModal();
     modalBody.scrollTop = 0;
-    trackSheetOpen(n, "modal");
+    trackSheetOpen(n, source);
 
     try {
       let html = sheetCache.get(n);
@@ -572,8 +575,9 @@ function boot(data: AtlasPayload): void {
 
   window.addEventListener("keydown", (e) => {
     if (e.key !== "Escape") return;
-    // The dialog closes itself; only the bare section clears the selection.
-    if (modal?.open) return;
+    // An open dialog — the sheet or the guide — closes itself and keeps the
+    // key; only the bare section clears its selection.
+    if (document.querySelector("dialog[open]")) return;
     deselect();
   });
 
@@ -653,7 +657,7 @@ function boot(data: AtlasPayload): void {
   const raycaster = new THREE.Raycaster();
   const pointer = new THREE.Vector2();
 
-  function pick(e: PointerEvent): THREE.Intersection | null {
+  function pick(e: MouseEvent): THREE.Intersection | null {
     const rect = canvas.getBoundingClientRect();
     pointer.x = ((e.clientX - rect.left) / rect.width) * 2 - 1;
     pointer.y = -((e.clientY - rect.top) / rect.height) * 2 + 1;
@@ -705,6 +709,13 @@ function boot(data: AtlasPayload): void {
     const hit = pick(e);
     if (hit) select(hit.object as Shaft);
     else deselect();
+  });
+  // The first click takes the core, the second opens what it is made of.
+  canvas.addEventListener("dblclick", (e) => {
+    const hit = pick(e);
+    if (!hit) return;
+    e.preventDefault();
+    void openSheet(((hit.object as Shaft).userData as Moat).n, "dblclick");
   });
   canvas.addEventListener(
     "wheel",

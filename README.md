@@ -80,11 +80,19 @@ cross-section shape encode the rock, thickness the capital, length the depth.
   matrix, a ring marks the shaft, the camera dives to it and the URL becomes
   `#moat-N`. `Escape`, the card's ✕, or a click on empty ground clears it;
   `hashchange` is honoured, so `/#moat-7` works as a link from anywhere.
+- **The sheet.** A double-click on a shaft opens its full sheet in a modal over
+  the section — the same modal the card's link opens, fetched from `/moats/N/`.
+  The first click of the pair takes the core, so the card fills behind it.
 - **Isolation.** Clicking a rock in the legend dims everything else; the depth
   ruler on the left works the same way, and the two are mutually exclusive.
 - **The depth ruler** is the key to the vertical axis: level, digging tool,
   years and how many of the 35 lie that deep. Hovering a row lights that
   level's stratum in the scene, clicking isolates it.
+- **The guide** behind “how it works” in the top-right corner is the page's own
+  documentation: what the drawing encodes, the seven rocks, the four depths, the
+  groupings, the filters, the controls and the caveats. `src/scripts/guide.ts`
+  only opens and closes it — it is deliberately outside the 3D module so the
+  guide survives a machine without WebGL.
 - The scene imports the matrix directly and receives every string through
   `window.__ATLAS__`, filled by `index.astro` from the locale dictionary — no
   user-visible text lives in the script. It follows the theme toggle, honours

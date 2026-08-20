@@ -53,12 +53,62 @@ export default {
       },
     },
     status: {
-      atlas: "Hover a shaft · click to take a core",
+      atlas: "Hover a shaft · click to take a core · double-click opens its sheet",
       grouping: "Grouping:",
       isolated: "Isolated rock:",
       isolatedDepth: "Isolated depth:",
     },
-    hint: "drag — rotate · wheel — zoom · esc — overview",
+    /** The "how it works" dialog behind the button in the top-right corner. */
+    guide: {
+      open: "How it works",
+      title: "How to read this",
+      lede:
+        "A moat is a hole. A hole has a rock — what the obstacle is actually made of; a depth — how long a rival has to dig; and a tool — what they dig with. All 35 mechanics of the catalogue hang in this section along those three axes.",
+      sections: [
+        {
+          title: "The drawing",
+          body:
+            "One shaft is one mechanic. The downward axis is always depth: the lower a shaft hangs, the longer a competitor needs. Colour and cross-section shape are the rock, thickness is the capital the mechanic demands, and the number on the cap is the number of its sheet.",
+        },
+        {
+          title: "Seven rocks",
+          body:
+            "What the obstacle is made of — and therefore who digs it. Human networks and minds are dug by other people: users, customers, time; money does not speed them up. Assets and rules are dug with money and patience. Mathematics is a choice of business model, locks are the customer accumulating themselves, position is a single strategic move.",
+        },
+        {
+          title: "Four depths",
+          body:
+            "Level 1, the shovel, is weeks to months — those are wedges, not moats. Level 2, the excavator, is one to three years: the zone a solo founder can reach. Level 3, the drill rig, is three to ten years and capital is compulsory. Level 4, the mine, is ten years and up: time is the raw material there, and a mine cannot be dug faster by hiring more miners.",
+        },
+        {
+          title: "Groupings",
+          body:
+            "The six buttons re-lay the same 35 shafts along another axis: rock, depth, capital, whether a solo founder can reach it, how AI is treating it, and whether it can be rented instead of dug. Nothing appears or disappears — only the rows change.",
+        },
+        {
+          title: "Filters",
+          body:
+            "A rock in the legend and a level on the ruler each isolate their own group and dim the rest; the two are mutually exclusive, and taking a core clears both. Hovering a row of the ruler lights that level's stratum in the drawing.",
+        },
+        {
+          title: "Controls",
+          body:
+            "Drag to rotate, wheel to zoom. Hovering a shaft reads its passport into the status line, a click takes a core into the card, a double-click opens the full sheet — how it is built, how it is bypassed, the verdict. Esc returns to the overview, and every core has its own address: /#moat-7.",
+        },
+        {
+          title: "Sheet II",
+          body:
+            "The calculator measures the moat you actually have: twelve questions, four segments, an index and a depth on this same ruler. It stores nothing — the answers live in the link.",
+        },
+        {
+          title: "The fine print",
+          body:
+            "The matrix is a considered judgement, not a measurement, and the sample figures exist only on the first thirteen sheets. And the main thing: moats are almost never stormed, they are devalued — which makes the “how it is bypassed” half of every sheet the load-bearing one.",
+        },
+      ],
+      close: "Close",
+    },
+    hint: "drag — rotate · wheel — zoom · double-click — the sheet · esc — overview",
     loading: "Drilling the section…",
     fallback:
       "The 3D section needs WebGL. The full catalogue is available as a list.",
