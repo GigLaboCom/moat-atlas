@@ -4,6 +4,7 @@ import type { Locale } from "../../i18n/config";
 import { getTranslations, getLocalizedPath } from "../../i18n/index";
 import { getMoatStrings, isDraft } from "../../i18n/translations/moats/index";
 import { MOATS, byNumber, ROCK_COLORS, MOAT_COUNT } from "../../data/moats";
+import { siteUrl } from "../../lib/url";
 
 export function getStaticPaths() {
   return MOATS.map((m) => ({ params: { n: String(m.n) } }));
@@ -31,6 +32,53 @@ const passport = [
   { label: t.catalogue.columns.rent, value: t.values.rent[moat.rent] },
 ];
 
+/** Only the first thirteen mechanics were measured; the rest have no figures. */
+const sample = moat.sample
+  ? [
+      { label: t.sheet.sample.share, value: `${moat.sample.share}%` },
+      { label: t.sheet.sample.noRate, value: `${moat.sample.noRate}%` },
+      { label: t.sheet.sample.median, value: `$${moat.sample.median}` },
+    ]
+  : null;
+const sampleNote = moat.sample?.n
+  ? t.sheet.sample.small.replace("{n}", String(moat.sample.n))
+  : null;
+
+/**
+ * The same passport, for machines: the sheet is a term in the atlas, and every
+ * axis of the matrix rides along as a property so it can be read without
+ * scraping the table.
+ */
+const jsonLd = {
+  "@context": "https://schema.org",
+  "@type": "DefinedTerm",
+  "@id": siteUrl(getLocalizedPath(`/moats/${n}/`, lang)),
+  identifier: String(n),
+  name: s.name,
+  description: s.essence || undefined,
+  inLanguage: lang,
+  inDefinedTermSet: {
+    "@type": "DefinedTermSet",
+    name: t.atlas.title,
+    url: siteUrl(getLocalizedPath("/moats/", lang)),
+  },
+  additionalProperty: [
+    { "@type": "PropertyValue", name: "rock", value: moat.rock },
+    { "@type": "PropertyValue", name: "depth", value: moat.d, maxValue: 4 },
+    { "@type": "PropertyValue", name: "capital", value: moat.capN, maxValue: 4 },
+    { "@type": "PropertyValue", name: "solo", value: moat.solo },
+    { "@type": "PropertyValue", name: "ai", value: moat.ai },
+    { "@type": "PropertyValue", name: "rent", value: moat.rent },
+    ...(moat.sample
+      ? [
+          { "@type": "PropertyValue", name: "sampleShare", value: moat.sample.share, unitText: "%" },
+          { "@type": "PropertyValue", name: "sampleNoRate", value: moat.sample.noRate, unitText: "%" },
+          { "@type": "PropertyValue", name: "sampleMedianPrice", value: moat.sample.median, unitText: "USD" },
+        ]
+      : []),
+  ],
+};
+
 const prev = n > 1 ? n - 1 : null;
 const next = n < MOAT_COUNT ? n + 1 : null;
 
@@ -45,6 +93,8 @@ const description = s.essence || t.catalogue.meta.description;
   basePath={`/moats/${n}/`}
   section={`${t.sheet.eyebrow} ${n}`}
 >
+  <script type="application/ld+json" slot="head" set:html={JSON.stringify(jsonLd)} is:inline />
+
   <!-- The atlas fetches this page and lifts #sheet-article into its modal, so
        everything the modal should show lives inside it and the page chrome
        (prev/next) stays outside. -->
@@ -71,6 +121,22 @@ const description = s.essence || t.catalogue.meta.description;
     </dl>
   </section>
 
+  {sample && (
+    <section class="sample">
+      <h2>{t.sheet.sample.title}</h2>
+      <dl>
+        {sample.map((row) => (
+          <div class="row">
+            <dt>{row.label}</dt>
+            <dd>{row.value}</dd>
+          </div>
+        ))}
+      </dl>
+      {sampleNote && <p class="note">{sampleNote}</p>}
+      <p class="note">{t.sheet.sample.note}</p>
+    </section>
+  )}
+
   <section>
     <h2>{t.sheet.essence}</h2>
     {s.essence ? <p>{s.essence}</p> : <p class="placeholder">—</p>}
@@ -78,12 +144,35 @@ const description = s.essence || t.catalogue.meta.description;
 
   <section>
     <h2>{t.sheet.build}</h2>
-    {s.build ? <p>{s.build}</p> : <p class="placeholder">—</p>}
+    {s.build.length ? (
+      s.build.map((ex) => (
+        <div class="example">
+          <h3>{ex.lead}</h3>
+          <p>{ex.text}</p>
+        </div>
+      ))
+    ) : (
+      <p class="placeholder">—</p>
+    )}
   </section>
 
   <section>
     <h2>{t.sheet.bypass}</h2>
-    {s.bypass ? <p>{s.bypass}</p> : <p class="placeholder">—</p>}
+    {s.bypass.length ? (
+      s.bypass.map((ex) => (
+        <div class="example">
+          <h3>{ex.lead}</h3>
+          <p>{ex.text}</p>
+        </div>
+      ))
+    ) : (
+      <p class="placeholder">—</p>
+    )}
+  </section>
+
+  <section class="verdict">
+    <h2>{t.sheet.verdict}</h2>
+    {s.verdict ? <p>{s.verdict}</p> : <p class="placeholder">—</p>}
   </section>
 
   </article>
@@ -109,7 +198,23 @@ const description = s.essence || t.catalogue.meta.description;
     margin: 20px 0 36px;
   }
 
-  .passport dl { border-top: 1px solid var(--line); }
+  .passport dl, .sample dl { border-top: 1px solid var(--line); }
+
+  .example { margin-bottom: 18px; }
+  .example:last-child { margin-bottom: 0; }
+  .example h3 { font-size: 14px; font-weight: 600; margin-bottom: 4px; color: var(--ink); }
+
+  .verdict {
+    border-left: 2px solid var(--ink-faint);
+    padding-left: 16px;
+  }
+
+  .sample .note {
+    margin-top: 10px;
+    font-size: 11.5px;
+    line-height: 1.6;
+    color: var(--ink-faint);
+  }
 
   .row {
     display: flex;

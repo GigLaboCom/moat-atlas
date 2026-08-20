@@ -1,5 +1,5 @@
 import type { Locale } from "../../config";
-import type { MoatStrings } from "./types";
+import type { MoatExample, MoatStrings } from "./types";
 import en from "./en";
 import ru from "./ru";
 
@@ -15,7 +15,7 @@ export function getAllMoatStrings(locale: Locale): Record<number, MoatStrings> {
 
 /** A sheet is a draft until its prose is filled in. */
 export function isDraft(s: MoatStrings): boolean {
-  return !s.essence && !s.build && !s.bypass;
+  return !s.essence && !s.build.length && !s.bypass.length;
 }
 
-export type { MoatStrings };
+export type { MoatExample, MoatStrings };

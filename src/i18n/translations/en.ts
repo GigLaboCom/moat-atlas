@@ -108,6 +108,15 @@ export default {
     bypass: "How it is bypassed",
     draft:
       "This sheet is a skeleton — the prose is still being surveyed. The passport below comes straight from the matrix.",
+    verdict: "Verdict",
+    sample: {
+      title: "Sample",
+      share: "Share of apps",
+      noRate: "No-rate",
+      median: "Median price",
+      small: "small sample: n = {n}",
+      note: "Figures from the canivibecodeit sample. No-rate is the share of apps carrying this tag that cannot be vibe-coded — a proxy for structural strength. Only the first thirteen mechanics were measured.",
+    },
     showInAtlas: "Show in the section →",
     prev: "← Previous",
     next: "Next →",

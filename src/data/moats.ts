@@ -72,22 +72,39 @@ export interface Moat {
   ai: AiTrend;
   /** Can the moat be rented from someone else? */
   rent: Ternary;
+  /**
+   * Figures from the canivibecodeit sample, where they exist — only the first
+   * thirteen mechanics were measured. Kept as numbers so the sheet can render
+   * them and a machine can read them; the labels live in the dictionaries.
+   */
+  sample?: MoatSample;
+}
+
+export interface MoatSample {
+  /** Share of apps in the sample carrying this tag, per cent. */
+  share: number;
+  /** Share of those apps that cannot be vibe-coded, per cent. */
+  noRate: number;
+  /** Median price, USD. */
+  median: number;
+  /** Sample size, noted only where it is too small to lean on. */
+  n?: number;
 }
 
 export const MOATS: Moat[] = [
-  { n: 1,  rock: "networks", d: 4,   cap: "◐–●", capN: 2.5, solo: "partial", ai: "resistant",    rent: "no" },
-  { n: 2,  rock: "networks", d: 3,   cap: "●",   capN: 3,   solo: "no",      ai: "resistant",    rent: "partial" },
-  { n: 3,  rock: "assets",   d: 2.5, cap: "◐",   capN: 2,   solo: "yes",     ai: "eroding",      rent: "partial" },
-  { n: 4,  rock: "assets",   d: 3.5, cap: "◉",   capN: 4,   solo: "no",      ai: "resistant",    rent: "yes" },
-  { n: 5,  rock: "locks",    d: 2,   cap: "○",   capN: 1,   solo: "yes",     ai: "under-attack", rent: "no" },
-  { n: 6,  rock: "locks",    d: 2,   cap: "◐",   capN: 2,   solo: "yes",     ai: "under-attack", rent: "partial" },
-  { n: 7,  rock: "rules",    d: 3,   cap: "●",   capN: 3,   solo: "no",      ai: "resistant",    rent: "yes" },
-  { n: 8,  rock: "minds",    d: 4,   cap: "◐",   capN: 2,   solo: "partial", ai: "resistant",    rent: "partial" },
-  { n: 9,  rock: "assets",   d: 3.5, cap: "◉",   capN: 4,   solo: "no",      ai: "eroding",      rent: "yes" },
-  { n: 10, rock: "assets",   d: 3,   cap: "●",   capN: 3,   solo: "partial", ai: "resistant",    rent: "partial" },
-  { n: 11, rock: "networks", d: 2,   cap: "○",   capN: 1,   solo: "yes",     ai: "under-attack", rent: "no" },
-  { n: 12, rock: "rules",    d: 2.5, cap: "●",   capN: 3,   solo: "partial", ai: "eroding",      rent: "partial" },
-  { n: 13, rock: "locks",    d: 1,   cap: "○",   capN: 1,   solo: "yes",     ai: "under-attack", rent: "no" },
+  { n: 1,  rock: "networks", d: 4,   cap: "◐–●", capN: 2.5, solo: "partial", ai: "resistant",    rent: "no", sample: { share: 8.2, noRate: 67, median: 22.97 } },
+  { n: 2,  rock: "networks", d: 3,   cap: "●",   capN: 3,   solo: "no",      ai: "resistant",    rent: "partial", sample: { share: 0.7, noRate: 86, median: 102, n: 7 } },
+  { n: 3,  rock: "assets",   d: 2.5, cap: "◐",   capN: 2,   solo: "yes",     ai: "eroding",      rent: "partial", sample: { share: 11.5, noRate: 57, median: 29 } },
+  { n: 4,  rock: "assets",   d: 3.5, cap: "◉",   capN: 4,   solo: "no",      ai: "resistant",    rent: "yes", sample: { share: 12.3, noRate: 71, median: 18.99 } },
+  { n: 5,  rock: "locks",    d: 2,   cap: "○",   capN: 1,   solo: "yes",     ai: "under-attack", rent: "no", sample: { share: 4.4, noRate: 24, median: 15 } },
+  { n: 6,  rock: "locks",    d: 2,   cap: "◐",   capN: 2,   solo: "yes",     ai: "under-attack", rent: "partial", sample: { share: 40.2, noRate: 29, median: 19.99 } },
+  { n: 7,  rock: "rules",    d: 3,   cap: "●",   capN: 3,   solo: "no",      ai: "resistant",    rent: "yes", sample: { share: 10.1, noRate: 68, median: 20 } },
+  { n: 8,  rock: "minds",    d: 4,   cap: "◐",   capN: 2,   solo: "partial", ai: "resistant",    rent: "partial", sample: { share: 7.8, noRate: 79, median: 14.84 } },
+  { n: 9,  rock: "assets",   d: 3.5, cap: "◉",   capN: 4,   solo: "no",      ai: "eroding",      rent: "yes", sample: { share: 43.9, noRate: 52, median: 19.99 } },
+  { n: 10, rock: "assets",   d: 3,   cap: "●",   capN: 3,   solo: "partial", ai: "resistant",    rent: "partial", sample: { share: 0.7, noRate: 29, median: 11.99 } },
+  { n: 11, rock: "networks", d: 2,   cap: "○",   capN: 1,   solo: "yes",     ai: "under-attack", rent: "no", sample: { share: 17.3, noRate: 17, median: 15 } },
+  { n: 12, rock: "rules",    d: 2.5, cap: "●",   capN: 3,   solo: "partial", ai: "eroding",      rent: "partial", sample: { share: 10.5, noRate: 44, median: 14.99 } },
+  { n: 13, rock: "locks",    d: 1,   cap: "○",   capN: 1,   solo: "yes",     ai: "under-attack", rent: "no", sample: { share: 55.9, noRate: 17, median: 15 } },
   { n: 14, rock: "rules",    d: 3,   cap: "●",   capN: 3,   solo: "no",      ai: "resistant",    rent: "no" },
   { n: 15, rock: "math",     d: 3,   cap: "●",   capN: 3,   solo: "no",      ai: "resistant",    rent: "no" },
   { n: 16, rock: "position", d: 3,   cap: "●",   capN: 3,   solo: "partial", ai: "eroding",      rent: "partial" },
