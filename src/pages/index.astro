@@ -825,7 +825,15 @@ const sceneData = {
      own layout and only trades its rule for the plate the other panels wear. */
   /* Held clear of the legend in the opposite corner: when the line no longer
      fits beside it, the links drop under the tagline instead of colliding. */
-  .footer-hud { right: 26px; bottom: 76px; max-width: calc(100vw - 356px); }
+  .footer-hud {
+    right: 26px;
+    bottom: 76px;
+    max-width: calc(100vw - 356px);
+    /* `.hud > *` carries this page's scope attribute, and the footer element
+       belongs to SiteFooter — it never matched, so the links were unclickable.
+       The panel takes the pointer itself and its children inherit. */
+    pointer-events: auto;
+  }
 
   .footer-hud :global(.site-footer) {
     margin-top: 0;
