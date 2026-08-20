@@ -1,0 +1,89 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  # The same scanner the .githooks/pre-commit hook runs, over the whole history
+  # rather than one staged diff. The CLI, not gitleaks-action: the action wants
+  # a licence key for repositories owned by an organisation.
+  secrets:
+    name: secret scan
+    runs-on: ubuntu-latest
+    env:
+      GITLEAKS_VERSION: 8.30.0
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Install gitleaks
+        run: |
+          curl -fsSL "https://github.com/gitleaks/gitleaks/releases/download/v${GITLEAKS_VERSION}/gitleaks_${GITLEAKS_VERSION}_linux_x64.tar.gz" \
+            | sudo tar -xz -C /usr/local/bin gitleaks
+          gitleaks version
+
+      - run: gitleaks git --verbose --config .gitleaks.toml .
+
+  build:
+    name: lint + build
+    runs-on: ubuntu-latest
+    env:
+      PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD: 1
+      ASTRO_TELEMETRY_DISABLED: 1
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - run: npm ci
+      - run: npm run lint
+      - run: npm run build
+
+  image:
+    name: image builds
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: docker/setup-buildx-action@v3
+
+      # Not pushed — this only proves a pull request cannot break the release.
+      - uses: docker/build-push-action@v6
+        with:
+          context: .
+          push: false
+          load: true
+          tags: moat-atlas:ci
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+      - name: Smoke-test the container
+        run: |
+          docker run -d --name atlas --read-only --tmpfs /tmp -p 8080:8080 moat-atlas:ci
+          for i in $(seq 30); do
+            curl -fsS http://localhost:8080/healthz >/dev/null && break
+            sleep 1
+          done
+          curl -fsS http://localhost:8080/healthz
+          curl -fsS -o /dev/null http://localhost:8080/
+          curl -fsS -o /dev/null http://localhost:8080/ru/
+          curl -fsS -o /dev/null http://localhost:8080/moats/7/
+          test "$(curl -s -o /dev/null -w '%{http_code}' http://localhost:8080/nope)" = 404
+          docker logs atlas
+
+      # The machine-readable layer: /llms.txt, the .md page twins, the sitemap
+      # and the head links that announce them. See scripts/audit-agents.sh.
+      - name: Audit the agent-facing layer
+        run: bash scripts/audit-agents.sh http://localhost:8080

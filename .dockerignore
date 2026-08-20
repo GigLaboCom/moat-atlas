@@ -1,0 +1,16 @@
+# Build context: only the sources the Astro build actually reads.
+.git
+.github
+.claude
+.astro
+node_modules
+dist
+.env
+.env.*
+!.env.example
+.DS_Store
+*.log
+npm-debug.log*
+Dockerfile
+.dockerignore
+docker-compose.yml

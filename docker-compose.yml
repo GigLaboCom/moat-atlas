@@ -1,0 +1,17 @@
+services:
+  web:
+    build:
+      context: .
+      args:
+        PUBLIC_SITE_URL: ${PUBLIC_SITE_URL:-http://localhost:8080}
+        PUBLIC_GA_ID: ${PUBLIC_GA_ID:-}
+        PUBLIC_GEO_ENDPOINT: ${PUBLIC_GEO_ENDPOINT:-}
+    image: moat-atlas:local
+    ports:
+      - "${PORT:-8080}:8080"
+    restart: unless-stopped
+    read_only: true
+    tmpfs:
+      - /tmp
+    security_opt:
+      - no-new-privileges:true

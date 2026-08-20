@@ -1,0 +1,160 @@
+name: Release
+
+# Changes pile up on main; a tag cuts the release. Push `v1.2.3` and this
+# publishes ghcr.io/giglabocom/moat-atlas:{1.2.3, 1.2, 1, latest} and opens the
+# GitHub release with generated notes.
+#
+#   git tag -a v0.1.0 -m "…" && git push origin v0.1.0
+#
+# workflow_dispatch does the same from any ref but tags the image `edge` only —
+# nothing moves `latest` except a real tag.
+
+on:
+  push:
+    tags: ['v*.*.*']
+  workflow_dispatch:
+
+concurrency:
+  group: release-${{ github.ref }}
+  cancel-in-progress: false
+
+permissions:
+  contents: write
+  packages: write
+
+env:
+  REGISTRY: ghcr.io
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      # No tag ships from a history that carries a secret. Same scanner and
+      # same config as the .githooks/pre-commit hook.
+      - name: Scan the history for secrets
+        env:
+          GITLEAKS_VERSION: 8.30.0
+        run: |
+          curl -fsSL "https://github.com/gitleaks/gitleaks/releases/download/v${GITLEAKS_VERSION}/gitleaks_${GITLEAKS_VERSION}_linux_x64.tar.gz" \
+            | sudo tar -xz -C /usr/local/bin gitleaks
+          gitleaks git --verbose --config .gitleaks.toml .
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Lint and build the sources
+        env:
+          PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD: 1
+          ASTRO_TELEMETRY_DISABLED: 1
+        run: |
+          npm ci
+          npm run lint
+          npm run build
+
+      - uses: docker/setup-qemu-action@v3
+      - uses: docker/setup-buildx-action@v3
+
+      - uses: docker/login-action@v3
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - id: meta
+        uses: docker/metadata-action@v5
+        with:
+          images: ${{ env.REGISTRY }}/${{ github.repository }}
+          tags: |
+            type=semver,pattern={{version}}
+            type=semver,pattern={{major}}.{{minor}}
+            type=semver,pattern={{major}},enable=${{ !startsWith(github.ref_name, 'v0.') }}
+            type=raw,value=latest,enable=${{ startsWith(github.ref, 'refs/tags/v') }}
+            type=raw,value=edge,enable=${{ github.event_name == 'workflow_dispatch' }}
+            type=sha,format=long
+
+      # One amd64 image first: it is loaded locally and has to answer before
+      # anything reaches the registry.
+      - name: Build amd64 and smoke-test it
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          platforms: linux/amd64
+          push: false
+          load: true
+          tags: moat-atlas:candidate
+          build-args: |
+            PUBLIC_SITE_URL=${{ vars.PUBLIC_SITE_URL || 'https://moa.giglabo.com' }}
+            PUBLIC_GA_ID=${{ vars.PUBLIC_GA_ID }}
+            PUBLIC_GEO_ENDPOINT=${{ vars.PUBLIC_GEO_ENDPOINT }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+      - name: Smoke-test the candidate
+        run: |
+          docker run -d --name atlas --read-only --tmpfs /tmp -p 8080:8080 moat-atlas:candidate
+          for i in $(seq 30); do
+            curl -fsS http://localhost:8080/healthz >/dev/null && break
+            sleep 1
+          done
+          curl -fsS http://localhost:8080/healthz
+          curl -fsS -o /dev/null http://localhost:8080/
+          curl -fsS -o /dev/null http://localhost:8080/ru/
+          curl -fsS -o /dev/null http://localhost:8080/calculator/
+          curl -fsS -o /dev/null http://localhost:8080/moats/35/
+          test "$(curl -s -o /dev/null -w '%{http_code}' http://localhost:8080/nope)" = 404
+          docker rm -f atlas
+
+      # Same layers, now for both architectures — arm64 covers the Ampere hosts.
+      - name: Build and push
+        id: push
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          platforms: linux/amd64,linux/arm64
+          push: true
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
+          annotations: ${{ steps.meta.outputs.annotations }}
+          provenance: mode=max
+          sbom: true
+          build-args: |
+            PUBLIC_SITE_URL=${{ vars.PUBLIC_SITE_URL || 'https://moa.giglabo.com' }}
+            PUBLIC_GA_ID=${{ vars.PUBLIC_GA_ID }}
+            PUBLIC_GEO_ENDPOINT=${{ vars.PUBLIC_GEO_ENDPOINT }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+      - name: Cut the GitHub release
+        if: startsWith(github.ref, 'refs/tags/v')
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          TAG: ${{ github.ref_name }}
+          IMAGE: ${{ env.REGISTRY }}/${{ github.repository }}
+          DIGEST: ${{ steps.push.outputs.digest }}
+        run: |
+          cat > /tmp/notes.md <<NOTES
+          \`\`\`bash
+          docker run -p 8080:8080 --read-only --tmpfs /tmp ${IMAGE}:${TAG#v}
+          \`\`\`
+
+          Digest: \`${DIGEST}\`
+          NOTES
+          gh release create "$TAG" --title "$TAG" --generate-notes --notes-file /tmp/notes.md
+
+      - name: Summary
+        run: |
+          {
+            echo "### Published"
+            echo
+            echo '```'
+            echo "${{ steps.meta.outputs.tags }}"
+            echo '```'
+            echo
+            echo "Digest: \`${{ steps.push.outputs.digest }}\`"
+          } >> "$GITHUB_STEP_SUMMARY"
