@@ -45,6 +45,10 @@ const description = s.essence || t.catalogue.meta.description;
   basePath={`/moats/${n}/`}
   section={`${t.sheet.eyebrow} ${n}`}
 >
+  <!-- The atlas fetches this page and lifts #sheet-article into its modal, so
+       everything the modal should show lives inside it and the page chrome
+       (prev/next) stays outside. -->
+  <article id="sheet-article">
   <div class="eyebrow">
     {t.sheet.eyebrow} {n} / {MOAT_COUNT}
     <span class="rock-tag">
@@ -81,6 +85,8 @@ const description = s.essence || t.catalogue.meta.description;
     <h2>{t.sheet.bypass}</h2>
     {s.bypass ? <p>{s.bypass}</p> : <p class="placeholder">—</p>}
   </section>
+
+  </article>
 
   <nav class="sheet-nav">
     {prev ? <a href={getLocalizedPath(`/moats/${prev}/`, lang)}>{t.sheet.prev}</a> : <span></span>}

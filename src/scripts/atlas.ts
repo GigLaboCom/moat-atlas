@@ -34,6 +34,7 @@ import {
 
 export interface AtlasPayload {
   sheetBase: string;
+  loading: string;
   /** Moat number → its localized name and (possibly empty) essence. */
   names: Record<number, { name: string; essence: string }>;
   rockNames: Record<RockKey, string>;
@@ -487,11 +488,71 @@ function boot(data: AtlasPayload): void {
   }
 
   cardClose.addEventListener("click", deselect);
-  cardLink.addEventListener("click", () => {
-    if (selected) trackSheetOpen((selected.userData as Moat).n, "atlas");
+
+  /* ── the full sheet, in a modal over the section ─────── */
+  const modal = el<HTMLDialogElement>("sheet-modal");
+  const modalBody = el("modal-body");
+  const modalPage = el<HTMLAnchorElement>("modal-page");
+  /** Fetched sheets, kept for the session — a re-open costs nothing. */
+  const sheetCache = new Map<number, string>();
+
+  async function openSheet(n: number): Promise<void> {
+    if (!modal || !modalBody || !modalPage) return;
+    const url = `${data.sheetBase}${n}/`;
+    modalPage.href = url;
+    modalBody.textContent = data.loading;
+    modal.showModal();
+    modalBody.scrollTop = 0;
+    trackSheetOpen(n, "modal");
+
+    try {
+      let html = sheetCache.get(n);
+      if (html === undefined) {
+        const response = await fetch(url);
+        if (!response.ok) throw new Error(String(response.status));
+        html = await response.text();
+        sheetCache.set(n, html);
+      }
+      const article = new DOMParser()
+        .parseFromString(html, "text/html")
+        .getElementById("sheet-article");
+      if (!article) throw new Error("no article");
+      modalBody.replaceChildren(document.importNode(article, true));
+      modal.scrollTop = 0;
+    } catch {
+      // The page is the source of truth — if the fetch fails, just go there.
+      window.location.href = url;
+    }
+  }
+
+  function closeSheet(): void {
+    modal?.close();
+  }
+
+  cardLink.addEventListener("click", (e) => {
+    if (!selected) return;
+    const n = (selected.userData as Moat).n;
+    // Modified clicks keep their usual meaning: the sheet is a real page.
+    if (e.defaultPrevented || e.metaKey || e.ctrlKey || e.shiftKey || e.altKey || e.button !== 0) {
+      trackSheetOpen(n, "atlas");
+      return;
+    }
+    e.preventDefault();
+    void openSheet(n);
   });
+
+  el("modal-close")?.addEventListener("click", closeSheet);
+
+  // A click on the backdrop lands on the dialog itself, never on its content.
+  modal?.addEventListener("click", (e) => {
+    if (e.target === modal) closeSheet();
+  });
+
   window.addEventListener("keydown", (e) => {
-    if (e.key === "Escape") deselect();
+    if (e.key !== "Escape") return;
+    // The dialog closes itself; only the bare section clears the selection.
+    if (modal?.open) return;
+    deselect();
   });
 
   /* ── grouping buttons ────────────────────────────────── */

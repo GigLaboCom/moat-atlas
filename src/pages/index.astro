@@ -51,6 +51,7 @@ const sceneData = {
   },
   specimen: { eyebrow: t.atlas.specimen.eyebrow, rock: t.atlas.specimen.rock },
   draft: t.sheet.draft,
+  loading: t.atlas.loading,
 };
 ---
 
@@ -152,6 +153,13 @@ const sceneData = {
     <p id="card-body">{t.atlas.specimen.empty_body}</p>
     <a href="#" id="card-link" hidden>{t.atlas.specimen.link}</a>
   </aside>
+
+  <!-- the full sheet, over the section — the page at /moats/N/ stays as it is -->
+  <dialog class="sheet-modal" id="sheet-modal" aria-label={t.atlas.specimen.link}>
+    <button class="close" id="modal-close" aria-label={t.atlas.specimen.close}>✕</button>
+    <div id="modal-body"></div>
+    <a class="modal-page" id="modal-page" href="#">{t.atlas.specimen.page}</a>
+  </dialog>
 
   <!-- status line + interaction hint -->
   <div class="hud status"><span id="tooltip">{t.atlas.loading}</span></div>
@@ -376,6 +384,123 @@ const sceneData = {
     text-transform: uppercase;
     color: var(--ink-faint);
     line-height: 1.6;
+  }
+
+
+  /* ── the sheet modal ─────────────────────────────────── */
+  /* Its body is lifted out of /moats/N/, so it arrives without the scope
+     attribute Astro stamps on this page — every rule below has to be global. */
+  .sheet-modal {
+    width: min(720px, calc(100vw - 32px));
+    max-height: min(84vh, 900px);
+    margin: auto;
+    padding: 32px 36px 28px;
+    border: 1px solid var(--line);
+    background: var(--panel-solid);
+    color: var(--ink);
+    overflow: auto;
+    position: relative;
+  }
+
+  .sheet-modal::backdrop { background: rgba(10, 8, 5, 0.66); }
+
+  .sheet-modal .close {
+    position: absolute;
+    top: 14px;
+    right: 14px;
+    width: 26px;
+    height: 26px;
+    border: 1px solid var(--line);
+    background: transparent;
+    color: var(--ink-dim);
+    font-size: 12px;
+    line-height: 1;
+    cursor: pointer;
+  }
+
+  .sheet-modal .close:hover { color: var(--ink); border-color: var(--ink-dim); }
+
+  .sheet-modal .modal-page {
+    display: inline-block;
+    margin-top: 26px;
+    padding-top: 14px;
+    border-top: 1px solid var(--line);
+    font-family: var(--mono);
+    font-size: 11px;
+    letter-spacing: 0.08em;
+    color: var(--ink-dim);
+  }
+
+  .sheet-modal .modal-page:hover { color: var(--ink); }
+
+  .sheet-modal :global(.eyebrow) {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    font-family: var(--mono);
+    font-size: 10px;
+    letter-spacing: 0.24em;
+    text-transform: uppercase;
+    color: var(--ink-faint);
+    margin-bottom: 10px;
+  }
+
+  .sheet-modal :global(.rock-tag) { display: inline-flex; align-items: center; gap: 6px; }
+  .sheet-modal :global(.rock-tag i) { width: 8px; height: 8px; }
+
+  .sheet-modal :global(h1) {
+    font-family: var(--display);
+    font-weight: 400;
+    font-size: clamp(24px, 3vw, 32px);
+    letter-spacing: 0.04em;
+    margin-bottom: 8px;
+  }
+
+  .sheet-modal :global(h2) {
+    font-family: var(--display);
+    font-weight: 400;
+    font-size: 18px;
+    letter-spacing: 0.03em;
+    margin-bottom: 10px;
+  }
+
+  .sheet-modal :global(p) { font-size: 14px; line-height: 1.7; color: var(--ink-dim); }
+  .sheet-modal :global(section) { margin-bottom: 28px; }
+
+  .sheet-modal :global(.draft) {
+    border: 1px solid var(--line);
+    border-left: 2px solid var(--ink-dim);
+    padding: 12px 14px;
+    font-size: 13px;
+    margin: 18px 0 30px;
+  }
+
+  .sheet-modal :global(.passport dl) { border-top: 1px solid var(--line); }
+
+  .sheet-modal :global(.passport .row) {
+    display: flex;
+    gap: 16px;
+    padding: 9px 0;
+    border-bottom: 1px solid var(--line);
+    font-size: 13px;
+  }
+
+  .sheet-modal :global(.passport dt) {
+    font-family: var(--mono);
+    font-size: 10px;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    color: var(--ink-faint);
+    min-width: 140px;
+  }
+
+  .sheet-modal :global(.passport dd) { color: var(--ink); margin-left: auto; text-align: right; }
+  .sheet-modal :global(.placeholder) { color: var(--ink-faint); font-family: var(--mono); }
+
+  @media (max-width: 640px) {
+    .sheet-modal { padding: 26px 18px 22px; }
+    .sheet-modal :global(.passport .row) { flex-direction: column; gap: 4px; }
+    .sheet-modal :global(.passport dd) { margin-left: 0; text-align: left; }
   }
 
   /* specimen card */

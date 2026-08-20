@@ -42,6 +42,7 @@ export default {
       rock: "rock",
       close: "Clear selection",
       link: "Open the full sheet →",
+      page: "Open as a page →",
       stats: {
         depth: "depth",
         cap: "capital",
