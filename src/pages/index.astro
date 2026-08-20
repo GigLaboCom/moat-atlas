@@ -225,8 +225,16 @@ const sceneData = {
   #scene {
     position: fixed;
     inset: 0;
+    /* The element owns its size and the renderer follows it — a canvas is a
+       replaced element, so with `inset: 0` and no width it would take its
+       intrinsic (device-pixel) width and overflow the viewport on retina. */
+    width: 100%;
+    height: 100%;
     display: block;
     cursor: grab;
+    /* Orbit, pinch and wheel are the scene's own gestures; without this the
+       browser claims the touch for panning and the section never turns. */
+    touch-action: none;
     /* Painted by the renderer; the earth colour keeps the first frame from
        flashing white. */
     background: var(--earth);
@@ -859,28 +867,83 @@ const sceneData = {
     color: var(--ink-faint);
   }
 
-  /* Below the tablet breakpoint the HUD panels overlap; the catalogue is the
-     honest reading surface there, so the side panels stand down. */
-  @media (max-width: 900px) {
-    /* The hint describes a mouse, and the status line would sit on top of the
-       legend — on touch the specimen card says the same things. */
-    .ruler, .hint, .status { display: none; }
-    /* Nothing is pinned any more: the panels stack in source order and the
-       page scrolls over the canvas, which keeps its own gestures. */
-    :global(body.fixed) { height: auto; overflow: auto; }
-    #scene { touch-action: none; }
-    .legend { position: relative; inset: auto; max-width: none; margin: 12px 16px 16px; }
-    /* There is no room for a corner stack beside the title: the header stops
-       being an overlay and becomes the top of the page, its controls a
-       wrapping strip, and the specimen simply follows it in flow. */
-    .top { position: relative; inset: auto; flex-wrap: wrap; padding: 16px; gap: 10px; }
+  /* Below the tablet breakpoint the HUD cannot hold its corners — but the
+     breakpoint is the pointer, not the width. A phone asked for the desktop
+     site reports 980px and used to get the overlay HUD folded onto itself,
+     a canvas with no `touch-action` (so nothing turned), a locked body (so
+     nothing scrolled) and a 980×2120 drawing buffer on a phone GPU. Coarse
+     pointer catches that case; the width keeps small windows honest. */
+  @media (max-width: 900px), (pointer: coarse) {
+    /* Nothing is pinned any more: the page is a column and the panels sit
+       under the section instead of on top of it. Order lives here rather than
+       in the markup so the desktop overlay keeps the source order it needs. */
+    :global(body.fixed) {
+      height: auto;
+      overflow: visible;
+      display: flex;
+      flex-direction: column;
+      min-height: 100svh;
+    }
+
+    .hud { position: relative; inset: auto; }
+
+    /* The hint describes a mouse, and the status line duplicates the specimen
+       card, which is now in the column right under the drawing. */
+    .hint, .status { display: none; }
+
+    /* The section stops being a backdrop and becomes a band of its own. That
+       band is a third of the pixels the full screen was, and the frame time
+       here tracks the pixel count almost exactly. */
+    #scene {
+      position: relative;
+      inset: auto;
+      order: 2;
+      width: 100%;
+      /* Shaped, not just sized: the section is wider than it is deep, so a
+         band of roughly its own proportions is what puts the camera closest
+         to it. The cap keeps the drawing from pushing the panels off a short
+         screen in landscape. */
+      aspect-ratio: 4 / 3;
+      height: auto;
+      max-height: 56svh;
+      border-bottom: 1px solid var(--line);
+    }
+
+    /* The header stops being an overlay and becomes the top of the page, its
+       controls a wrapping strip. It is also on a budget: whatever it spends
+       is height the drawing does not get on the first screen, so the tabs
+       drop their second line and the plate its slack. */
+    .top { order: 1; flex-wrap: wrap; padding: 14px 16px 12px; gap: 8px; }
     .plate, .top-right { flex: 1 1 100%; }
-    .plate .sub { max-width: none; }
+    .plate .eyebrow { margin-bottom: 6px; }
+    .plate h1 { font-size: 26px; }
+    .plate .rule { margin: 8px 0 6px; }
+    .plate .sub { max-width: 62ch; }
     .top-right { flex-direction: row; flex-wrap: wrap; align-items: center; gap: 8px; }
-    .tab { padding: 9px 12px 8px; }
+    .tab { padding: 8px 14px; }
     .tab strong { font-size: 13px; }
-    .specimen { position: relative; inset: auto; width: auto; margin: 0 16px; transform: none; }
-    .footer-hud { position: relative; inset: auto; max-width: none; margin: 12px 16px; }
+    /* "Sheet I · cross-section" is a caption for a tab that already says it. */
+    .tab span { display: none; }
+
+    /* Under the drawing, in the order the section is read: what you tapped,
+       what to lay it out by, and what the depth axis means. The panels lose
+       the blur — a live canvas under a backdrop filter is re-blurred every
+       frame — and cap their line length for the 980px desktop-site case. */
+    .specimen, .legend, .ruler, .footer-hud {
+      width: 100%;
+      max-width: min(720px, calc(100% - 32px));
+      margin: 16px auto 0;
+      inset: auto;
+      transform: none;
+      backdrop-filter: none;
+    }
+
+    .specimen { order: 3; }
+    .legend { order: 4; }
+    .ruler { order: 5; display: block; }
+    .ruler .caption { display: block; }
+    .footer-hud { order: 6; margin-bottom: 16px; }
+
     .footer-hud :global(.site-footer) { justify-content: flex-start; white-space: normal; }
     .footer-hud :global(.footer-links) { margin-left: 0; }
   }

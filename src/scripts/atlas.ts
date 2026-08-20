@@ -178,9 +178,28 @@ function boot(data: AtlasPayload): void {
   const canvas: HTMLCanvasElement = canvasEl;
   const tooltip: HTMLElement = tooltipEl;
 
+  /**
+   * Touch is read off the pointer, never off the width: a phone asked for the
+   * desktop site still reports a coarse pointer, and that is the case that
+   * used to hand a 980×2120 viewport to a phone GPU with no way to spin it.
+   */
+  const touch = window.matchMedia("(hover: none), (pointer: coarse)").matches;
+
+  /**
+   * Nothing in the section moves by itself except the idle spin, so a frame is
+   * only drawn when something actually changed. Every function that changes
+   * what is on screen ends with `invalidate()`; the loop clears the flag.
+   */
+  let dirty = true;
+  function invalidate(): void {
+    dirty = true;
+  }
+
   let renderer: THREE.WebGLRenderer;
   try {
-    renderer = new THREE.WebGLRenderer({ canvas, antialias: true });
+    // The section is fill-bound — frame time tracks the pixel count almost
+    // exactly — so multisampling is the first thing to go on a phone.
+    renderer = new THREE.WebGLRenderer({ canvas, antialias: !touch, powerPreference: "high-performance" });
   } catch {
     // No WebGL — the HUD stays, the fallback panel points at the catalogue.
     canvas.hidden = true;
@@ -188,7 +207,7 @@ function boot(data: AtlasPayload): void {
     if (fallback) fallback.hidden = false;
     return;
   }
-  renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+  renderer.setPixelRatio(Math.min(window.devicePixelRatio, touch ? 1.5 : 2));
 
   const reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
   let theme: Theme = currentTheme();
@@ -295,6 +314,7 @@ function boot(data: AtlasPayload): void {
 
   function applyGrouping(axis: GroupingAxis, instant: boolean): void {
     currentAxis = axis;
+    invalidate();
 
     const groups = AXIS_BUCKETS[axis]
       .map((bucket) => ({
@@ -341,6 +361,7 @@ function boot(data: AtlasPayload): void {
       const rec = byN.get((selected.userData as Moat).n)!;
       goal.target.set(rec.tx, -rec.moat.d * UNIT * 0.45, rec.tz);
     }
+    scaleLabels();
   }
 
   /* ── selection ring ──────────────────────────────────── */
@@ -361,6 +382,7 @@ function boot(data: AtlasPayload): void {
     atlas.remove(ring);
     ring.geometry.dispose();
     ring.material.dispose();
+    invalidate();
     ring = null;
   }
 
@@ -391,6 +413,7 @@ function boot(data: AtlasPayload): void {
       rec.cap.material.opacity = lit ? 1 : 0.15;
       rec.label.material.opacity = lit ? 1 : 0.18;
     }
+    invalidate();
   }
 
   /**
@@ -402,6 +425,7 @@ function boot(data: AtlasPayload): void {
     for (const [i, s] of strata.entries()) {
       s.material.opacity = theme.strataOpacity * (i + 1 === lit ? 5 : 1);
     }
+    invalidate();
   }
 
   /* ── the specimen card ───────────────────────────────── */
@@ -458,17 +482,78 @@ function boot(data: AtlasPayload): void {
   }
 
   /* ── camera state ────────────────────────────────────── */
-  const orbit = { theta: 0.7, phi: 1.02, radius: 14, target: new THREE.Vector3(0, -1.6, 0) };
-  const goal = { radius: 14, target: new THREE.Vector3(0, -1.6, 0) };
+  /**
+   * Where the camera rests with no core taken. A phone band is a portrait
+   * frame around a landscape subject, and what is tall in this drawing is the
+   * shafts — so it stands lower and reads the section more from the side, the
+   * way a section is drawn on paper, and aims at the middle of their drop
+   * rather than at the ground plane. Off-centre by the width of a row label,
+   * which hangs to the left of every grouping.
+   */
+  const HOME = touch
+    ? { phi: 1.14, x: -0.8, y: -2.55 }
+    : { phi: 1.02, x: 0, y: -1.6 };
+  const orbit = {
+    theta: 0.7,
+    phi: HOME.phi,
+    radius: 14,
+    target: new THREE.Vector3(HOME.x, HOME.y, 0),
+  };
+  const goal = { radius: 14, target: new THREE.Vector3(HOME.x, HOME.y, 0) };
   let dragging = false;
   let lastX = 0, lastY = 0, downX = 0, downY = 0;
 
+  /**
+   * three's field of view is the vertical one, so a canvas that is not the
+   * shape of a desktop window frames the section wrongly: on a phone band the
+   * sides fall outside it. The camera stands back instead — far enough that
+   * the footprint fits across and the shafts fit down — and the fog travels
+   * with it, so the far edge fades exactly where it always did.
+   *
+   * The footprint turns under the idle spin, so what has to fit across is its
+   * bounding circle, not its width. Normalised to 1 at the desktop shape:
+   * a wide window keeps the framing the section was drawn for.
+   */
+  const BASE_ASPECT = 1.6;
+  const FOV = 45;
+  const DEG = Math.PI / 180;
+  /** Half-width of the turning footprint, and the drop of the deepest shaft. */
+  const FIT_R = 8.2;
+  const FIT_V = 4.8;
+  const HALF_FOV = Math.tan((FOV / 2) * DEG);
+  const fitAt = (aspect: number) =>
+    Math.max(FIT_R / (HALF_FOV * aspect), FIT_V / HALF_FOV);
+  const BASE_FIT = fitAt(BASE_ASPECT);
+  let framing = 1;
+
+  /**
+   * Sprites are sized in world units, so standing the camera back shrinks the
+   * numbers with everything else. Growing them by the same factor holds their
+   * angular size; a phone gets a little more on top of that, because the band
+   * is a quarter of the width a desktop window gives them.
+   */
+  function scaleLabels(): void {
+    const k = framing * (touch ? 1.45 : 1);
+    for (const rec of records) rec.label.scale.set(0.62 * k, 0.62 * k, 1);
+    for (const row of rowLabels) row.sprite.scale.set(3.4 * k, 0.53 * k, 1);
+  }
+
+  function frameSection(): void {
+    framing = fitAt(Math.max(camera.aspect, 0.4)) / BASE_FIT;
+    camera.updateProjectionMatrix();
+    const fog = scene.fog as THREE.Fog;
+    fog.near = 16 * framing;
+    fog.far = 34 * framing;
+    scaleLabels();
+  }
+
   function applyCamera(): void {
     const t = orbit.target;
+    const r = orbit.radius * framing;
     camera.position.set(
-      t.x + orbit.radius * Math.sin(orbit.phi) * Math.cos(orbit.theta),
-      t.y + orbit.radius * Math.cos(orbit.phi),
-      t.z + orbit.radius * Math.sin(orbit.phi) * Math.sin(orbit.theta),
+      t.x + r * Math.sin(orbit.phi) * Math.cos(orbit.theta),
+      t.y + r * Math.cos(orbit.phi),
+      t.z + r * Math.sin(orbit.phi) * Math.sin(orbit.theta),
     );
     camera.lookAt(t);
   }
@@ -507,7 +592,7 @@ function boot(data: AtlasPayload): void {
     removeRing();
     resetCard();
     tooltip.textContent = data.status.atlas;
-    goal.target.set(0, -1.6, 0);
+    goal.target.set(HOME.x, HOME.y, 0);
     goal.radius = 14;
     setHash("");
   }
@@ -568,9 +653,17 @@ function boot(data: AtlasPayload): void {
 
   el("modal-close")?.addEventListener("click", closeSheet);
 
-  // A click on the backdrop lands on the dialog itself, never on its content.
+  // A click on the backdrop lands on the dialog itself, never on its content —
+  // but so does the compatibility click that follows the tap which opened the
+  // sheet, and a press that started inside and was released outside. Dismissal
+  // needs both halves of the gesture on the backdrop.
+  let onBackdrop = false;
+  modal?.addEventListener("pointerdown", (e) => {
+    onBackdrop = e.target === modal;
+  });
   modal?.addEventListener("click", (e) => {
-    if (e.target === modal) closeSheet();
+    if (e.target === modal && onBackdrop) closeSheet();
+    onBackdrop = false;
   });
 
   window.addEventListener("keydown", (e) => {
@@ -657,7 +750,7 @@ function boot(data: AtlasPayload): void {
   const raycaster = new THREE.Raycaster();
   const pointer = new THREE.Vector2();
 
-  function pick(e: MouseEvent): THREE.Intersection | null {
+  function pick(e: { clientX: number; clientY: number }): THREE.Intersection | null {
     const rect = canvas.getBoundingClientRect();
     pointer.x = ((e.clientX - rect.left) / rect.width) * 2 - 1;
     pointer.y = -((e.clientY - rect.top) / rect.height) * 2 + 1;
@@ -681,35 +774,99 @@ function boot(data: AtlasPayload): void {
       tooltip.textContent = passport(hovered.userData as Moat);
       canvas.style.cursor = "pointer";
     }
+    invalidate();
+  }
+
+  /**
+   * Live pointers on the canvas. One orbits, two pinch — the canvas declares
+   * `touch-action: none`, so the gestures are ours to implement and the page
+   * around it keeps scrolling normally.
+   */
+  const active = new Map<number, { x: number; y: number }>();
+  let pinch = 0;
+  /** A finger wanders further than a mouse: a tap has to survive its own slop. */
+  let slop = 6;
+
+  function zoom(delta: number): void {
+    goal.radius = Math.max(5, Math.min(24, goal.radius + delta));
+    invalidate();
   }
 
   canvas.addEventListener("pointerdown", (e) => {
+    active.set(e.pointerId, { x: e.clientX, y: e.clientY });
+    if (active.size > 2) return;
+    if (active.size === 2) {
+      // A second finger ends the orbit and starts a pinch.
+      dragging = false;
+      canvas.classList.remove("dragging");
+      const [a, b] = [...active.values()];
+      pinch = Math.hypot(a.x - b.x, a.y - b.y);
+      return;
+    }
     dragging = true;
+    slop = e.pointerType === "mouse" ? 6 : 14;
     lastX = downX = e.clientX;
     lastY = downY = e.clientY;
     canvas.classList.add("dragging");
     canvas.setPointerCapture(e.pointerId);
   });
+
   window.addEventListener("pointermove", (e) => {
+    if (active.has(e.pointerId)) active.set(e.pointerId, { x: e.clientX, y: e.clientY });
+
+    if (active.size === 2) {
+      const [a, b] = [...active.values()];
+      const span = Math.hypot(a.x - b.x, a.y - b.y);
+      if (pinch) zoom((pinch - span) * 0.03);
+      pinch = span;
+      return;
+    }
     if (dragging) {
       orbit.theta += (e.clientX - lastX) * 0.005;
       orbit.phi -= (e.clientY - lastY) * 0.004;
       orbit.phi = Math.max(0.35, Math.min(1.35, orbit.phi));
       lastX = e.clientX;
       lastY = e.clientY;
-    } else {
+      invalidate();
+    } else if (e.pointerType === "mouse") {
+      // Nothing hovers under a finger; raycasting every touch move is waste.
       hover(e);
     }
   });
-  window.addEventListener("pointerup", (e) => {
-    const wasDrag = Math.abs(e.clientX - downX) + Math.abs(e.clientY - downY) > 6;
+
+  function endPointer(e: PointerEvent): void {
+    active.delete(e.pointerId);
+    if (active.size < 2) pinch = 0;
+  }
+
+  window.addEventListener("pointercancel", (e) => {
+    endPointer(e);
     dragging = false;
     canvas.classList.remove("dragging");
-    if (wasDrag || e.target !== canvas) return;
-    const hit = pick(e);
-    if (hit) select(hit.object as Shaft);
-    else deselect();
   });
+
+  window.addEventListener("pointerup", (e) => {
+    const wasPinch = active.size === 2;
+    endPointer(e);
+    const wasDrag = Math.abs(e.clientX - downX) + Math.abs(e.clientY - downY) > slop;
+    dragging = false;
+    canvas.classList.remove("dragging");
+    if (wasPinch || wasDrag || e.target !== canvas) return;
+    const hit = pick(e);
+    if (!hit) {
+      deselect();
+      return;
+    }
+    const shaft = hit.object as Shaft;
+    // A finger has no double-click: on touch the second tap on a core already
+    // taken opens what it is made of, which is what the dblclick does above.
+    if (touch && shaft === selected) {
+      void openSheet((shaft.userData as Moat).n, "tap");
+      return;
+    }
+    select(shaft);
+  });
+
   // The first click takes the core, the second opens what it is made of.
   canvas.addEventListener("dblclick", (e) => {
     const hit = pick(e);
@@ -717,11 +874,12 @@ function boot(data: AtlasPayload): void {
     e.preventDefault();
     void openSheet(((hit.object as Shaft).userData as Moat).n, "dblclick");
   });
+
   canvas.addEventListener(
     "wheel",
     (e) => {
       e.preventDefault();
-      goal.radius = Math.max(5, Math.min(24, goal.radius + e.deltaY * 0.01));
+      zoom(e.deltaY * 0.01);
     },
     { passive: false },
   );
@@ -742,6 +900,7 @@ function boot(data: AtlasPayload): void {
       retintSprite(rec.label, String(rec.moat.n), tint(rockHex(rec.moat.rock)), false);
     }
     for (const row of rowLabels) retintSprite(row.sprite, row.text, tint(row.color), true);
+    invalidate();
   }).observe(document.documentElement, { attributes: true, attributeFilter: ["data-theme"] });
 
   /* ── start: laid out by rock, then the deep link ─────── */
@@ -760,48 +919,103 @@ function boot(data: AtlasPayload): void {
   window.addEventListener("hashchange", () => selectFromHash(true));
 
   /* ── loop ────────────────────────────────────────────── */
+  let sizeW = 0;
+  let sizeH = 0;
+
+  /**
+   * The drawing buffer follows the canvas box, not the window. The CSS sizes
+   * the element — full viewport on a desktop, a band under the header on a
+   * phone — so `setSize` is told to leave the style alone (a third argument of
+   * `false`), which is also what keeps the ResizeObserver from feeding itself.
+   * Reading the box rather than `innerHeight` is what ends the resize storm on
+   * a phone: a collapsing URL bar changes the window on every scroll frame,
+   * and each of those used to reallocate the framebuffer.
+   */
   function resize(): void {
-    const w = window.innerWidth;
-    const h = window.innerHeight;
-    // Let three set the CSS size too: a canvas is a replaced element, so with
-    // `inset: 0` and no explicit size it would take its intrinsic (device-pixel)
-    // width and overflow the viewport on retina screens.
-    renderer.setSize(w, h);
+    const rect = canvas.getBoundingClientRect();
+    const w = Math.max(1, Math.round(rect.width));
+    const h = Math.max(1, Math.round(rect.height));
+    if (w === sizeW && h === sizeH) return;
+    sizeW = w;
+    sizeH = h;
+    renderer.setSize(w, h, false);
     camera.aspect = w / h;
-    camera.updateProjectionMatrix();
+    frameSection();
+    invalidate();
   }
-  window.addEventListener("resize", resize);
+  new ResizeObserver(resize).observe(canvas);
   resize();
+
+  /* A section nobody can see costs nothing: the loop stops when the tab goes
+     away or the canvas scrolls off the screen, and picks up where it left. */
+  let onScreen = true;
+  let looping = false;
+  const awake = () => onScreen && !document.hidden;
+
+  function start(): void {
+    if (looping || !awake()) return;
+    looping = true;
+    // Whatever was on screen when the loop stopped may be gone; draw once.
+    invalidate();
+    clock.getDelta(); // drop the time spent asleep, or the first ease jumps
+    requestAnimationFrame(tick);
+  }
 
   const clock = new THREE.Clock();
   function tick(): void {
+    if (!awake()) {
+      looping = false;
+      return;
+    }
     const dt = clock.getDelta();
-    if (!dragging && !reduceMotion && !selected) orbit.theta += dt * 0.05;
+    if (!dragging && !reduceMotion && !selected) {
+      orbit.theta += dt * 0.05;
+      dirty = true;
+    }
 
     const camEase = Math.min(1, dt * 4);
-    orbit.radius += (goal.radius - orbit.radius) * camEase;
-    orbit.target.lerp(goal.target, camEase);
+    if (
+      Math.abs(goal.radius - orbit.radius) > 1e-3 ||
+      orbit.target.distanceToSquared(goal.target) > 1e-6
+    ) {
+      orbit.radius += (goal.radius - orbit.radius) * camEase;
+      orbit.target.lerp(goal.target, camEase);
+      dirty = true;
+    }
 
     const moveEase = reduceMotion ? 1 : Math.min(1, dt * 3.5);
     for (const rec of records) {
       const p = rec.shaft.position;
-      p.x += (rec.tx - p.x) * moveEase;
-      p.z += (rec.tz - p.z) * moveEase;
+      const dx = rec.tx - p.x;
+      const dz = rec.tz - p.z;
+      if (Math.abs(dx) < 1e-4 && Math.abs(dz) < 1e-4) continue;
+      p.x += dx * moveEase;
+      p.z += dz * moveEase;
       rec.cap.position.x = p.x;
       rec.cap.position.z = p.z;
       rec.label.position.x = p.x;
       rec.label.position.z = p.z;
+      dirty = true;
     }
     if (ring && selected) {
       ring.position.x = selected.position.x;
       ring.position.z = selected.position.z;
     }
 
-    applyCamera();
-    renderer.render(scene, camera);
+    if (dirty) {
+      dirty = false;
+      applyCamera();
+      renderer.render(scene, camera);
+    }
     requestAnimationFrame(tick);
   }
-  tick();
+
+  document.addEventListener("visibilitychange", start);
+  new IntersectionObserver((entries) => {
+    onScreen = entries[0].isIntersecting;
+    start();
+  }).observe(canvas);
+  start();
 }
 
 const payload = window.__ATLAS__;

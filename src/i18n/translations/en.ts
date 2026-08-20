@@ -93,7 +93,7 @@ export default {
         {
           title: "Controls",
           body:
-            "Drag to rotate, wheel to zoom. Hovering a shaft reads its passport into the status line, a click takes a core into the card, a double-click opens the full sheet — how it is built, how it is bypassed, the verdict. Esc returns to the overview, and every core has its own address: /#moat-7.",
+            "Drag to rotate, wheel to zoom. Hovering a shaft reads its passport into the status line, a click takes a core into the card, a double-click opens the full sheet — how it is built, how it is bypassed, the verdict. On a touch screen the same three: drag turns the section, two fingers zoom, a tap takes a core and a second tap on the same shaft opens its sheet. Esc returns to the overview, and every core has its own address: /#moat-7.",
         },
         {
           title: "Sheet II",
