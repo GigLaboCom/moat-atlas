@@ -20,7 +20,7 @@ Run `npm run lint && npm run build` before finishing any change — the build is
 
 | Route            | What it is                                                  |
 |------------------|-------------------------------------------------------------|
-| `/`              | Sheet I — the cross-section (HUD skeleton; 3D scene pending) |
+| `/`              | Sheet I — the interactive cross-section of all 35 mechanics  |
 | `/moats/`        | The catalogue — all 35 mechanics as a table                  |
 | `/moats/{1..35}/`| One sheet per mechanic: passport, essence, build, bypass     |
 | `/calculator/`   | Sheet II — the survey (skeleton; scoring pending)            |
@@ -65,6 +65,27 @@ rewrite files under `src/pages/{locale}/`.
 (rock, depth, capital, solo, AI, rent) with no human-readable strings in it.
 Names and prose live in the translations, keyed by the same number that is used
 for the deep link (`/#moat-7`) and the sheet route (`/moats/7/`).
+
+## The cross-section (sheet I)
+
+`src/scripts/atlas.ts` is the three.js scene behind `/`, ported from the v3
+prototype. One shaft per mechanic hangs from the ground plane: colour and
+cross-section shape encode the rock, thickness the capital, length the depth.
+
+- **Groupings.** The six axes of the catalogue (`GROUPING_AXES`) re-lay the sheet
+  in place: shafts ease to new positions and each row gets a label with its
+  count. Bucketing is `bucketOf()` from `src/data/moats.ts` — the same function
+  the OG card uses, so the section can never disagree with the matrix.
+- **Selection.** Clicking a shaft takes a core: the specimen card fills from the
+  matrix, a ring marks the shaft, the camera dives to it and the URL becomes
+  `#moat-N`. `Escape`, the card's ✕, or a click on empty ground clears it;
+  `hashchange` is honoured, so `/#moat-7` works as a link from anywhere.
+- **Isolation.** Clicking a rock in the legend dims everything else.
+- The scene imports the matrix directly and receives every string through
+  `window.__ATLAS__`, filled by `index.astro` from the locale dictionary — no
+  user-visible text lives in the script. It follows the theme toggle, honours
+  `prefers-reduced-motion`, and falls back to the catalogue link if WebGL is
+  missing.
 
 ## Cookies and analytics
 
@@ -135,6 +156,5 @@ same machine family to keep the two locales consistent.
 
 ## Still to build
 
-- the three.js cross-section on `/` (shafts, strata, six groupings, core cards)
 - the survey engine and scoring behind `/calculator/`
 - sheet prose for all 35 mechanics (`essence`, `build`, `bypass` are empty)

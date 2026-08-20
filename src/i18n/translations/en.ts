@@ -38,7 +38,7 @@ export default {
       empty_title: "The section is waiting",
       empty_body:
         "Click a shaft — its core lands here: the passport from the survey matrix, the essence, how it is built and how it is bypassed.",
-      eyebrow: "Core no.",
+      eyebrow: "Core no. {n}",
       rock: "rock",
       close: "Clear selection",
       link: "Open the full sheet →",

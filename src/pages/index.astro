@@ -22,11 +22,35 @@ const rockCounts = ROCK_ORDER.map((rock) => ({
   count: MOATS.filter((m) => m.rock === rock).length,
 }));
 
-/** Serialised for the scene script — keeps the 3D layer language-aware. */
+/**
+ * Everything the scene needs that the matrix cannot carry: the localized names,
+ * row labels for each grouping axis and the strings of the HUD it writes into.
+ * The matrix itself is imported by the script straight from `src/data/moats.ts`.
+ */
 const sceneData = {
-  lang,
-  moats: MOATS.map((m) => ({ ...m, name: names[m.n].name })),
   sheetBase: getLocalizedPath("/moats/", lang),
+  names: Object.fromEntries(
+    MOATS.map((m) => [m.n, { name: names[m.n].name, essence: names[m.n].essence }]),
+  ),
+  rockNames: t.rocks,
+  bucketLabels: {
+    rock: Object.fromEntries(ROCK_ORDER.map((r) => [r, t.rocks[r]])),
+    depth: t.values.depth,
+    cap: t.values.cap,
+    solo: t.values.solo,
+    ai: t.values.ai,
+    rent: t.values.rent,
+  },
+  axisLabels: t.atlas.axes,
+  tools: Object.fromEntries(DEPTH_LEVELS.map((l) => [String(l), t.atlas.ruler[l].tool])),
+  depthLabels: t.values.depth,
+  status: {
+    atlas: t.atlas.status.atlas,
+    grouping: t.atlas.status.grouping,
+    isolated: t.atlas.status.isolated,
+  },
+  specimen: { eyebrow: t.atlas.specimen.eyebrow, rock: t.atlas.specimen.rock },
+  draft: t.sheet.draft,
 };
 ---
 
@@ -44,6 +68,12 @@ const sceneData = {
       <a href={getLocalizedPath("/moats/", lang)}>{t.atlas.fallbackLink}</a>
     </div>
   </noscript>
+
+  <!-- Same copy for the WebGL-less case; the scene unhides it if it cannot start. -->
+  <div class="noscript" id="webgl-fallback" hidden>
+    <p>{t.atlas.fallback}</p>
+    <a href={getLocalizedPath("/moats/", lang)}>{t.atlas.fallbackLink}</a>
+  </div>
 
   <!-- header plate + mode tabs -->
   <header class="hud top">
@@ -132,6 +162,10 @@ const sceneData = {
     // language-aware without a second fetch.
     window.__ATLAS__ = sceneData;
   </script>
+
+  <script>
+    import "../scripts/atlas";
+  </script>
 </Layout>
 
 <style>
@@ -140,8 +174,8 @@ const sceneData = {
     inset: 0;
     display: block;
     cursor: grab;
-    /* TODO(scene): the three.js cross-section mounts here. Until then the HUD
-       sits on the plain earth background. */
+    /* Painted by the renderer; the earth colour keeps the first frame from
+       flashing white. */
     background: var(--earth);
   }
 

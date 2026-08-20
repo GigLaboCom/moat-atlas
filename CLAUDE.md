@@ -23,7 +23,9 @@ per component, with the shared palette and type scale as custom properties in
 
 - `src/layouts/Layout.astro` — html/head, hreflang, canonical, theme bootstrap, GA4 consent defaults, cookie banner
 - `src/layouts/PageLayout.astro` — Layout + header + footer + reading column, used by every content page
-- `src/pages/index.astro` — sheet I, the cross-section HUD (3D scene not wired yet)
+- `src/pages/index.astro` — sheet I, the cross-section HUD
+- `src/scripts/atlas.ts` — the three.js scene: shafts, six groupings, core
+  selection, rock isolation, `#moat-N` deep links
 - `src/data/moats.ts` — the 35-row survey matrix, language-neutral
 - `src/i18n/` — locales, dictionaries, per-page and per-moat copy
 - `src/lib/` — consent, analytics, URL helpers
@@ -62,6 +64,14 @@ tile/theme colour from the dark palette in `Layout.astro`.
 dictionaries, specimens from `src/data/moats.ts`). Re-run and commit the PNGs
 after changing the card copy — `og.stats`, `atlas.*`, `ui.tagline`, `rocks.*` —
 or the matrix. Never hard-code card text in the script.
+
+## The cross-section
+
+`src/scripts/atlas.ts` imports the matrix from `src/data/moats.ts` directly and
+takes every string through `window.__ATLAS__`, which `index.astro` fills from
+the dictionary — add a string to the payload rather than writing text in the
+script. Grouping buckets come from `AXIS_BUCKETS` + `bucketOf()`; their row
+labels are `t.values.<axis>` (and `t.rocks` for the rock axis).
 
 ## Adding a moat sheet's prose
 

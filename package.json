@@ -12,9 +12,11 @@
     "icons": "node scripts/generate-icons.mjs"
   },
   "dependencies": {
-    "astro": "^5.17.1"
+    "astro": "^5.17.1",
+    "three": "^0.185.1"
   },
   "devDependencies": {
+    "@types/three": "^0.185.4",
     "eslint": "^9",
     "eslint-plugin-astro": "^1",
     "playwright": "^1.62.1",
