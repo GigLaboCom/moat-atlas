@@ -180,6 +180,7 @@ export default {
       note: "Figures from the canivibecodeit sample. No-rate is the share of apps carrying this tag that cannot be vibe-coded — a proxy for structural strength. Only the first thirteen mechanics were measured.",
     },
     showInAtlas: "Show in the section →",
+    backToList: "← Back to the list",
     prev: "← Previous",
     next: "Next →",
   },

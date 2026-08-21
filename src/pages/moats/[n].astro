@@ -162,7 +162,14 @@ const { title, description } = sheetMeta(lang, n);
     ) : (
       <span></span>
     )}
-    <a href={`${homePath}#moat-${n}`} class="mid">{t.sheet.showInAtlas}</a>
+    <span class="mid">
+      <!-- Unhidden by the script below only when the setup says the reader
+           came from the list — a cold visit keeps just the section link. -->
+      <a id="sheet-back" href={`${homePath}?view=list#moat-${n}`} hidden>
+        {t.sheet.backToList}
+      </a>
+      <a href={`${homePath}#moat-${n}`}>{t.sheet.showInAtlas}</a>
+    </span>
     {next ? (
       <a href={getLocalizedPath(`/moats/${next}/`, lang)} data-sheet-step>{t.sheet.next}</a>
     ) : (
@@ -203,6 +210,13 @@ const { title, description } = sheetMeta(lang, n);
       if (crumb) apply(crumb);
       for (const a of document.querySelectorAll<HTMLAnchorElement>("a[data-sheet-step]")) {
         apply(a);
+      }
+      // A reader who came from the list gets the words for it, not just the
+      // trail: the same restoring address, spelled out at the bottom.
+      const back = document.getElementById("sheet-back") as HTMLAnchorElement | null;
+      if (back && carry.get("view") === "list") {
+        apply(back);
+        back.hidden = false;
       }
     }
   </script>
@@ -290,9 +304,20 @@ const { title, description } = sheetMeta(lang, n);
     letter-spacing: 0.08em;
   }
 
+  /* The middle slot stacks its ways out: back to the list (when it applies)
+     over the section link. */
+  .mid {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 9px;
+    text-align: center;
+  }
+
   @media (max-width: 640px) {
     .row { flex-direction: column; gap: 4px; }
     dd { margin-left: 0; text-align: left; }
     .sheet-nav { flex-direction: column; align-items: flex-start; }
+    .mid { align-items: flex-start; text-align: left; }
   }
 </style>
