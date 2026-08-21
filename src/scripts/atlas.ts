@@ -31,6 +31,7 @@ import {
   onSectionChange,
   sectionState,
   setView,
+  stateSearch,
 } from "./section-state";
 
 export interface AtlasPayload {
@@ -463,7 +464,9 @@ function boot(data: AtlasPayload): void {
     cardStats.hidden = false;
     cardClose.hidden = false;
     cardLink.hidden = false;
-    cardLink.href = `${data.sheetBase}${m.n}/`;
+    // The link wears the current setup (a non-default grouping, say), so the
+    // sheet's breadcrumb can bring the reader back to it.
+    cardLink.href = `${data.sheetBase}${m.n}/${stateSearch()}`;
     // Sheets without prose say so, exactly like the sheet page does.
     cardBody.textContent = data.names[m.n].essence || data.draft;
   }
@@ -603,7 +606,9 @@ function boot(data: AtlasPayload): void {
   async function openSheet(n: number, source = "modal"): Promise<void> {
     if (!modal || !modalBody || !modalPage) return;
     const url = `${data.sheetBase}${n}/`;
-    modalPage.href = url;
+    // The fetch stays bare (one cache entry per sheet); only the page link
+    // carries the setup out.
+    modalPage.href = `${url}${stateSearch()}`;
     modalBody.textContent = data.loading;
     modal.showModal();
     modalBody.scrollTop = 0;

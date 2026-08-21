@@ -187,9 +187,12 @@ anchors make `/?view=list#moat-7` a real address. The HUD controls are bound
 once in `section-state.ts`; the scene and `atlas-list.ts` both subscribe, so
 the grouping and the isolation filters are one state across the two views —
 and the whole of it mirrors into the URL (`view`, `group`, `rock`, `depth`,
-defaults blank), so a link reproduces the exact setup and the sheet pages'
-Atlas breadcrumb copies those params off the referrer to send the reader
-back to what they left. The
+defaults blank), so a link reproduces the exact setup. Links that leave for a
+sheet page (list entries, the card, the modal's page link) wear that query
+via `stateSearch()`; on the sheet, a page script reads it from its own URL
+(referrer is only the fallback) and hangs it on the Atlas crumb and the
+prev/next links — so the way back survives refreshes, new tabs and hops
+along the chain. The
 renderer boots lazily — a page opened straight into the list never starts
 three.js — and a WebGL failure switches to the list instead of a dead canvas.
 List-group chrome is rebuilt by the script without Astro's scope attribute, so

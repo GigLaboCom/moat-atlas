@@ -14,7 +14,7 @@ import {
   type GroupingAxis,
   type RockKey,
 } from "../data/moats";
-import { onSectionChange, sectionState } from "./section-state";
+import { onSectionChange, sectionState, stateSearch } from "./section-state";
 
 const data = window.__ATLAS__;
 const container = document.getElementById("list-groups");
@@ -91,14 +91,29 @@ if (data && container) {
     }
   }
 
+  /**
+   * An entry link carries the current setup into the sheet's own URL, so the
+   * sheet can offer the way back — and a refresh, a new tab or a prev/next
+   * hop over there loses nothing.
+   */
+  function decorateLinks(): void {
+    const search = stateSearch();
+    for (const li of entries.values()) {
+      const link = li.querySelector("a");
+      if (link) link.search = search;
+    }
+  }
+
   // The URL may already carry an axis or a filter — a shared link, or the
   // sheet's breadcrumb on the way back. The server always renders the
   // defaults, so catch the markup up once.
   const initial = sectionState();
   if (initial.axis !== "rock") regroup(initial.axis);
   if (initial.rock || initial.depth) applyFilter();
+  decorateLinks();
 
   onSectionChange((s, change) => {
+    decorateLinks();
     if (change === "axis") {
       regroup(s.axis);
       applyFilter();

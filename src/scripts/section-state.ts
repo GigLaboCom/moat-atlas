@@ -107,6 +107,22 @@ function sync(): void {
   }
 }
 
+/**
+ * The state as a query string, "" when everything is default. Links that
+ * leave sheet I (a list entry, the card, the modal's page link) wear it, so
+ * a sheet page knows what to send the reader back to — through refreshes,
+ * new tabs and prev/next hops, with no storage anywhere.
+ */
+export function stateSearch(): string {
+  const q = new URLSearchParams();
+  if (state.view === "list") q.set("view", "list");
+  if (state.axis !== "rock") q.set("group", state.axis);
+  if (state.rock) q.set("rock", state.rock);
+  if (state.depth) q.set("depth", String(state.depth));
+  const s = q.toString();
+  return s ? `?${s}` : "";
+}
+
 /** Every piece of state is a link — keep the address honest, defaults blank. */
 function syncUrl(): void {
   const url = new URL(window.location.href);

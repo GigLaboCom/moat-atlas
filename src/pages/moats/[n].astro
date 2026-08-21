@@ -157,34 +157,52 @@ const { title, description } = sheetMeta(lang, n);
   </article>
 
   <nav class="sheet-nav">
-    {prev ? <a href={getLocalizedPath(`/moats/${prev}/`, lang)}>{t.sheet.prev}</a> : <span></span>}
-    <a href={`${getLocalizedPath("/", lang)}#moat-${n}`} class="mid">{t.sheet.showInAtlas}</a>
-    {next ? <a href={getLocalizedPath(`/moats/${next}/`, lang)}>{t.sheet.next}</a> : <span></span>}
+    {prev ? (
+      <a href={getLocalizedPath(`/moats/${prev}/`, lang)} data-sheet-step>{t.sheet.prev}</a>
+    ) : (
+      <span></span>
+    )}
+    <a href={`${homePath}#moat-${n}`} class="mid">{t.sheet.showInAtlas}</a>
+    {next ? (
+      <a href={getLocalizedPath(`/moats/${next}/`, lang)} data-sheet-step>{t.sheet.next}</a>
+    ) : (
+      <span></span>
+    )}
   </nav>
 
   <script>
-    // Sheet I keeps its whole setup in the URL — view, grouping, filter — so
-    // the referrer says exactly what the reader left, and the Atlas crumb
-    // carries it back. No storage; a sheet reached any other way keeps the
-    // bare scene address.
-    const crumb = document.getElementById("crumb-atlas") as HTMLAnchorElement | null;
-    if (crumb && document.referrer) {
+    // Sheet I keeps its whole setup in the URL, and the links that lead here
+    // carry it into this page's own address — so the Atlas crumb sends the
+    // reader back to exactly what they left, and prev/next pass the setup
+    // down the chain. The referrer is only the fallback for bare old links;
+    // no storage anywhere. A sheet reached cold keeps the plain scene crumb.
+    const KEYS = ["view", "group", "rock", "depth"];
+    const own = new URLSearchParams(window.location.search);
+    let source: URLSearchParams | null = KEYS.some((k) => own.has(k)) ? own : null;
+    if (!source && document.referrer) {
       try {
         const ref = new URL(document.referrer);
-        if (ref.origin === window.location.origin) {
-          const url = new URL(crumb.href);
-          let carried = false;
-          for (const key of ["view", "group", "rock", "depth"]) {
-            const value = ref.searchParams.get(key);
-            if (value) {
-              url.searchParams.set(key, value);
-              carried = true;
-            }
-          }
-          if (carried) crumb.href = url.toString();
+        if (ref.origin === window.location.origin && KEYS.some((k) => ref.searchParams.has(k))) {
+          source = ref.searchParams;
         }
       } catch {
         // An unparseable referrer changes nothing.
+      }
+    }
+    if (source) {
+      const carry = source;
+      const apply = (a: HTMLAnchorElement) => {
+        const url = new URL(a.href);
+        for (const key of KEYS) {
+          const value = carry.get(key);
+          if (value) url.searchParams.set(key, value);
+        }
+        a.href = url.toString();
+      };
+      const crumb = document.getElementById("crumb-atlas") as HTMLAnchorElement | null;
+      if (crumb) apply(crumb);
+      for (const a of document.querySelectorAll<HTMLAnchorElement>("a[data-sheet-step]")) {
+        apply(a);
       }
     }
   </script>
