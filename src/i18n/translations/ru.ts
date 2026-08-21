@@ -212,6 +212,7 @@ export default {
     langLabel: "Язык",
     github: "Исходники на GitHub",
     skipToContent: "К содержимому",
+    breadcrumbs: "Хлебные крошки",
     footer: {
       atlas: "Атлас",
       catalogue: "Каталог",

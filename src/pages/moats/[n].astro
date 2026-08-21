@@ -49,6 +49,8 @@ const sampleNote = moat.sample?.n
 const prev = n > 1 ? n - 1 : null;
 const next = n < MOAT_COUNT ? n + 1 : null;
 
+const homePath = getLocalizedPath("/", lang);
+
 // Shared with the sheet's `.md` twin and its llms.txt entry so the three can
 // never drift; the structured data is emitted by the layout from the same index.
 const { title, description } = sheetMeta(lang, n);
@@ -61,9 +63,20 @@ const { title, description } = sheetMeta(lang, n);
   basePath={`/moats/${n}/`}
   section={`${t.sheet.eyebrow} ${n}`}
 >
+  <!-- The same trail the page's BreadcrumbList asserts, made walkable. The
+       Atlas crumb lands on this sheet's own core; the script below keeps the
+       reader's view, so arriving from the list means returning to it. -->
+  <nav class="crumbs" aria-label={t.ui.breadcrumbs}>
+    <a href={`${homePath}#moat-${n}`} id="crumb-atlas">{t.ui.footer.atlas}</a>
+    <span class="sep" aria-hidden="true">/</span>
+    <a href={getLocalizedPath("/moats/", lang)}>{t.ui.footer.catalogue}</a>
+    <span class="sep" aria-hidden="true">/</span>
+    <span aria-current="page">{t.sheet.eyebrow} {n}</span>
+  </nav>
+
   <!-- The atlas fetches this page and lifts #sheet-article into its modal, so
        everything the modal should show lives inside it and the page chrome
-       (prev/next) stays outside. -->
+       (crumbs, prev/next) stays outside. -->
   <article id="sheet-article">
   <div class="eyebrow">
     {t.sheet.eyebrow} {n} / {MOAT_COUNT}
@@ -148,9 +161,44 @@ const { title, description } = sheetMeta(lang, n);
     <a href={`${getLocalizedPath("/", lang)}#moat-${n}`} class="mid">{t.sheet.showInAtlas}</a>
     {next ? <a href={getLocalizedPath(`/moats/${next}/`, lang)}>{t.sheet.next}</a> : <span></span>}
   </nav>
+
+  <script>
+    // The view is state the URL carries, so the referrer says which projection
+    // the reader left: `?view=list` on it means the list, and the Atlas crumb
+    // keeps it. No storage — a sheet reached any other way keeps the scene.
+    const crumb = document.getElementById("crumb-atlas") as HTMLAnchorElement | null;
+    if (crumb && document.referrer) {
+      try {
+        const ref = new URL(document.referrer);
+        if (ref.origin === window.location.origin && ref.searchParams.get("view") === "list") {
+          const url = new URL(crumb.href);
+          url.searchParams.set("view", "list");
+          crumb.href = url.toString();
+        }
+      } catch {
+        // An unparseable referrer changes nothing.
+      }
+    }
+  </script>
 </PageLayout>
 
 <style>
+  /* The crumb links keep the page's own link dress — only the trail's frame
+     is styled here. */
+  .crumbs {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 26px;
+    font-family: var(--mono);
+    font-size: 11px;
+    letter-spacing: 0.08em;
+  }
+
+  .crumbs .sep,
+  .crumbs [aria-current] { color: var(--ink-faint); }
+
   .eyebrow { display: flex; align-items: center; gap: 14px; }
 
   .rock-tag { display: inline-flex; align-items: center; gap: 6px; letter-spacing: 0.16em; }

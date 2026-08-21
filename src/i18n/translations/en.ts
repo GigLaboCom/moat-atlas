@@ -212,6 +212,7 @@ export default {
     langLabel: "Language",
     github: "Source on GitHub",
     skipToContent: "Skip to content",
+    breadcrumbs: "Breadcrumbs",
     footer: {
       atlas: "Atlas",
       catalogue: "Catalogue",
