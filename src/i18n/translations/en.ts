@@ -34,6 +34,12 @@ export default {
       ai: "AI",
       rent: "Rent",
     },
+    /** The Sheet I view switch: the 3D section or the same 35 sheets as text. */
+    view: {
+      label: "View",
+      scene: "Section",
+      list: "List",
+    },
     specimen: {
       empty_eyebrow: "No core taken",
       empty_title: "The section is waiting",
@@ -89,6 +95,11 @@ export default {
           title: "Filters",
           body:
             "A rock in the legend and a level on the ruler each isolate their own group and dim the rest; the two are mutually exclusive, and taking a core clears both. Hovering a row of the ruler lights that level's stratum in the drawing.",
+        },
+        {
+          title: "The list",
+          body:
+            "The switch in the corner lays the same 35 sheets out as text — name, passport, essence — grouped along the current axis and cut by the same filters. Only the projection changes: ?view=list is the address of the text view, and every sheet still opens as its own page.",
         },
         {
           title: "Controls",

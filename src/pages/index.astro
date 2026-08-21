@@ -12,6 +12,8 @@ import {
   GROUPING_AXES,
   ROCK_COLORS,
   moatsInBucket,
+  type DepthLevel,
+  type Moat,
 } from "../data/moats";
 
 const headerLocale = Astro.request.headers.get("x-locale") as Locale | null;
@@ -19,10 +21,20 @@ const lang: Locale = headerLocale ?? "en";
 const t = getTranslations(lang);
 const names = getAllMoatStrings(lang);
 
-const rockCounts = ROCK_ORDER.map((rock) => ({
+const rockGroups = ROCK_ORDER.map((rock) => ({
   rock,
-  count: MOATS.filter((m) => m.rock === rock).length,
+  items: MOATS.filter((m) => m.rock === rock),
 }));
+const rockCounts = rockGroups.map(({ rock, items }) => ({ rock, count: items.length }));
+
+/** The passport of one moat as the list view's chip row, all dictionary text. */
+const chipRow = (m: Moat) => [
+  t.values.depth[Math.round(m.d) as DepthLevel],
+  t.values.cap[Math.round(m.capN) as 1 | 2 | 3 | 4],
+  t.values.solo[m.solo],
+  t.values.ai[m.ai],
+  t.values.rent[m.rent],
+];
 
 /** How many of the 35 sit at each depth — the tally bars on the ruler. */
 const depthCounts = Object.fromEntries(
@@ -70,6 +82,15 @@ const sceneData = {
   lang={lang}
   fixed={true}
 >
+  <!-- Before anything paints: `?view=list` opens the page in its text mode.
+       Everything else keys off this class; where WebGL cannot start, the
+       scene module sets it too, so the list is also the fallback. -->
+  <script is:inline>
+    if (new URLSearchParams(location.search).get("view") === "list") {
+      document.documentElement.classList.add("view-list");
+    }
+  </script>
+
   <canvas id="scene" aria-hidden="true"></canvas>
 
   <noscript>
@@ -78,12 +99,6 @@ const sceneData = {
       <a href={getLocalizedPath("/moats/", lang)}>{t.atlas.fallbackLink}</a>
     </div>
   </noscript>
-
-  <!-- Same copy for the WebGL-less case; the scene unhides it if it cannot start. -->
-  <div class="noscript" id="webgl-fallback" hidden>
-    <p>{t.atlas.fallback}</p>
-    <a href={getLocalizedPath("/moats/", lang)}>{t.atlas.fallbackLink}</a>
-  </div>
 
   <!-- header plate + mode tabs -->
   <header class="hud top">
@@ -107,32 +122,73 @@ const sceneData = {
         </a>
       </nav>
 
+      <!-- The same 35 sheets, drawn or written. Links, because a view is an
+           address — ?view=list — and the script only saves the round trip. -->
+      <nav class="view-switch" aria-label={t.atlas.view.label}>
+        <a data-view="scene" href={getLocalizedPath("/", lang)} aria-current="true">
+          {t.atlas.view.scene}
+        </a>
+        <a data-view="list" href={`${getLocalizedPath("/", lang)}?view=list`}>
+          {t.atlas.view.list}
+        </a>
+      </nav>
+
       <button class="guide-open" id="guide-open" type="button" aria-haspopup="dialog">
         <span aria-hidden="true">?</span>{t.atlas.guide.open}
       </button>
     </div>
   </header>
 
-  <!-- depth ruler: the key to the vertical axis, and the second isolation filter -->
-  <aside class="hud ruler" aria-label={t.atlas.ruler.heading}>
-    <h3>{t.atlas.ruler.heading}</h3>
-    <p class="caption">{t.atlas.ruler.caption}</p>
-    <ul id="depth-list">
-      {DEPTH_LEVELS.map((lvl) => (
-        <li data-depth={lvl}>
-          <span class="lvl">{lvl}</span>
-          <span class="tool">
-            {t.atlas.ruler[lvl].tool}
-            <em class="yrs">{t.atlas.ruler[lvl].years}</em>
-          </span>
-          <span class="tally">
-            <i style={`--w:${depthCounts[lvl] / maxDepthCount}`}></i>
-            <b>{depthCounts[lvl]}</b>
-          </span>
-        </li>
-      ))}
-    </ul>
-  </aside>
+  <!-- The controls rail: grouping, rock isolation and the depth ruler serve
+       the drawing and the list alike, so they share one wrapper — fixed HUD
+       panels over the scene, a sidebar (or column) beside the list. -->
+  <div class="side">
+    <!-- grouping + rock isolation -->
+    <aside class="hud legend">
+      <h3>{t.atlas.legend.grouping}</h3>
+      <div class="groupers" id="groupers">
+        {GROUPING_AXES.map((axis, i) => (
+          <button class:list={["grp", { on: i === 0 }]} data-axis={axis} type="button">
+            {t.atlas.axes[axis]}
+          </button>
+        ))}
+      </div>
+
+      <h3>{t.atlas.legend.rocks}</h3>
+      <ul id="legend-list">
+        {rockCounts.map(({ rock, count }) => (
+          <li data-rock={rock}>
+            <i style={`background:${ROCK_COLORS[rock]}`}></i>
+            {t.rocks[rock]}
+            <em>{count}</em>
+          </li>
+        ))}
+      </ul>
+
+      <div class="foot" set:html={t.atlas.legend.foot}></div>
+    </aside>
+
+    <!-- depth ruler: the key to the vertical axis, and the second isolation filter -->
+    <aside class="hud ruler" aria-label={t.atlas.ruler.heading}>
+      <h3>{t.atlas.ruler.heading}</h3>
+      <p class="caption">{t.atlas.ruler.caption}</p>
+      <ul id="depth-list">
+        {DEPTH_LEVELS.map((lvl) => (
+          <li data-depth={lvl}>
+            <span class="lvl">{lvl}</span>
+            <span class="tool">
+              {t.atlas.ruler[lvl].tool}
+              <em class="yrs">{t.atlas.ruler[lvl].years}</em>
+            </span>
+            <span class="tally">
+              <i style={`--w:${depthCounts[lvl] / maxDepthCount}`}></i>
+              <b>{depthCounts[lvl]}</b>
+            </span>
+          </li>
+        ))}
+      </ul>
+    </aside>
+  </div>
 
   <!-- specimen card -->
   <aside class="hud card specimen" id="specimen">
@@ -150,30 +206,44 @@ const sceneData = {
     <a href="#" id="card-link" hidden>{t.atlas.specimen.link}</a>
   </aside>
 
-  <!-- grouping + rock isolation -->
-  <aside class="hud legend">
-    <h3>{t.atlas.legend.grouping}</h3>
-    <div class="groupers" id="groupers">
-      {GROUPING_AXES.map((axis, i) => (
-        <button class:list={["grp", { on: i === 0 }]} data-axis={axis} type="button">
-          {t.atlas.axes[axis]}
-        </button>
+  <!-- Sheet I's text mode: the same matrix as readable entries, server-rendered
+       grouped by rock (the default axis). atlas-list.ts re-groups and filters;
+       the entry anchors make /?view=list#moat-7 a walkable address. -->
+  <section class="atlas-list" aria-label={t.atlas.view.list}>
+    <div id="list-groups">
+      {rockGroups.map(({ rock, items }) => (
+        <section class="list-group">
+          <h2>
+            <i class="dot" style={`background:${ROCK_COLORS[rock]}`}></i>
+            <span>{t.rocks[rock]}</span>
+            <em>{items.length}</em>
+          </h2>
+          <ol>
+            {items.map((m) => (
+              <li class="entry" id={`moat-${m.n}`} data-n={m.n}>
+                <div class="entry-head">
+                  <span class="n">{m.n}</span>
+                  <h3>
+                    <a href={getLocalizedPath(`/moats/${m.n}/`, lang)}>{names[m.n].name}</a>
+                  </h3>
+                </div>
+                <ul class="chips" aria-label={t.sheet.passport}>
+                  <li>
+                    <i class="dot" style={`background:${ROCK_COLORS[m.rock]}`}></i>
+                    {t.rocks[m.rock]}
+                  </li>
+                  {chipRow(m).map((chip) => <li>{chip}</li>)}
+                </ul>
+                <p class:list={["essence", { draft: !names[m.n].essence }]}>
+                  {names[m.n].essence || t.sheet.draft}
+                </p>
+              </li>
+            ))}
+          </ol>
+        </section>
       ))}
     </div>
-
-    <h3>{t.atlas.legend.rocks}</h3>
-    <ul id="legend-list">
-      {rockCounts.map(({ rock, count }) => (
-        <li data-rock={rock}>
-          <i style={`background:${ROCK_COLORS[rock]}`}></i>
-          {t.rocks[rock]}
-          <em>{count}</em>
-        </li>
-      ))}
-    </ul>
-
-    <div class="foot" set:html={t.atlas.legend.foot}></div>
-  </aside>
+  </section>
 
   <!-- the full sheet, over the section — the page at /moats/N/ stays as it is -->
   <dialog class="sheet-modal" id="sheet-modal" aria-label={t.atlas.specimen.link}>
@@ -216,6 +286,7 @@ const sceneData = {
 
   <script>
     import "../scripts/atlas";
+    import "../scripts/atlas-list";
     // Separate from the scene: the guide has to open even where WebGL does not.
     import "../scripts/guide";
   </script>
@@ -929,7 +1000,7 @@ const sceneData = {
        what to lay it out by, and what the depth axis means. The panels lose
        the blur — a live canvas under a backdrop filter is re-blurred every
        frame — and cap their line length for the 980px desktop-site case. */
-    .specimen, .legend, .ruler, .footer-hud {
+    .specimen, .side, .footer-hud {
       width: 100%;
       max-width: min(720px, calc(100% - 32px));
       margin: 16px auto 0;
@@ -938,13 +1009,218 @@ const sceneData = {
       backdrop-filter: none;
     }
 
+    /* Inside the rail the two panels stack and fill it. */
+    .side { display: grid; gap: 16px; }
+    .side .legend, .side .ruler {
+      position: static;
+      width: 100%;
+      max-width: none;
+      margin: 0;
+      backdrop-filter: none;
+    }
+
     .specimen { order: 3; }
-    .legend { order: 4; }
-    .ruler { order: 5; display: block; }
+    .side { order: 4; }
+    .ruler { display: block; }
     .ruler .caption { display: block; }
     .footer-hud { order: 6; margin-bottom: 16px; }
 
+    /* The list joins the column between the controls and the footer. */
+    :global(html.view-list) .atlas-list {
+      order: 5;
+      width: 100%;
+      max-width: min(720px, calc(100% - 32px));
+      margin: 16px auto 0;
+    }
+
     .footer-hud :global(.site-footer) { justify-content: flex-start; white-space: normal; }
     .footer-hud :global(.footer-links) { margin-left: 0; }
+  }
+
+  /* ── the view switch ─────────────────────────────────── */
+  .view-switch {
+    display: flex;
+    border: 1px solid var(--line);
+    background: var(--panel);
+    backdrop-filter: blur(6px);
+  }
+
+  .view-switch[hidden] { display: none; }
+
+  .view-switch a {
+    padding: 8px 14px;
+    font-family: var(--mono);
+    font-size: 10px;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--ink-dim);
+    border-left: 1px solid var(--line);
+  }
+
+  .view-switch a:first-child { border-left: 0; }
+  .view-switch a:hover { color: var(--ink); }
+
+  .view-switch a[aria-current] {
+    color: var(--ink);
+    background: color-mix(in srgb, var(--ink) 8%, transparent);
+  }
+
+  /* ── the list view ───────────────────────────────────── */
+  /* Sheet I's text mode. `html.view-list` is set before first paint by the
+     inline bootstrap; everything below keys off it, so the two views are one
+     page and one set of controls. */
+  .atlas-list { display: none; }
+
+  :global(html.view-list) .atlas-list { display: block; }
+
+  /* The scene and its instruments stand down; the list carries the content. */
+  :global(html.view-list) #scene,
+  :global(html.view-list) .specimen,
+  :global(html.view-list) .status,
+  :global(html.view-list) .hint { display: none; }
+
+  /* The page scrolls again and the HUD panels leave the glass for the flow. */
+  :global(html.view-list body.fixed) { height: auto; overflow: visible; }
+  :global(html.view-list) .hud { position: static; inset: auto; }
+  :global(html.view-list) .legend { max-width: none; }
+  /* The short-screen media rules fold the ruler for the overlay; as a column
+     of text the page has room for all of it. */
+  :global(html.view-list) .ruler { display: block; width: auto; }
+  :global(html.view-list) .ruler .caption { display: block; }
+  :global(html.view-list) .ruler .yrs { display: block; margin-left: 0; }
+
+  /* A reading page: the controls in a rail, the 35 sheets in a column. Only
+     for the fine pointer above the tablet break — the coarse branch above
+     already lays the whole page in one column. */
+  @media (min-width: 901px) and (pointer: fine) {
+    :global(html.view-list body.fixed) {
+      display: grid;
+      grid-template-columns: 288px minmax(0, 720px);
+      grid-template-areas:
+        "top top"
+        "side list"
+        "foot foot";
+      grid-template-rows: auto 1fr auto;
+      justify-content: center;
+      align-items: start;
+      column-gap: 48px;
+      min-height: 100svh;
+      padding: 0 26px;
+    }
+
+    :global(html.view-list) .top { grid-area: top; padding: 22px 0 18px; }
+
+    :global(html.view-list) .side {
+      grid-area: side;
+      position: sticky;
+      top: 22px;
+      display: grid;
+      gap: 16px;
+    }
+
+    :global(html.view-list) .atlas-list { grid-area: list; padding-bottom: 48px; }
+
+    :global(html.view-list) .footer-hud {
+      grid-area: foot;
+      max-width: none;
+      margin: 0 0 20px;
+    }
+  }
+
+  /* Group chrome is rebuilt by atlas-list.ts without Astro's scope attribute,
+     so it is addressed through :global under the server-rendered ancestor —
+     the calculator's rule. The entries themselves are server-rendered and
+     only ever re-parented, so their selectors stay scoped. */
+  .atlas-list :global(.list-group) { margin-bottom: 36px; }
+
+  .atlas-list :global(.list-group > h2) {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-family: var(--mono);
+    font-size: 11px;
+    font-weight: 400;
+    letter-spacing: 0.22em;
+    text-transform: uppercase;
+    color: var(--ink-dim);
+    border-bottom: 1px solid var(--line);
+    padding-bottom: 9px;
+  }
+
+  .atlas-list :global(.list-group .dot) { width: 10px; height: 10px; flex: 0 0 auto; }
+
+  .atlas-list :global(.list-group > h2 em) {
+    margin-left: auto;
+    font-style: normal;
+    font-size: 10px;
+    letter-spacing: 0.08em;
+    color: var(--ink-faint);
+  }
+
+  .atlas-list :global(.list-group ol) { list-style: none; }
+
+  .entry { padding: 18px 0; border-bottom: 1px solid var(--line); }
+
+  .entry-head { display: flex; align-items: baseline; gap: 12px; }
+
+  .entry-head .n {
+    font-family: var(--mono);
+    font-size: 12px;
+    color: var(--ink-faint);
+    min-width: 22px;
+    text-align: right;
+  }
+
+  .entry-head h3 {
+    font-family: var(--display);
+    font-weight: 400;
+    font-size: 19px;
+    letter-spacing: 0.02em;
+    line-height: 1.3;
+  }
+
+  .entry-head a:hover { text-decoration: underline; text-underline-offset: 3px; }
+
+  .chips {
+    list-style: none;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px 8px;
+    margin: 9px 0 0 34px;
+  }
+
+  .chips li {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    font-family: var(--mono);
+    font-size: 10.5px;
+    letter-spacing: 0.05em;
+    color: var(--ink-dim);
+    border: 1px solid var(--line);
+    padding: 3px 8px;
+  }
+
+  .chips .dot { width: 8px; height: 8px; flex: 0 0 auto; }
+
+  .entry .essence {
+    margin: 10px 0 0 34px;
+    font-size: 13.5px;
+    line-height: 1.7;
+    color: var(--ink-dim);
+    max-width: 64ch;
+  }
+
+  .entry .essence.draft { color: var(--ink-faint); }
+
+  /* The deep link lands here: /?view=list#moat-7 walks straight to a sheet. */
+  .entry:target {
+    border-left: 2px solid var(--ink-dim);
+    padding-left: 16px;
+    background: color-mix(in srgb, var(--ink) 4%, transparent);
+  }
+
+  @media (max-width: 640px) {
+    .chips, .entry .essence { margin-left: 0; }
   }
 </style>

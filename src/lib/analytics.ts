@@ -66,6 +66,11 @@ export function trackGuideOpen(): void {
   trackEvent("guide_open");
 }
 
+/** Sheet I was flipped between the 3D section and the text list. */
+export function trackViewMode(view: string): void {
+  trackEvent("view_mode", { view });
+}
+
 export function trackSheetOpen(n: number, source: string): void {
   trackEvent("sheet_open", { moat_id: n, source });
 }

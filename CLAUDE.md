@@ -52,6 +52,11 @@ per component, with the shared palette and type scale as custom properties in
 - `src/pages/calculator.astro` — sheet II, the survey
 - `src/scripts/atlas.ts` — the three.js scene: shafts, six groupings, core
   selection, rock isolation, `#moat-N` deep links
+- `src/scripts/section-state.ts` — sheet I's shared control state (view,
+  grouping axis, the two isolation filters); binds the HUD buttons once for
+  both views and mirrors the view into `?view=list`
+- `src/scripts/atlas-list.ts` — sheet I's text mode: re-groups and filters
+  the list `index.astro` server-renders
 - `src/scripts/guide.ts` — the "how it works" dialog on sheet I, outside the
   3D module so it opens without WebGL
 - `src/data/moats.ts` — the 35-row survey matrix, language-neutral
@@ -174,6 +179,18 @@ takes every string through `window.__ATLAS__`, which `index.astro` fills from
 the dictionary — add a string to the payload rather than writing text in the
 script. Grouping buckets come from `AXIS_BUCKETS` + `bucketOf()`; their row
 labels are `t.values.<axis>` (and `t.rocks` for the rock axis).
+
+Sheet I has two projections of the same page: the scene and a text list.
+`?view=list` (set on `<html>` as `view-list` by an inline script before first
+paint) shows the list `index.astro` server-renders grouped by rock — entry
+anchors make `/?view=list#moat-7` a real address. The HUD controls are bound
+once in `section-state.ts`; the scene and `atlas-list.ts` both subscribe, so
+the grouping and the isolation filters are one state across the two views. The
+renderer boots lazily — a page opened straight into the list never starts
+three.js — and a WebGL failure switches to the list instead of a dead canvas.
+List-group chrome is rebuilt by the script without Astro's scope attribute, so
+its CSS in `index.astro` goes through `:global()` (the calculator's rule); the
+entries themselves are server-rendered and only re-parented.
 
 ## The calculator
 

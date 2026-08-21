@@ -38,7 +38,7 @@ export const LLMS_AREAS: { key: AreaKey; heading: string; summary: string }[] = 
     key: "atlas",
     heading: "Sheet I — the cross-section",
     summary:
-      "The home page: 35 mechanics drawn as shafts in a WebGL cross-section, re-laid along six grouping axes (rock, depth, capital, solo, AI, rent). Each core has its own address — `/#moat-7` opens the atlas with mechanic 7 selected. The page needs WebGL to draw, so prefer its `.md` twin or the catalogue for reading.",
+      "The home page: 35 mechanics drawn as shafts in a WebGL cross-section, re-laid along six grouping axes (rock, depth, capital, solo, AI, rent). Each core has its own address — `/#moat-7` opens the atlas with mechanic 7 selected, and `/?view=list` renders the same page as a text list with the same groupings and filters. For machine reading prefer the `.md` twin or the catalogue.",
   },
   {
     key: "catalogue",

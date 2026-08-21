@@ -14,11 +14,9 @@ import * as THREE from "three";
 import {
   MOATS,
   DEPTH_LEVELS,
-  ROCK_ORDER,
   ROCK_COLORS,
   ROCK_SHAPE,
   AXIS_BUCKETS,
-  GROUPING_AXES,
   TERNARY_GLYPH,
   AI_GLYPH,
   bucketOf,
@@ -27,13 +25,13 @@ import {
   type Moat,
   type RockKey,
 } from "../data/moats";
+import { trackCoreTaken, trackSheetOpen } from "../lib/analytics";
 import {
-  trackCoreTaken,
-  trackDepthIsolate,
-  trackGrouping,
-  trackRockIsolate,
-  trackSheetOpen,
-} from "../lib/analytics";
+  clearIsolation,
+  onSectionChange,
+  sectionState,
+  setView,
+} from "./section-state";
 
 export interface AtlasPayload {
   sheetBase: string;
@@ -201,10 +199,11 @@ function boot(data: AtlasPayload): void {
     // exactly — so multisampling is the first thing to go on a phone.
     renderer = new THREE.WebGLRenderer({ canvas, antialias: !touch, powerPreference: "high-performance" });
   } catch {
-    // No WebGL — the HUD stays, the fallback panel points at the catalogue.
+    // No WebGL — the list view carries the same content, so it takes over
+    // and the switch back to a scene that cannot start goes away.
     canvas.hidden = true;
-    const fallback = el("webgl-fallback");
-    if (fallback) fallback.hidden = false;
+    setView("list");
+    document.querySelector(".view-switch")?.setAttribute("hidden", "");
     return;
   }
   renderer.setPixelRatio(Math.min(window.devicePixelRatio, touch ? 1.5 : 2));
@@ -310,10 +309,7 @@ function boot(data: AtlasPayload): void {
     rowLabels = [];
   }
 
-  let currentAxis: GroupingAxis = "rock";
-
   function applyGrouping(axis: GroupingAxis, instant: boolean): void {
-    currentAxis = axis;
     invalidate();
 
     const groups = AXIS_BUCKETS[axis]
@@ -386,23 +382,23 @@ function boot(data: AtlasPayload): void {
     ring = null;
   }
 
-  /* ── selection and isolation, by rock or by depth ────── */
+  /* ── selection; isolation by rock or depth lives in the store ── */
   let selected: Shaft | null = null;
-  let isolatedRock: RockKey | null = null;
-  let isolatedDepth: DepthLevel | null = null;
   /** The depth row under the pointer — it lights its stratum without filtering. */
   let hoveredDepth: DepthLevel | null = null;
 
   /** Both filters are exclusive; with neither set, every shaft is in focus. */
   function inFocus(m: Moat): boolean {
-    if (isolatedRock) return m.rock === isolatedRock;
-    if (isolatedDepth) return bucketOf(m, "depth") === String(isolatedDepth);
+    const { rock, depth } = sectionState();
+    if (rock) return m.rock === rock;
+    if (depth) return bucketOf(m, "depth") === String(depth);
     return true;
   }
 
   function baseIntensity(mesh: THREE.Mesh): number {
+    const { rock, depth } = sectionState();
     if (selected) return mesh === selected ? 0.95 : 0.07;
-    if (isolatedRock || isolatedDepth) return inFocus(mesh.userData as Moat) ? 0.6 : 0.07;
+    if (rock || depth) return inFocus(mesh.userData as Moat) ? 0.6 : 0.07;
     return 0.3;
   }
 
@@ -421,7 +417,7 @@ function boot(data: AtlasPayload): void {
    * ties a row of the ruler to the drawing.
    */
   function paintStrata(): void {
-    const lit = hoveredDepth ?? isolatedDepth;
+    const lit = hoveredDepth ?? sectionState().depth;
     for (const [i, s] of strata.entries()) {
       s.material.opacity = theme.strataOpacity * (i + 1 === lit ? 5 : 1);
     }
@@ -568,9 +564,7 @@ function boot(data: AtlasPayload): void {
     if (mesh === selected) return;
     const m = mesh.userData as Moat;
     selected = mesh;
-    isolatedRock = null;
-    isolatedDepth = null;
-    syncFilters();
+    clearIsolation();
     paintStrata();
     applyDimming();
     placeRing(mesh);
@@ -674,54 +668,31 @@ function boot(data: AtlasPayload): void {
     deselect();
   });
 
-  /* ── grouping buttons ────────────────────────────────── */
-  const groupers = el("groupers");
-  const grpButtons = Array.from(groupers?.querySelectorAll<HTMLButtonElement>(".grp") ?? []);
-  for (const btn of grpButtons) {
-    const axis = btn.dataset.axis as GroupingAxis;
-    if (!GROUPING_AXES.includes(axis)) continue;
-    btn.addEventListener("click", () => {
-      if (currentAxis === axis) return;
-      applyGrouping(axis, false);
-      for (const b of grpButtons) b.classList.toggle("on", b === btn);
+  /* ── the HUD controls arrive through the store ───────── */
+  /* The buttons themselves are bound once in section-state.ts, for this view
+     and the list alike; the scene only answers to the state that results. */
+  onSectionChange((s, change) => {
+    if (change === "axis") {
+      applyGrouping(s.axis, false);
       if (!selected) {
-        tooltip.textContent = `${data.status.grouping} ${data.axisLabels[axis].toLowerCase()}`;
+        tooltip.textContent = `${data.status.grouping} ${data.axisLabels[s.axis].toLowerCase()}`;
       }
-      trackGrouping(axis);
-    });
-  }
-
-  /* ── rock legend and depth ruler are both isolation filters ── */
-  const legendItems = Array.from(
-    el("legend-list")?.querySelectorAll<HTMLLIElement>("li") ?? [],
-  );
-  const depthItems = Array.from(el("depth-list")?.querySelectorAll<HTMLLIElement>("li") ?? []);
-
-  function syncFilters(): void {
-    for (const li of legendItems) li.classList.toggle("on", li.dataset.rock === isolatedRock);
-    for (const li of depthItems) {
-      li.classList.toggle("on", Number(li.dataset.depth) === isolatedDepth);
-    }
-  }
-
-  for (const li of legendItems) {
-    const rock = li.dataset.rock as RockKey;
-    if (!ROCK_ORDER.includes(rock)) continue;
-    li.addEventListener("click", () => {
-      deselect();
-      isolatedRock = isolatedRock === rock ? null : rock;
-      isolatedDepth = null;
-      syncFilters();
+    } else if (change === "filter") {
+      if (s.rock || s.depth) deselect();
       applyDimming();
       paintStrata();
-      tooltip.textContent = isolatedRock
-        ? `${data.status.isolated} ${data.rockNames[rock].toLowerCase()}`
-        : data.status.atlas;
-      trackRockIsolate(isolatedRock);
-    });
-  }
+      if (!selected) {
+        tooltip.textContent = s.rock
+          ? `${data.status.isolated} ${data.rockNames[s.rock].toLowerCase()}`
+          : s.depth
+            ? `${data.status.isolatedDepth} ${data.depthLabels[s.depth]}`
+            : data.status.atlas;
+      }
+    }
+  });
 
-  for (const li of depthItems) {
+  /* Hovering a ruler row lights its stratum — a scene effect, bound here. */
+  for (const li of el("depth-list")?.querySelectorAll<HTMLLIElement>("li") ?? []) {
     const level = Number(li.dataset.depth) as DepthLevel;
     if (!DEPTH_LEVELS.includes(level)) continue;
     li.addEventListener("pointerenter", () => {
@@ -731,18 +702,6 @@ function boot(data: AtlasPayload): void {
     li.addEventListener("pointerleave", () => {
       hoveredDepth = null;
       paintStrata();
-    });
-    li.addEventListener("click", () => {
-      deselect();
-      isolatedDepth = isolatedDepth === level ? null : level;
-      isolatedRock = null;
-      syncFilters();
-      applyDimming();
-      paintStrata();
-      tooltip.textContent = isolatedDepth
-        ? `${data.status.isolatedDepth} ${data.depthLabels[isolatedDepth]}`
-        : data.status.atlas;
-      trackDepthIsolate(isolatedDepth);
     });
   }
 
@@ -933,8 +892,12 @@ function boot(data: AtlasPayload): void {
     invalidate();
   }).observe(document.documentElement, { attributes: true, attributeFilter: ["data-theme"] });
 
-  /* ── start: laid out by rock, then the deep link ─────── */
-  applyGrouping("rock", reduceMotion);
+  /* ── start: laid out along the store's axis, then the deep link ── */
+  /* The axis and filters may predate the scene — a boot deferred by the list
+     view starts from whatever the HUD already says, not from the defaults. */
+  applyGrouping(sectionState().axis, reduceMotion);
+  applyDimming();
+  paintStrata();
   tooltip.textContent = data.status.atlas;
 
   function selectFromHash(silent: boolean): void {
@@ -1049,4 +1012,17 @@ function boot(data: AtlasPayload): void {
 }
 
 const payload = window.__ATLAS__;
-if (payload) boot(payload);
+if (payload) {
+  // A page opened straight into the list view has no scene to pay for: the
+  // renderer starts on the first switch to it, never sooner.
+  let booted = false;
+  const bootOnce = () => {
+    if (booted) return;
+    booted = true;
+    boot(payload);
+  };
+  if (sectionState().view === "scene") bootOnce();
+  else onSectionChange((s, change) => {
+    if (change === "view" && s.view === "scene") bootOnce();
+  });
+}
