@@ -1,0 +1,16 @@
+{
+  "name": "moat-atlas",
+  "owner": { "name": "Denis Esakov", "url": "https://moa.giglabo.com" },
+  "description": "Skills from the Moat Atlas — 35 defensibility mechanics on one depth ruler.",
+  "plugins": [
+    {
+      "name": "moats",
+      "source": "./",
+      "description": "Check a project's defensibility against the Moat Atlas: scan the repo or interview the operator through the twelve questions, get the index, the depth verdict, the mechanics held and how each one gets bypassed.",
+      "homepage": "https://moa.giglabo.com",
+      "repository": "https://github.com/GigLaboCom/moat-atlas",
+      "license": "MIT",
+      "keywords": ["moat", "defensibility", "strategy", "audit"]
+    }
+  ]
+}

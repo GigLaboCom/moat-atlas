@@ -1,0 +1,10 @@
+{
+  "name": "moats",
+  "displayName": "Moat check",
+  "version": "1.0.0",
+  "description": "Score a project on the Moat Atlas ruler — 35 mechanics, twelve questions, one index, one depth — with the bypass path for every moat it holds.",
+  "author": { "name": "Denis Esakov", "url": "https://moa.giglabo.com" },
+  "homepage": "https://moa.giglabo.com",
+  "repository": "https://github.com/GigLaboCom/moat-atlas",
+  "license": "MIT"
+}

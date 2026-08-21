@@ -12,6 +12,8 @@ npm run lint
 npm run og        # re-render public/og/og-{lang}.png (Playwright)
 npm run icons     # re-render favicons/manifests/browserconfig from icons/*.svg
 npm run audit     # audit /llms.txt, the .md twins and the sitemap of a running build
+npm run skill     # install the /moats skill into ~/.claude/skills
+npm run skill:check  # diff the skill's transcription against the matrix and survey
 ```
 
 No test runner is configured. **After touching any file, run `npm run lint && npm run build`** — the build is the authoritative correctness check.
@@ -219,3 +221,19 @@ the matrix when the axes change.
 The atlas opens a sheet in a modal by fetching `/moats/N/` and cloning
 `#sheet-article`; if the sheet markup around that element changes, check the
 modal's `:global()` rules in `index.astro` still cover it.
+
+## The /moats skill
+
+`skills/moats/` ships a Claude Code skill that scores any project on the
+atlas's ruler. `references/atlas.md` and `references/calculator.md` inside it
+are transcriptions of `src/data/{moats,survey}.ts` and the English dictionaries
+— when the matrix, the survey or the calculator copy changes, update them and
+run `npm run skill:check`, which re-derives every checkable claim from the
+source and fails on drift; both workflows run it. Rung and verdict text in the
+references is verbatim dictionary text, never a paraphrase.
+
+`npm run skill` installs the skill to `~/.claude/skills` (`--link` symlinks the
+checkout, `--to DIR` targets any other skills directory).
+`.claude-plugin/{marketplace,plugin}.json` make the repo installable without a
+clone — `/plugin marketplace add GigLaboCom/moat-atlas`, then
+`/plugin install moats@moat-atlas`.

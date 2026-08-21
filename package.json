@@ -16,7 +16,9 @@
     "audit": "bash scripts/audit-agents.sh",
     "hooks": "bash scripts/install-hooks.sh",
     "og": "node scripts/generate-og-images.mjs",
-    "icons": "node scripts/generate-icons.mjs"
+    "icons": "node scripts/generate-icons.mjs",
+    "skill": "bash scripts/install-skill.sh",
+    "skill:check": "node skills/moats/scripts/check.mjs"
   },
   "dependencies": {
     "astro": "^5.17.1",

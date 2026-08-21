@@ -18,6 +18,8 @@ npm run og        # re-render the Open Graph cards into public/og/
 npm run icons     # re-render favicons, app icons, manifests, browserconfig
 npm run audit     # audit the agent-facing layer of a running build (see below)
 npm run hooks     # point git at .githooks/ — pre-commit secret scanning
+npm run skill     # install the /moats Claude Code skill (see below)
+npm run skill:check  # diff the skill's transcription against the matrix
 ```
 
 Run `npm run lint && npm run build` before finishing any change — the build is the authoritative correctness check.
@@ -64,6 +66,37 @@ honours it would refuse to use the file it just fetched.
 `bash scripts/audit-agents.sh <base-url>` checks the whole contract against a
 running build — coverage in both directions, both URL forms, the head links, the
 sitemap, and the shape of a `.md` 404. CI runs it against the container.
+
+## The /moats skill
+
+`skills/moats/` is a [Claude Code](https://claude.com/claude-code) skill that
+turns the atlas into an audit: it scores any project on the same ruler the
+calculator uses — twelve questions, 35 mechanics, one index, one depth — and
+reports the mechanics held, how each one gets bypassed, and the cheapest ones
+worth digging next. Contributed back by a reader of the atlas as a thank-you.
+
+Four modes: `scan` answers all twelve questions from the repo and its live
+surfaces alone; `interview` walks the operator through them, probing every high
+answer for evidence; `both` (the default) scans, then interviews only what a
+repo cannot show; `compare` ranks several projects.
+
+Install it either way:
+
+```bash
+# without cloning — inside Claude Code:
+/plugin marketplace add GigLaboCom/moat-atlas
+/plugin install moats@moat-atlas             # then: /moats:moats
+
+# from a clone:
+npm run skill                # copy to ~/.claude/skills — then: /moats
+npm run skill -- --link      #   …or symlink it, so it tracks the checkout
+npm run skill -- --to some-project/.claude/skills   # one project only
+```
+
+`references/atlas.md` and `references/calculator.md` inside the skill are
+transcriptions of `src/data/{moats,survey}.ts` and the dictionaries.
+`npm run skill:check` re-derives every checkable claim from the source and
+diffs — CI runs it, so the skill cannot fall behind the matrix.
 
 ## Localization
 
