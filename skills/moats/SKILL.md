@@ -13,7 +13,8 @@ classification is **editorial judgement, not measurement** — attribute it,
 never present a depth or rock as an empirical finding. Content and the data
 files behind it are MIT-licensed
 ([GigLaboCom/moat-atlas](https://github.com/GigLaboCom/moat-atlas)); the
-scoring rules here are transcribed from `src/data/survey.ts`.
+scoring rules here are transcribed from `src/data/survey.ts`. The skill was
+contributed by [Ilia Dzhiubanskii](https://github.com/starkyru).
 
 ## References — read before scoring, never from memory
 

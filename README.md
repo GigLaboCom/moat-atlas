@@ -73,7 +73,8 @@ sitemap, and the shape of a `.md` 404. CI runs it against the container.
 turns the atlas into an audit: it scores any project on the same ruler the
 calculator uses — twelve questions, 35 mechanics, one index, one depth — and
 reports the mechanics held, how each one gets bypassed, and the cheapest ones
-worth digging next. Contributed back by a reader of the atlas as a thank-you.
+worth digging next. Contributed back by
+[Ilia Dzhiubanskii](https://github.com/starkyru) as a thank-you.
 
 Four modes: `scan` answers all twelve questions from the repo and its live
 surfaces alone; `interview` walks the operator through them, probing every high
