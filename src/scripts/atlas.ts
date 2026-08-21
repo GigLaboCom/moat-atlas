@@ -787,7 +787,33 @@ function boot(data: AtlasPayload): void {
   /** A finger wanders further than a mouse: a tap has to survive its own slop. */
   let slop = 6;
 
+  /**
+   * The click that takes a core also sends the camera to it, so a moment later
+   * the shaft is no longer under the cursor: the second half of the double-click
+   * hits the fog behind it, or whichever neighbour drifted into the gap. A hand
+   * that has not left the spot is still aimed at what it hit the first time —
+   * remember that shaft and answer with it while the pair is still open, so a
+   * moving camera never gets to overrule a pointer that stood still. Anything
+   * that moves the view on purpose — a drag, a pinch, the wheel — forgets it.
+   */
+  const DOUBLE_MS = 500;
+  /** The jitter a hand adds between the two clicks of a pair, in pixels. */
+  const DOUBLE_SLOP = 14;
+  let recent: { shaft: Shaft; x: number; y: number; t: number } | null = null;
+
+  function aim(e: { clientX: number; clientY: number }): Shaft | null {
+    if (
+      recent &&
+      performance.now() - recent.t < DOUBLE_MS &&
+      Math.abs(e.clientX - recent.x) + Math.abs(e.clientY - recent.y) <= DOUBLE_SLOP
+    ) {
+      return recent.shaft;
+    }
+    return (pick(e)?.object ?? null) as Shaft | null;
+  }
+
   function zoom(delta: number): void {
+    recent = null;
     goal.radius = Math.max(5, Math.min(24, goal.radius + delta));
     invalidate();
   }
@@ -822,6 +848,9 @@ function boot(data: AtlasPayload): void {
       return;
     }
     if (dragging) {
+      // Far enough to be a turn rather than the jitter inside a click: the aim
+      // the last click left behind belongs to a view that no longer exists.
+      if (Math.abs(e.clientX - downX) + Math.abs(e.clientY - downY) > slop) recent = null;
       orbit.theta += (e.clientX - lastX) * 0.005;
       orbit.phi -= (e.clientY - lastY) * 0.004;
       orbit.phi = Math.max(0.35, Math.min(1.35, orbit.phi));
@@ -852,14 +881,15 @@ function boot(data: AtlasPayload): void {
     dragging = false;
     canvas.classList.remove("dragging");
     if (wasPinch || wasDrag || e.target !== canvas) return;
-    const hit = pick(e);
-    if (!hit) {
+    const shaft = aim(e);
+    if (!shaft) {
+      recent = null;
       deselect();
       return;
     }
-    const shaft = hit.object as Shaft;
+    recent = { shaft, x: e.clientX, y: e.clientY, t: performance.now() };
     // A finger has no double-click: on touch the second tap on a core already
-    // taken opens what it is made of, which is what the dblclick does above.
+    // taken opens what it is made of, which is what the dblclick does below.
     if (touch && shaft === selected) {
       void openSheet((shaft.userData as Moat).n, "tap");
       return;
@@ -869,10 +899,10 @@ function boot(data: AtlasPayload): void {
 
   // The first click takes the core, the second opens what it is made of.
   canvas.addEventListener("dblclick", (e) => {
-    const hit = pick(e);
-    if (!hit) return;
+    const shaft = aim(e);
+    if (!shaft) return;
     e.preventDefault();
-    void openSheet(((hit.object as Shaft).userData as Moat).n, "dblclick");
+    void openSheet((shaft.userData as Moat).n, "dblclick");
   });
 
   canvas.addEventListener(
