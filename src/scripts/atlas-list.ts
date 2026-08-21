@@ -91,6 +91,13 @@ if (data && container) {
     }
   }
 
+  // The URL may already carry an axis or a filter — a shared link, or the
+  // sheet's breadcrumb on the way back. The server always renders the
+  // defaults, so catch the markup up once.
+  const initial = sectionState();
+  if (initial.axis !== "rock") regroup(initial.axis);
+  if (initial.rock || initial.depth) applyFilter();
+
   onSectionChange((s, change) => {
     if (change === "axis") {
       regroup(s.axis);

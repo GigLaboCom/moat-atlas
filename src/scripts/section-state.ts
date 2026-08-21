@@ -5,9 +5,12 @@
  * set in one view is the same filter in the other, and neither module ever
  * reads the other's DOM.
  *
- * The view also lives in the URL (`?view=list`), so a mode is a link. The
- * initial value is read off the `view-list` class the inline bootstrap in
- * `index.astro` puts on <html> before first paint.
+ * The whole state lives in the URL — `?view=list&group=solo&rock=minds` (or
+ * `&depth=2`) — so any configuration is a link, and the sheet pages' Atlas
+ * crumb can send a reader back to exactly what they left. Defaults stay out
+ * of the address: a bare `/` is the scene, grouped by rock, unfiltered. The
+ * view's initial value is read off the `view-list` class the inline bootstrap
+ * in `index.astro` puts on <html> before first paint; the rest is read here.
  */
 import {
   GROUPING_AXES,
@@ -38,12 +41,20 @@ export interface SectionState {
 export type SectionChange = "view" | "axis" | "filter";
 type Listener = (state: Readonly<SectionState>, change: SectionChange) => void;
 
+const params = new URLSearchParams(window.location.search);
+const urlAxis = params.get("group") as GroupingAxis | null;
+const urlRock = params.get("rock") as RockKey | null;
+const urlDepth = Number(params.get("depth")) as DepthLevel;
+
 const state: SectionState = {
   view: document.documentElement.classList.contains("view-list") ? "list" : "scene",
-  axis: "rock",
-  rock: null,
-  depth: null,
+  axis: urlAxis && GROUPING_AXES.includes(urlAxis) ? urlAxis : "rock",
+  rock: urlRock && ROCK_ORDER.includes(urlRock) ? urlRock : null,
+  depth: DEPTH_LEVELS.includes(urlDepth) ? urlDepth : null,
 };
+// The two filters are exclusive everywhere else; a crafted URL carrying both
+// keeps the rock, as the legend click would have.
+if (state.rock) state.depth = null;
 
 const listeners: Listener[] = [];
 
@@ -96,11 +107,17 @@ function sync(): void {
   }
 }
 
-/** The view is state a link can carry — keep the address honest. */
+/** Every piece of state is a link — keep the address honest, defaults blank. */
 function syncUrl(): void {
   const url = new URL(window.location.href);
-  if (state.view === "list") url.searchParams.set("view", "list");
-  else url.searchParams.delete("view");
+  const write = (key: string, value: string | null) => {
+    if (value) url.searchParams.set(key, value);
+    else url.searchParams.delete(key);
+  };
+  write("view", state.view === "list" ? "list" : null);
+  write("group", state.axis === "rock" ? null : state.axis);
+  write("rock", state.rock);
+  write("depth", state.depth ? String(state.depth) : null);
   history.replaceState(null, "", url);
 }
 
@@ -109,6 +126,7 @@ export function setAxis(axis: GroupingAxis): void {
   if (state.axis === axis) return;
   state.axis = axis;
   sync();
+  syncUrl();
   emit("axis");
   trackGrouping(axis);
 }
@@ -117,6 +135,7 @@ export function toggleRock(rock: RockKey): void {
   state.rock = state.rock === rock ? null : rock;
   state.depth = null;
   sync();
+  syncUrl();
   emit("filter");
   trackRockIsolate(state.rock);
 }
@@ -125,6 +144,7 @@ export function toggleDepth(level: DepthLevel): void {
   state.depth = state.depth === level ? null : level;
   state.rock = null;
   sync();
+  syncUrl();
   emit("filter");
   trackDepthIsolate(state.depth);
 }
@@ -135,6 +155,7 @@ export function clearIsolation(): void {
   state.rock = null;
   state.depth = null;
   sync();
+  syncUrl();
   emit("filter");
 }
 

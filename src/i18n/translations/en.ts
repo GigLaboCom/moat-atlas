@@ -99,7 +99,7 @@ export default {
         {
           title: "The list",
           body:
-            "The switch in the corner lays the same 35 sheets out as text — name, passport, essence — grouped along the current axis and cut by the same filters. Only the projection changes: ?view=list is the address of the text view, and every sheet still opens as its own page.",
+            "The switch in the corner lays the same 35 sheets out as text — name, passport, essence — grouped along the current axis and cut by the same filters. The address carries the whole setup — view, grouping, filter — so a link reproduces it exactly, and every sheet still opens as its own page.",
         },
         {
           title: "Controls",

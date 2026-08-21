@@ -163,17 +163,25 @@ const { title, description } = sheetMeta(lang, n);
   </nav>
 
   <script>
-    // The view is state the URL carries, so the referrer says which projection
-    // the reader left: `?view=list` on it means the list, and the Atlas crumb
-    // keeps it. No storage — a sheet reached any other way keeps the scene.
+    // Sheet I keeps its whole setup in the URL — view, grouping, filter — so
+    // the referrer says exactly what the reader left, and the Atlas crumb
+    // carries it back. No storage; a sheet reached any other way keeps the
+    // bare scene address.
     const crumb = document.getElementById("crumb-atlas") as HTMLAnchorElement | null;
     if (crumb && document.referrer) {
       try {
         const ref = new URL(document.referrer);
-        if (ref.origin === window.location.origin && ref.searchParams.get("view") === "list") {
+        if (ref.origin === window.location.origin) {
           const url = new URL(crumb.href);
-          url.searchParams.set("view", "list");
-          crumb.href = url.toString();
+          let carried = false;
+          for (const key of ["view", "group", "rock", "depth"]) {
+            const value = ref.searchParams.get(key);
+            if (value) {
+              url.searchParams.set(key, value);
+              carried = true;
+            }
+          }
+          if (carried) crumb.href = url.toString();
         }
       } catch {
         // An unparseable referrer changes nothing.
