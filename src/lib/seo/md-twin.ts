@@ -83,6 +83,9 @@ function related(page: PageEntry): string[] {
   if (page.kind !== "calculator") {
     out.push(`- ${f.calculator}: ${u(page.locale, "/calculator/")}`);
   }
+  if (page.kind !== "strategies") {
+    out.push(`- ${f.strategies}: ${u(page.locale, "/strategies/")}`);
+  }
   out.push(`- Site map for agents: ${LLMS_TXT_URL}`);
   return out;
 }

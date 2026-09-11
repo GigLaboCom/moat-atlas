@@ -26,6 +26,16 @@ import {
   moatsInBucket,
   type Moat,
 } from "../../data/moats";
+import {
+  CATEGORIES,
+  ROLES,
+  ROLE_ORDER,
+  SOURCE,
+  backlinksFor,
+  hasBacklinks,
+  strategiesIn,
+  type Strategy,
+} from "../../data/strategies";
 import { QUESTIONS, SEGMENT_KEYS, OPTION_WEIGHTS, questionsOf } from "../../data/survey";
 import type { Locale } from "../../i18n/config";
 import { getLocalizedPath, getTranslations } from "../../i18n/index";
@@ -33,7 +43,19 @@ import { getMoatStrings } from "../../i18n/translations/moats/index";
 import { calculatorPage } from "../../i18n/translations/pages/calculator";
 import { cookiesPage } from "../../i18n/translations/pages/cookies";
 import { creditsPage } from "../../i18n/translations/pages/credits";
+import { strategiesPage } from "../../i18n/translations/pages/strategies";
 import { CONTACTS, GIGLABO_URL, LAZY_SHOT_URL, MNEMOVI_URL, REPO_URL } from "../links";
+import {
+  categoryName,
+  depthMark,
+  examples,
+  gistOf,
+  moatMark,
+  nameOf,
+  noteOf,
+  roleGist,
+  roleName,
+} from "../strategies";
 import { siteUrl } from "../url";
 import type { PageEntry } from "./pages";
 
@@ -141,7 +163,43 @@ function sheetBody(locale: Locale, n: number): string {
   }
 
   if (s.verdict) out.push("", `## ${t.sheet.verdict}`, "", s.verdict);
+  out.push("", ...sheetBacklinks(locale, n));
   return out.join("\n");
+}
+
+/** A strategy as a link into the table — the row anchor is the slug. */
+function strategyLink(locale: Locale, st: Strategy): string {
+  return `[${nameOf(st, locale)}](${u(locale, "/strategies/")}#${st.slug})`;
+}
+
+/**
+ * Sheet III's back-links, the same three lists the page renders: direct (a
+ * plain list), via, conditional (each with its note). A moat nothing leads to
+ * says so — the gap is a finding, not an omission.
+ */
+function sheetBacklinks(locale: Locale, n: number): string[] {
+  const t = getTranslations(locale);
+  const b = backlinksFor(n);
+  const out = [`## ${t.sheet.strategies.title}`, ""];
+  if (!hasBacklinks(b)) return [...out, t.sheet.strategies.none];
+
+  if (b.direct.length) out.push(...b.direct.map((st) => `- ${strategyLink(locale, st)}`));
+  if (b.via.length) {
+    if (b.direct.length) out.push("");
+    out.push(t.sheet.strategies.via, "", ...b.via.map((st) => `- ${strategyLink(locale, st)}`));
+  }
+  if (b.conditional.length) {
+    if (b.direct.length || b.via.length) out.push("");
+    out.push(
+      t.sheet.strategies.conditional,
+      "",
+      ...b.conditional.map((st) => {
+        const note = noteOf(st, locale);
+        return `- ${strategyLink(locale, st)}${note ? ` — ${note}` : ""}`;
+      }),
+    );
+  }
+  return out;
 }
 
 /** Sheet I: what the drawing is, how to read it, and the whole matrix. */
@@ -234,6 +292,60 @@ function calculatorBody(locale: Locale): string {
         c.verdicts[l],
       ]),
     ),
+  );
+  return out.join("\n").replace(/\n{3,}/g, "\n\n");
+}
+
+/**
+ * Sheet III: the intro, then one table per category in essay order — the
+ * whole 80, the same cells as the page — the notes as footnotes under each
+ * category, the roles legend, the attribution.
+ */
+function strategiesBody(locale: Locale): string {
+  const p = strategiesPage[locale];
+  const c = p.columns;
+  const out: string[] = [p.subtitle, "", p.intro, "", `${p.attribution} ${SOURCE.url}`];
+
+  for (const cat of CATEGORIES) {
+    const rows = strategiesIn(cat.slug);
+    out.push(
+      "",
+      `## ${categoryName(cat, locale)} · ${rows.length}`,
+      "",
+      table(
+        [c.strategy, c.gist, c.nature, c.business, c.role, c.moats, c.depth],
+        rows.map((st) => [
+          `${nameOf(st, locale)}${st.disputed ? ` (${p.legend.disputedNote})` : ""}`,
+          cat.slug === "timing" ? `${gistOf(st, locale)} — ${p.markers.timing}` : gistOf(st, locale),
+          examples(st.examples_nature),
+          examples(st.examples_business),
+          roleName(ROLES[st.role], locale),
+          st.moats.length
+            ? st.moats.map((m) => `[${moatMark(m)}](${u(locale, `/moats/${m.n}/`)})`).join(", ")
+            : "—",
+          depthMark(st),
+        ]),
+      ),
+    );
+    const noted = rows.filter((st) => noteOf(st, locale));
+    if (noted.length) {
+      out.push(
+        "",
+        `${p.legend.notes}:`,
+        "",
+        ...noted.map((st) => `- **${nameOf(st, locale)}** — ${noteOf(st, locale)}`),
+      );
+    }
+  }
+
+  out.push(
+    "",
+    `## ${p.legend.title}`,
+    "",
+    ...ROLE_ORDER.map((r) => `- **${roleName(ROLES[r], locale)}** — ${roleGist(ROLES[r], locale)}`),
+    "",
+    `- ${moatMark({ n: 17, kind: "via" })} — ${p.markers.viaLabel}`,
+    `- ${moatMark({ n: 10, kind: "conditional" })} — ${p.markers.conditionalLabel}`,
   );
   return out.join("\n").replace(/\n{3,}/g, "\n\n");
 }
@@ -339,6 +451,8 @@ export function bodyFor(page: PageEntry): string {
       return sheetBody(page.locale, page.n!);
     case "calculator":
       return calculatorBody(page.locale);
+    case "strategies":
+      return strategiesBody(page.locale);
     case "cookies":
       return cookiesBody(page.locale);
     case "credits":

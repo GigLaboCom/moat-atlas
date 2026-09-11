@@ -15,12 +15,22 @@
  *    not the page itself (`…/moats/7/#term`).
  */
 import { GROUPING_AXES, MOAT_COUNT, type GroupingAxis, type Moat } from "../../data/moats";
+import {
+  CATEGORIES,
+  ROLES,
+  SOURCE,
+  STRATEGIES,
+  STRATEGY_COUNT,
+  DATASET_VERSION,
+} from "../../data/strategies";
 import { OPTION_WEIGHTS, QUESTION_COUNT, SEGMENT_KEYS } from "../../data/survey";
 import type { Locale } from "../../i18n/config";
 import { getLocalizedPath, getTranslations } from "../../i18n/index";
 import { creditsPage } from "../../i18n/translations/pages/credits";
 import { calculatorPage } from "../../i18n/translations/pages/calculator";
+import { strategiesPage } from "../../i18n/translations/pages/strategies";
 import { CONTACTS, GIGLABO_URL, REPO_URL } from "../links";
+import { categoryName, gistOf, nameOf, roleName } from "../strategies";
 import { siteUrl } from "../url";
 import { twinUrl } from "./md-twin";
 import { pageAt, pagesFor, shortTitle, type PageEntry } from "./pages";
@@ -235,6 +245,55 @@ function mainEntities(page: PageEntry): { type: string; nodes: Node[]; mainEntit
         ],
       };
       return { type: "WebPage", nodes: [app], mainEntity: `${page.url}#app` };
+    }
+    case "strategies": {
+      const p = strategiesPage[page.locale];
+      // The dataset node credits the essay the taxonomy comes from; the role and
+      // moat columns are the atlas's own and are declared as its variables.
+      const dataset: Node = {
+        "@type": "Dataset",
+        "@id": `${SITE}#strategies-${page.locale}`,
+        name: t.strategies.meta.title,
+        description: t.strategies.meta.description,
+        version: DATASET_VERSION,
+        inLanguage: page.locale,
+        url: page.url,
+        license: LICENSE,
+        creator: ref(`${SITE}#author`),
+        publisher: ref(ORG_ID),
+        isAccessibleForFree: true,
+        isBasedOn: {
+          "@type": "CreativeWork",
+          name: SOURCE.title,
+          author: { "@type": "Person", name: SOURCE.author, url: SOURCE.url },
+          url: SOURCE.url,
+        },
+        variableMeasured: [
+          { "@type": "PropertyValue", name: p.columns.category, propertyID: "category", description: CATEGORIES.map((c) => categoryName(c, page.locale)).join(", ") },
+          { "@type": "PropertyValue", name: p.columns.role, propertyID: "role", description: Object.values(ROLES).map((r) => roleName(r, page.locale)).join(", ") },
+          { "@type": "PropertyValue", name: p.columns.moats, propertyID: "moats", description: "direct, via, conditional" },
+        ],
+        size: `${STRATEGY_COUNT} rows`,
+        distribution: {
+          "@type": "DataDownload",
+          encodingFormat: "text/markdown",
+          contentUrl: twinUrl(page.path),
+        },
+      };
+      const list: Node = {
+        "@type": "ItemList",
+        "@id": `${page.url}#list`,
+        numberOfItems: STRATEGY_COUNT,
+        itemListOrder: "https://schema.org/ItemListOrderAscending",
+        itemListElement: STRATEGIES.map((st, i) => ({
+          "@type": "ListItem",
+          position: i + 1,
+          name: nameOf(st, page.locale),
+          description: gistOf(st, page.locale),
+          url: `${page.url}#${st.slug}`,
+        })),
+      };
+      return { type: "CollectionPage", nodes: [dataset, list], mainEntity: `${page.url}#list` };
     }
     case "credits":
       return { type: "AboutPage", nodes: [] };

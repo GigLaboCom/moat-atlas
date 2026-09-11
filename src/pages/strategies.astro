@@ -1,0 +1,560 @@
+---
+import PageLayout from "../layouts/PageLayout.astro";
+import type { Locale } from "../i18n/config";
+import { getTranslations, getLocalizedPath } from "../i18n/index";
+import { getMoatStrings } from "../i18n/translations/moats/index";
+import { strategiesPage } from "../i18n/translations/pages/strategies";
+import { MOATS } from "../data/moats";
+import {
+  CATEGORIES,
+  ROLES,
+  ROLE_ORDER,
+  SOURCE,
+  STRATEGY_COUNT,
+  depthOf,
+  essayIndex,
+  strategiesIn,
+} from "../data/strategies";
+import {
+  CONDITIONAL_MARK,
+  VIA_MARK,
+  categoryName,
+  depthLevel,
+  depthMark,
+  examples,
+  gistOf,
+  moatMark,
+  nameOf,
+  noteOf,
+  roleGist,
+  roleName,
+  searchText,
+} from "../lib/strategies";
+
+const headerLocale = Astro.request.headers.get("x-locale") as Locale | null;
+const lang: Locale = headerLocale ?? "en";
+const t = getTranslations(lang);
+const p = strategiesPage[lang] ?? strategiesPage.en;
+const other: Locale = lang === "ru" ? "en" : "ru";
+
+const path = getLocalizedPath("/strategies/", lang);
+const moatHref = (n: number) => getLocalizedPath(`/moats/${n}/`, lang);
+const moatName = (n: number) => getMoatStrings(lang, n).name;
+
+/**
+ * What the table script needs beyond the rows themselves — the words for the
+ * count and the empty state, the role order for its sort. The rows carry their
+ * own facts as data attributes, so the JSON is not shipped a second time.
+ */
+const payload = {
+  count: p.filters.count,
+  empty: p.filters.empty,
+  sortAsc: p.sort.asc,
+  sortDesc: p.sort.desc,
+  roles: ROLE_ORDER,
+  categories: CATEGORIES.map((c) => c.slug),
+  path,
+};
+---
+
+<PageLayout
+  lang={lang}
+  title={t.strategies.meta.title}
+  description={t.strategies.meta.description}
+  basePath="/strategies/"
+  section={t.strategies.heading}
+  wide={true}
+>
+  <div class="eyebrow">{t.strategies.tagline}</div>
+  <h1>{t.strategies.heading}</h1>
+  <p class="subtitle">{p.subtitle}</p>
+  <p class="intro">{p.intro}</p>
+
+  <!-- The filter bar. Real form controls, so the labels and the checked
+       state are the accessibility tree's; the script only listens. Without
+       JavaScript the table below is complete in essay order, and the bar
+       does nothing — every control is a control the script gives meaning. -->
+  <form class="filters" id="filters" aria-label={p.filters.label} autocomplete="off">
+    <fieldset class="chips" data-filter="cat">
+      <legend>{p.filters.category}</legend>
+      {CATEGORIES.map((c) => (
+        <label class="chip">
+          <input type="checkbox" name="cat" value={c.slug} />
+          <span>{categoryName(c, lang)}</span>
+          <b>{strategiesIn(c.slug).length}</b>
+        </label>
+      ))}
+    </fieldset>
+
+    <fieldset class="chips" data-filter="role">
+      <legend>{p.filters.role}</legend>
+      {ROLE_ORDER.map((r) => (
+        <label class:list={["chip", `role-${r}`]}>
+          <input type="checkbox" name="role" value={r} />
+          <span>{roleName(ROLES[r], lang)}</span>
+        </label>
+      ))}
+      <a class="preset" id="preset-hold" href={`${path}?role=hold`}>{p.filters.holds}</a>
+    </fieldset>
+
+    <div class="row">
+      <label class="field">
+        <span>{p.filters.moat}</span>
+        <select name="moat" id="f-moat">
+          <option value="">{p.filters.moatAny}</option>
+          {MOATS.map((m) => (
+            <option value={m.n}>#{m.n} {moatName(m.n)}</option>
+          ))}
+        </select>
+      </label>
+
+      <label class="field grow">
+        <span>{p.filters.search}</span>
+        <input type="search" name="q" id="f-q" placeholder={p.filters.searchPlaceholder} />
+      </label>
+
+      <output class="count" id="count" for="filters" aria-live="polite">
+        {p.filters.count.replace("{n}", String(STRATEGY_COUNT)).replace("{total}", String(STRATEGY_COUNT))}
+      </output>
+      <a class="clear" id="clear" href={path} hidden>{p.filters.clear}</a>
+    </div>
+  </form>
+
+  <div class="table-wrap">
+    <table class="strategies" id="strategies">
+      <caption class="sr-only">{t.strategies.heading} — {p.subtitle}</caption>
+      <thead>
+        <tr>
+          <th scope="col" class="c-name" data-sort="name" aria-sort="none">
+            <button type="button">{p.columns.strategy}<i class="dir" aria-hidden="true"></i></button>
+          </th>
+          <th scope="col" class="c-cat" data-sort="cat" aria-sort="ascending">
+            <button type="button">{p.columns.category}<i class="dir" aria-hidden="true"></i></button>
+          </th>
+          <th scope="col" class="c-gist">{p.columns.gist}</th>
+          <th scope="col" class="c-ex">{p.columns.nature}</th>
+          <th scope="col" class="c-ex">{p.columns.business}</th>
+          <th scope="col" class="c-role" data-sort="role" aria-sort="none">
+            <button type="button">{p.columns.role}<i class="dir" aria-hidden="true"></i></button>
+          </th>
+          <th scope="col" class="c-moats">{p.columns.moats}</th>
+          <th scope="col" class="c-depth" data-sort="depth" aria-sort="none">
+            <button type="button">{p.columns.depth}<i class="dir" aria-hidden="true"></i></button>
+          </th>
+        </tr>
+      </thead>
+      <tbody id="rows">
+        {CATEGORIES.map((cat) => {
+          const rows = strategiesIn(cat.slug);
+          return (
+            <>
+              <tr class="group" data-group={cat.slug}>
+                <th scope="rowgroup" colspan="8">
+                  {categoryName(cat, lang)} · <span data-count>{rows.length}</span>
+                </th>
+              </tr>
+              {rows.map((s) => {
+                const note = noteOf(s, lang);
+                const depth = depthOf(s);
+                const level = depthLevel(s);
+                return (
+                  <tr
+                    id={s.slug}
+                    class:list={["strategy", { disputed: s.disputed }]}
+                    data-idx={essayIndex[s.slug]}
+                    data-cat={s.category}
+                    data-role={s.role}
+                    data-depth={depth ? depth.d : ""}
+                    data-name={nameOf(s, lang)}
+                    data-moats={s.moats.map((m) => m.n).join(",")}
+                    data-search={searchText(s)}
+                  >
+                    <td class="c-name">
+                      <strong>{nameOf(s, lang)}</strong>
+                      {note && (
+                        <details class:list={["mark", s.disputed ? "disputed" : "info"]}>
+                          <summary
+                            title={s.disputed ? p.markers.disputed : p.markers.note}
+                            aria-label={s.disputed ? p.markers.disputed : p.markers.note}
+                          >
+                            {s.disputed ? CONDITIONAL_MARK : "i"}
+                          </summary>
+                          <p>{note}</p>
+                        </details>
+                      )}
+                      <span class="alt" lang={other}>{nameOf(s, other)}</span>
+                    </td>
+                    <td class="c-cat">
+                      <a href={`${path}?cat=${cat.slug}`} data-cat={cat.slug}>{categoryName(cat, lang)}</a>
+                    </td>
+                    <td class="c-gist">
+                      {gistOf(s, lang)}
+                      {cat.slug === "timing" && <span class="timing">{p.markers.timing}</span>}
+                      {(s.examples_nature.length > 0 || s.examples_business.length > 0) && (
+                        <span class="ex-inline">
+                          {s.examples_nature.length > 0 && (
+                            <span><i>{p.columns.nature}</i> {examples(s.examples_nature)}</span>
+                          )}
+                          {s.examples_business.length > 0 && (
+                            <span><i>{p.columns.business}</i> {examples(s.examples_business)}</span>
+                          )}
+                        </span>
+                      )}
+                    </td>
+                    <td class="c-ex">{examples(s.examples_nature)}</td>
+                    <td class="c-ex">{examples(s.examples_business)}</td>
+                    <td class="c-role">
+                      <span class:list={["pill", `role-${s.role}`]}>{roleName(ROLES[s.role], lang)}</span>
+                    </td>
+                    <td class="c-moats">
+                      {s.moats.length
+                        ? s.moats.map((m) => (
+                            <a
+                              href={moatHref(m.n)}
+                              class:list={["moat", `kind-${m.kind}`]}
+                              data-name={moatName(m.n)}
+                              title={moatName(m.n)}
+                              aria-label={`#${m.n} ${moatName(m.n)}${m.kind === "via" ? ` (${p.markers.viaLabel})` : m.kind === "conditional" ? ` (${p.markers.conditionalLabel})` : ""}`}
+                            >
+                              {moatMark(m)}
+                            </a>
+                          ))
+                        : "—"}
+                    </td>
+                    <td class="c-depth mono" title={level ? t.atlas.ruler[level].tool : undefined}>
+                      {depthMark(s)}
+                    </td>
+                  </tr>
+                );
+              })}
+            </>
+          );
+        })}
+        <tr class="empty" id="empty" hidden>
+          <td colspan="8">{p.filters.empty}</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <section class="legend" aria-labelledby="legend-title">
+    <h2 id="legend-title">{p.legend.title}</h2>
+    <dl>
+      {ROLE_ORDER.map((r) => (
+        <div class="row">
+          <dt><span class:list={["pill", `role-${r}`]}>{roleName(ROLES[r], lang)}</span></dt>
+          <dd>{roleGist(ROLES[r], lang)}</dd>
+        </div>
+      ))}
+      <div class="row">
+        <dt class="mono">{VIA_MARK} #N</dt>
+        <dd>{p.markers.viaLabel}</dd>
+      </div>
+      <div class="row">
+        <dt class="mono">#N{CONDITIONAL_MARK}</dt>
+        <dd>{p.markers.conditionalLabel}</dd>
+      </div>
+    </dl>
+  </section>
+
+  <p class="attribution">
+    {p.attribution}
+    <a href={SOURCE.url} target="_blank" rel="noopener">{SOURCE.title} ↗</a>
+  </p>
+
+  <p class="back"><a href={getLocalizedPath("/", lang)}>{p.backToAtlas}</a></p>
+
+  <script define:vars={{ payload }} is:inline>
+    window.__STRATEGIES__ = payload;
+  </script>
+
+  <script>
+    import "../scripts/strategies";
+  </script>
+</PageLayout>
+
+<style>
+  .subtitle {
+    font-family: var(--display);
+    font-size: 17px;
+    letter-spacing: 0.02em;
+    color: var(--ink-dim);
+    margin-bottom: 18px;
+  }
+
+  .intro { max-width: 72ch; }
+
+  .sr-only {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip: rect(0 0 0 0);
+    white-space: nowrap;
+  }
+
+  /* ── filter bar ──────────────────────────────────────── */
+  .filters {
+    display: grid;
+    gap: 12px;
+    border: 1px solid var(--line);
+    padding: 14px 16px;
+    margin-bottom: 20px;
+  }
+
+  fieldset { border: 0; display: flex; flex-wrap: wrap; align-items: center; gap: 6px; }
+
+  /* Labels and secondary lines read at --ink-dim, not --ink-faint: the faint
+     tone is 3:1 on the page ground, and this page has 80 of each to read. */
+  legend, .field > span {
+    float: left;
+    font-family: var(--mono);
+    font-size: 10px;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    color: var(--ink-dim);
+    margin-right: 10px;
+    line-height: 26px;
+  }
+
+  .chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    height: 26px;
+    padding: 0 10px;
+    border: 1px solid var(--line);
+    font-size: 12px;
+    color: var(--ink-dim);
+    cursor: pointer;
+    user-select: none;
+    transition: color 0.15s ease, border-color 0.15s ease, background 0.15s ease;
+  }
+
+  .chip:hover { color: var(--ink); border-color: var(--ink-dim); }
+  .chip:has(input:checked) { color: var(--ink); border-color: var(--ink); background: color-mix(in srgb, var(--ink) 8%, transparent); }
+  .chip:has(input:focus-visible) { outline: 1px solid var(--ink); outline-offset: 2px; }
+  .chip input { position: absolute; opacity: 0; width: 1px; height: 1px; }
+  .chip b { font-family: var(--mono); font-weight: 400; font-size: 10px; color: var(--ink-dim); }
+  .chip.role-hold:has(input:checked) { background: var(--ink); color: var(--panel-solid); }
+
+  .preset {
+    margin-left: 6px;
+    font-family: var(--mono);
+    font-size: 11px;
+    letter-spacing: 0.08em;
+  }
+
+  .row { display: flex; flex-wrap: wrap; align-items: center; gap: 10px 16px; }
+  .field { display: inline-flex; align-items: center; gap: 10px; }
+  .field.grow { flex: 1 1 220px; }
+  .field > span { float: none; margin-right: 0; }
+
+  select, input[type="search"] {
+    height: 30px;
+    border: 1px solid var(--line);
+    background: transparent;
+    color: var(--ink);
+    font-family: inherit;
+    font-size: 13px;
+    padding: 0 10px;
+    min-width: 0;
+  }
+
+  input[type="search"] { flex: 1; }
+  select { max-width: 260px; }
+  select:hover, input[type="search"]:hover { border-color: var(--ink-dim); }
+
+  .count {
+    margin-left: auto;
+    font-family: var(--mono);
+    font-size: 11px;
+    letter-spacing: 0.1em;
+    color: var(--ink-dim);
+    white-space: nowrap;
+  }
+
+  .clear { font-family: var(--mono); font-size: 11px; letter-spacing: 0.08em; }
+  .clear[hidden] { display: none; }
+
+  /* ── the table ───────────────────────────────────────── */
+  .table-wrap { overflow-x: auto; -webkit-overflow-scrolling: touch; }
+
+  table { width: 100%; border-collapse: collapse; font-size: 13px; table-layout: fixed; }
+
+  th, td {
+    text-align: left;
+    vertical-align: top;
+    padding: 9px 10px;
+    border-bottom: 1px solid var(--line);
+  }
+
+  thead th {
+    font-family: var(--mono);
+    font-size: 10px;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    color: var(--ink-dim);
+    font-weight: 400;
+    white-space: nowrap;
+  }
+
+  thead th button {
+    all: unset;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+  }
+
+  thead th button:hover { color: var(--ink); }
+  thead th button:focus-visible { outline: 1px solid var(--ink); outline-offset: 2px; }
+  thead th[aria-sort="ascending"], thead th[aria-sort="descending"] { color: var(--ink); }
+  thead th .dir { font-style: normal; }
+  thead th[aria-sort="ascending"] .dir::after { content: "▲"; font-size: 8px; }
+  thead th[aria-sort="descending"] .dir::after { content: "▼"; font-size: 8px; }
+
+  /* Column widths per the spec — the two example columns give way first. */
+  .c-name { width: 16%; }
+  .c-cat { width: 11%; }
+  .c-gist { width: 22%; }
+  .c-ex { width: 13%; }
+  .c-ex + .c-ex { width: 15%; }
+  .c-role { width: 9%; }
+  .c-moats { width: 9%; }
+  .c-depth { width: 5%; }
+
+  td { color: var(--ink-dim); overflow-wrap: anywhere; }
+  tr.strategy:hover { background: color-mix(in srgb, var(--ink) 4%, transparent); }
+  tr.strategy:target { background: color-mix(in srgb, var(--ink) 9%, transparent); }
+  tr.strategy:target td:first-child { box-shadow: inset 2px 0 var(--ink); }
+  tr[hidden] { display: none; }
+
+  /* Group header rows — a category and its count, only under the default sort. */
+  tr.group th {
+    padding-top: 22px;
+    font-family: var(--display);
+    font-weight: 400;
+    font-size: 15px;
+    letter-spacing: 0.06em;
+    color: var(--ink);
+    border-bottom: 1px solid var(--ink-faint);
+  }
+
+  tr.group th [data-count] { font-family: var(--mono); font-size: 11px; color: var(--ink-dim); }
+
+  td.c-name strong { color: var(--ink); font-weight: 600; }
+  td.c-name .alt { display: block; margin-top: 2px; font-size: 11.5px; color: var(--ink-dim); }
+  td.c-cat a { color: var(--ink-dim); text-decoration: none; }
+  td.c-cat a:hover { color: var(--ink); text-decoration: underline; text-underline-offset: 3px; }
+
+  /* The note behind the "?" or "i": the badge is the summary, the note opens
+     beneath the name inside the same cell — no script, no dialog. */
+  details.mark { display: inline; }
+  details.mark summary {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 16px;
+    height: 16px;
+    margin-left: 6px;
+    border: 1px solid var(--ink-faint);
+    border-radius: 50%;
+    font-family: var(--mono);
+    font-size: 10px;
+    color: var(--ink-dim);
+    cursor: pointer;
+    list-style: none;
+    vertical-align: 1px;
+  }
+  details.mark summary::-webkit-details-marker { display: none; }
+  details.mark summary:hover { color: var(--ink); border-color: var(--ink); }
+  details.mark.disputed summary { color: var(--ink); border-color: var(--ink); }
+  details.mark p {
+    display: block;
+    margin-top: 6px;
+    padding: 8px 10px;
+    border-left: 2px solid var(--ink-faint);
+    font-size: 12px;
+    line-height: 1.55;
+    color: var(--ink-dim);
+  }
+
+  .timing { display: block; margin-top: 3px; font-size: 11.5px; color: var(--ink-dim); font-style: italic; }
+  .ex-inline { display: none; }
+
+  /* Six pills that read by their words; only "holds" wears the ink. */
+  .pill {
+    display: inline-block;
+    padding: 2px 8px;
+    border: 1px solid var(--line);
+    font-family: var(--mono);
+    font-size: 10px;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--ink-dim);
+    white-space: nowrap;
+  }
+
+  .pill.role-hold { background: var(--ink); border-color: var(--ink); color: var(--panel-solid); }
+
+  /* Moat links: the number, the moat's name on hover and on focus. */
+  td.c-moats { font-family: var(--mono); font-size: 12px; }
+  /* Each link is a 24px tap target with clear space to its neighbour; the
+     cell gives up the padding the first link's own padding puts back. */
+  td.c-moats { padding-left: 5px; }
+  .moat {
+    position: relative;
+    display: inline-block;
+    padding: 3px 5px;
+    margin: 0 2px 2px 0;
+    min-width: 24px;
+    line-height: 18px;
+    text-align: center;
+    white-space: nowrap;
+  }
+  .moat.kind-via, .moat.kind-conditional { color: var(--ink-dim); }
+  .moat:hover::after, .moat:focus-visible::after {
+    content: attr(data-name);
+    position: absolute;
+    left: 0;
+    top: calc(100% + 4px);
+    z-index: 2;
+    padding: 4px 8px;
+    background: var(--panel-solid);
+    border: 1px solid var(--line);
+    color: var(--ink);
+    font-family: var(--body);
+    font-size: 12px;
+    white-space: nowrap;
+    pointer-events: none;
+  }
+
+  .mono { font-family: var(--mono); }
+  tr.empty td { padding: 24px 10px; color: var(--ink-dim); text-align: center; }
+
+  /* ── legend, attribution ─────────────────────────────── */
+  .legend { margin-top: 32px; max-width: 760px; }
+  .legend dl { border-top: 1px solid var(--line); }
+  .legend .row { display: flex; gap: 16px; padding: 8px 0; border-bottom: 1px solid var(--line); font-size: 13px; }
+  .legend dt { min-width: 140px; }
+  .legend dt.mono { font-size: 12px; color: var(--ink-dim); }
+  .legend dd { color: var(--ink-dim); }
+
+  .attribution { margin-top: 24px; font-size: 12px; color: var(--ink-dim); max-width: 72ch; }
+  .back { margin-top: 28px; font-family: var(--mono); font-size: 11px; letter-spacing: 0.08em; }
+
+  @media (max-width: 640px) {
+    table { table-layout: auto; }
+    /* The two example columns fold into the gist as a muted second line, and
+       the category column goes — the group headers already say it. */
+    .c-ex, .c-cat { display: none; }
+    .ex-inline { display: grid; gap: 2px; margin-top: 5px; font-size: 11.5px; color: var(--ink-dim); }
+    .ex-inline i { font-style: normal; font-family: var(--mono); font-size: 9px; letter-spacing: 0.12em; text-transform: uppercase; margin-right: 4px; }
+    .c-name, .c-gist, .c-role, .c-moats, .c-depth { width: auto; }
+    .pill { font-size: 9px; padding: 2px 6px; }
+    th, td { padding: 8px 6px; }
+    .count { margin-left: 0; }
+    .legend .row { flex-direction: column; gap: 4px; }
+  }
+</style>

@@ -12,6 +12,7 @@ export default {
     tabs: {
       atlas: { title: "Классификация", sub: "лист I · разрез" },
       calc: { title: "Калькулятор", sub: "лист II · твой ров" },
+      strategies: { title: "Стратегии", sub: "лист III · 80 способов победить" },
     },
     ruler: {
       heading: "Глубина · клик — изолировать",
@@ -183,6 +184,13 @@ export default {
     backToList: "← Назад к списку",
     prev: "← Предыдущий",
     next: "Следующий →",
+    /** Обратные ссылки листа III — какие из 80 стратегий вырастают в этот ров. */
+    strategies: {
+      title: "Стратегии, которые сюда ведут",
+      via: "Через этот ров:",
+      conditional: "При условии:",
+      none: "Ни одна из 80 стратегий сюда напрямую не ведёт.",
+    },
   },
   calculator: {
     meta: {
@@ -203,6 +211,15 @@ export default {
     },
     start: "Начать опрос",
   },
+  strategies: {
+    meta: {
+      title: "80 стратегий — Атлас рвов",
+      description:
+        "80 стратегий из эссе kepano «Many ways to win» фильтруемой таблицей — и какие из них вырастают в один из 35 рвов.",
+    },
+    heading: "80 стратегий",
+    tagline: "лист III",
+  },
   credits: {
     nav: "Кто сделал",
   },
@@ -218,6 +235,7 @@ export default {
       atlas: "Атлас",
       catalogue: "Каталог",
       calculator: "Калькулятор",
+      strategies: "Стратегии",
       credits: "Кто сделал",
       cookiePolicy: "Политика cookie",
       giglabo: "GigLabo ↗",

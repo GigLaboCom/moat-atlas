@@ -19,13 +19,14 @@ import { creditsPage } from "../../i18n/translations/pages/credits";
 import { siteUrl } from "../url";
 
 /** The sections llms.txt groups pages under; also the breadcrumb trail. */
-export type AreaKey = "atlas" | "catalogue" | "calculator" | "about";
+export type AreaKey = "atlas" | "catalogue" | "calculator" | "strategies" | "about";
 
 export type PageKind =
   | "atlas"
   | "catalogue"
   | "sheet"
   | "calculator"
+  | "strategies"
   | "cookies"
   | "credits";
 
@@ -127,6 +128,14 @@ export function pagesFor(locale: Locale): PageEntry[] {
       "/calculator/",
       t.calculator.meta.title,
       t.calculator.meta.description,
+      0.9,
+    ),
+    entry(
+      "strategies",
+      "strategies",
+      "/strategies/",
+      t.strategies.meta.title,
+      t.strategies.meta.description,
       0.9,
     ),
     entry(
