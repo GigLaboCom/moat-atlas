@@ -24,8 +24,7 @@ export interface Props {
 const { lang, n } = Astro.props;
 const t = getTranslations(lang);
 const b = backlinksFor(n);
-const base = getLocalizedPath("/strategies/", lang);
-const href = (s: Strategy) => `${base}#${s.slug}`;
+const href = (s: Strategy) => getLocalizedPath(`/strategies/${s.slug}/`, lang);
 ---
 
 <section class="backlinks" id="strategies">

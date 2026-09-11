@@ -26,6 +26,9 @@
  */
 import { localeLabels, type Locale } from "../../i18n/config";
 import { getTranslations } from "../../i18n/index";
+import { strategyPage } from "../../i18n/translations/pages/strategy";
+import { nameOf } from "../strategies";
+import { neighboursOf } from "../strategy-pages";
 import { siteUrl } from "../url";
 import { bodyFor, u } from "./md-bodies";
 import { MOAT_COUNT, alternatesOf, shortTitle, type PageEntry } from "./pages";
@@ -76,6 +79,16 @@ function related(page: PageEntry): string[] {
     if (page.n < MOAT_COUNT) {
       out.push(`- ${bare(t.sheet.next)}: ${u(page.locale, `/moats/${page.n + 1}/`)}`);
     }
+  }
+
+  // A strategy's neighbours in its category — the page's own prev/next.
+  if (page.strategy) {
+    const p = strategyPage[page.locale];
+    const { prev, next } = neighboursOf(page.strategy);
+    out.push(
+      `- ${p.nav.prev}: ${nameOf(prev, page.locale)} — ${u(page.locale, `/strategies/${prev.slug}/`)}`,
+      `- ${p.nav.next}: ${nameOf(next, page.locale)} — ${u(page.locale, `/strategies/${next.slug}/`)}`,
+    );
   }
 
   if (page.kind !== "atlas") out.push(`- ${f.atlas}: ${u(page.locale, "/")}`);

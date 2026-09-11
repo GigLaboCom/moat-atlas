@@ -1,0 +1,12 @@
+---
+import { STRATEGIES } from '../../../data/strategies';
+
+export function getStaticPaths() {
+  return STRATEGIES.map((s) => ({ params: { slug: s.slug } }));
+}
+
+const { slug } = Astro.params;
+const url = new URL(`/strategies/${slug}/`, Astro.url);
+const headers = new Headers({ 'x-locale': 'ru' });
+return Astro.rewrite(new Request(url, { headers }));
+---

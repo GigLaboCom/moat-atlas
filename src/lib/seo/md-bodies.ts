@@ -43,6 +43,7 @@ import { calculatorPage } from "../../i18n/translations/pages/calculator";
 import { cookiesPage } from "../../i18n/translations/pages/cookies";
 import { creditsPage } from "../../i18n/translations/pages/credits";
 import { strategiesPage } from "../../i18n/translations/pages/strategies";
+import { strategyPage } from "../../i18n/translations/pages/strategy";
 import { CONTACTS, GIGLABO_URL, LAZY_SHOT_URL, MNEMOVI_URL, REPO_URL } from "../links";
 import {
   categoryName,
@@ -55,6 +56,22 @@ import {
   roleGist,
   roleName,
 } from "../strategies";
+import {
+  PAGES,
+  buildOf,
+  bySlug,
+  caseWhat,
+  categoryOf,
+  directMoatsOf,
+  erosionOf,
+  howOf,
+  moatLogicOf,
+  refWhy,
+  signalsOf,
+  soloOf,
+  summaryOf,
+  whyFor,
+} from "../strategy-pages";
 import { siteUrl } from "../url";
 import type { PageEntry } from "./pages";
 
@@ -166,9 +183,9 @@ function sheetBody(locale: Locale, n: number): string {
   return out.join("\n");
 }
 
-/** A strategy as a link into the table — the row anchor is the slug. */
+/** A strategy as a link to its own page. */
 function strategyLink(locale: Locale, st: Strategy): string {
-  return `[${nameOf(st, locale)}](${u(locale, "/strategies/")}#${st.slug})`;
+  return `[${nameOf(st, locale)}](${u(locale, `/strategies/${st.slug}/`)})`;
 }
 
 /**
@@ -348,6 +365,93 @@ function strategiesBody(locale: Locale): string {
   return out.join("\n").replace(/\n{3,}/g, "\n\n");
 }
 
+/**
+ * Sheet III-b: one strategy, the row's facts first, then every block of the
+ * page in order — self-contained, so an agent that fetches only the twin gets
+ * the moat numbers, names and depths along with the prose.
+ */
+function strategyBody(locale: Locale, st: Strategy): string {
+  const t = getTranslations(locale);
+  const tp = strategiesPage[locale];
+  const p = strategyPage[locale];
+  const page = PAGES[st.slug];
+  const cat = categoryOf(st);
+  const c = tp.columns;
+  const moatName = (n: number) => getMoatStrings(locale, n).name;
+  const tool = (n: number) => t.atlas.ruler[Math.round(byNumber[n].d) as 1 | 2 | 3 | 4].tool;
+  const out: string[] = [
+    `${c.category}: ${categoryName(cat, locale)} · ${c.role}: ${roleName(ROLES[st.role], locale)} · ${c.depth}: ${depthMark(st)}`,
+    "",
+    `${c.gist}: ${gistOf(st, locale)}`,
+    "",
+    `## ${c.moats}`,
+    "",
+  ];
+
+  if (st.moats.length) {
+    out.push(
+      ...st.moats.map(
+        (m) =>
+          `- [${moatMark(m)} ${moatName(m.n)}](${u(locale, `/moats/${m.n}/`)}) (${p.kinds[m.kind]}, ${c.depth.toLowerCase()} ${byNumber[m.n].d} · ${tool(m.n)}) — ${whyFor(page, m.n, locale)}`,
+      ),
+    );
+  } else {
+    out.push(`> ${moatLogicOf(page, locale)}`);
+  }
+  const note = noteOf(st, locale);
+  if (note) out.push("", `> ${st.disputed ? `${tp.legend.disputedNote}: ` : ""}${note}`);
+
+  out.push("", `## ${p.blocks.summary}`, "", summaryOf(page, locale));
+  out.push("", `## ${p.blocks.how}`, "", howOf(page, locale).join("\n\n"));
+  if (st.moats.length) out.push("", `## ${p.blocks.logic}`, "", moatLogicOf(page, locale));
+  out.push("", `## ${p.blocks.signals}`, "", ...signalsOf(page, locale).map((x) => `- ${x}`));
+  out.push("", `## ${p.blocks.build}`, "", ...buildOf(page, locale).map((x) => `- ${x}`));
+  out.push("", `## ${p.blocks.erosion}`, "", ...erosionOf(page, locale).map((x) => `- ${x}`));
+  out.push("", `## ${p.blocks.solo}`, "", soloOf(page, locale));
+
+  const direct = directMoatsOf(st);
+  if (direct.length) {
+    out.push(
+      "",
+      `${p.blocks.soloAttrs}:`,
+      "",
+      ...direct.map(
+        (m) =>
+          `- [#${m.n} ${moatName(m.n)}](${u(locale, `/moats/${m.n}/`)}) — ${t.atlas.axes.solo}: ${t.values.solo[m.solo]} · ${t.atlas.axes.cap}: ${t.values.cap[Math.round(m.capN) as 1 | 2 | 3 | 4]} · ${t.atlas.axes.ai}: ${t.values.ai[m.ai]} · ${t.atlas.axes.rent}: ${t.values.rent[m.rent]}`,
+      ),
+    );
+  }
+
+  out.push(
+    "",
+    `## ${p.blocks.examples}`,
+    "",
+    `${c.nature}: ${examples(st.examples_nature)}`,
+    "",
+    `${c.business}: ${examples(st.examples_business)}`,
+    "",
+    ...page.cases.map((x) => `- **${x.name}** — ${caseWhat(x, locale)}`),
+  );
+
+  out.push(
+    "",
+    `## ${p.blocks.combos}`,
+    "",
+    ...page.combos.map((r) => `- ${strategyLink(locale, bySlug[r.slug])} — ${refWhy(r, locale)}`),
+  );
+  if (page.tensions.length) {
+    out.push(
+      "",
+      `## ${p.blocks.tensions}`,
+      "",
+      ...page.tensions.map((r) => `- ${strategyLink(locale, bySlug[r.slug])} — ${refWhy(r, locale)}`),
+    );
+  }
+
+  out.push("", `## ${p.blocks.source}`, "", `${tp.attribution} ${SOURCE.url}`);
+  return out.join("\n").replace(/\n{3,}/g, "\n\n");
+}
+
 /** The cookie policy: the categories and the storage table, no UI copy. */
 function cookiesBody(locale: Locale): string {
   const p = cookiesPage[locale];
@@ -451,6 +555,8 @@ export function bodyFor(page: PageEntry): string {
       return calculatorBody(page.locale);
     case "strategies":
       return strategiesBody(page.locale);
+    case "strategy":
+      return strategyBody(page.locale, page.strategy!);
     case "cookies":
       return cookiesBody(page.locale);
     case "credits":

@@ -14,7 +14,7 @@
  *  - `@id`s are URLs the site actually serves, with a fragment when a node is
  *    not the page itself (`…/moats/7/#term`).
  */
-import { GROUPING_AXES, MOAT_COUNT, type GroupingAxis, type Moat } from "../../data/moats";
+import { GROUPING_AXES, MOAT_COUNT, byNumber, type GroupingAxis, type Moat } from "../../data/moats";
 import {
   CATEGORIES,
   ROLES,
@@ -22,15 +22,19 @@ import {
   STRATEGIES,
   STRATEGY_COUNT,
   DATASET_VERSION,
+  depthOf,
 } from "../../data/strategies";
 import { OPTION_WEIGHTS, QUESTION_COUNT, SEGMENT_KEYS } from "../../data/survey";
 import type { Locale } from "../../i18n/config";
 import { getLocalizedPath, getTranslations } from "../../i18n/index";
+import { getMoatStrings } from "../../i18n/translations/moats/index";
 import { creditsPage } from "../../i18n/translations/pages/credits";
 import { calculatorPage } from "../../i18n/translations/pages/calculator";
 import { strategiesPage } from "../../i18n/translations/pages/strategies";
+import { strategyPage } from "../../i18n/translations/pages/strategy";
 import { CONTACTS, GIGLABO_URL, REPO_URL } from "../links";
-import { categoryName, gistOf, nameOf, roleName } from "../strategies";
+import { categoryName, gistOf, moatMark, nameOf, roleName } from "../strategies";
+import { PAGES, bySlug, categoryOf, whyFor } from "../strategy-pages";
 import { siteUrl } from "../url";
 import { twinUrl } from "./md-twin";
 import { pageAt, pagesFor, shortTitle, type PageEntry } from "./pages";
@@ -97,7 +101,12 @@ function breadcrumbs(page: PageEntry): Node | null {
   if (page.kind === "catalogue" || page.kind === "sheet") {
     trail.push({ name: f.catalogue, url: siteUrl(getLocalizedPath("/moats/", page.locale)) });
   }
-  if (page.kind !== "catalogue") trail.push({ name: shortTitle(page), url: page.url });
+  if (page.kind === "strategies" || page.kind === "strategy") {
+    trail.push({ name: f.strategies, url: siteUrl(getLocalizedPath("/strategies/", page.locale)) });
+  }
+  if (page.kind !== "catalogue" && page.kind !== "strategies") {
+    trail.push({ name: shortTitle(page), url: page.url });
+  }
 
   return {
     "@type": "BreadcrumbList",
@@ -159,6 +168,59 @@ function definedTerm(page: PageEntry): Node {
           ]
         : []),
     ],
+  };
+}
+
+/**
+ * One strategy, as a defined term the way a sheet is one — the row's facts as
+ * properties, the moats it grows into as references to the sheets' own terms,
+ * and the essay's dataset as the set it belongs to.
+ */
+function strategyTerm(page: PageEntry): Node {
+  const t = getTranslations(page.locale);
+  const tp = strategiesPage[page.locale];
+  const p = strategyPage[page.locale];
+  const s = page.strategy!;
+  const prose = PAGES[s.slug];
+  const depth = depthOf(s);
+  const sheetUrl = (n: number) => siteUrl(getLocalizedPath(`/moats/${n}/`, page.locale));
+  return {
+    "@type": "DefinedTerm",
+    "@id": termId(page),
+    identifier: s.slug,
+    name: shortTitle(page),
+    description: page.description,
+    inLanguage: page.locale,
+    url: page.url,
+    mainEntityOfPage: ref(page.url),
+    isPartOf: ref(`${SITE}#strategies-${page.locale}`),
+    additionalProperty: [
+      { "@type": "PropertyValue", name: tp.columns.category, propertyID: "category", value: categoryName(categoryOf(s), page.locale) },
+      { "@type": "PropertyValue", name: tp.columns.role, propertyID: "role", value: roleName(ROLES[s.role], page.locale) },
+      // A depth reached only via another moat or under a condition is marked
+      // in the table; a bare number here would drop the mark, so only a
+      // direct depth is asserted — the moats property carries the marks.
+      ...(depth && depth.kind === "direct"
+        ? [{ "@type": "PropertyValue", name: tp.columns.depth, propertyID: "depth", value: depth.d, maxValue: 4 }]
+        : []),
+      { "@type": "PropertyValue", name: tp.columns.moats, propertyID: "moats", value: s.moats.length ? s.moats.map(moatMark).join(", ") : "—" },
+    ],
+    // Every moat the strategy leads to, with the page's own words on why.
+    mentions: s.moats.map((m) => ({
+      "@type": "DefinedTerm",
+      "@id": `${sheetUrl(m.n)}#term`,
+      identifier: String(m.n),
+      name: getMoatStrings(page.locale, m.n).name,
+      description: `${p.kinds[m.kind]} · ${t.atlas.axes.depth} ${byNumber[m.n].d} — ${whyFor(prose, m.n, page.locale)}`,
+    })),
+    // The strategies it stacks with and fights with, by their own terms.
+    ...(prose.combos.length || prose.tensions.length
+      ? {
+          relatedLink: [...prose.combos, ...prose.tensions].map((r) =>
+            siteUrl(getLocalizedPath(`/strategies/${bySlug[r.slug].slug}/`, page.locale)),
+          ),
+        }
+      : {}),
   };
 }
 
@@ -295,6 +357,8 @@ function mainEntities(page: PageEntry): { type: string; nodes: Node[]; mainEntit
       };
       return { type: "CollectionPage", nodes: [dataset, list], mainEntity: `${page.url}#list` };
     }
+    case "strategy":
+      return { type: "WebPage", nodes: [strategyTerm(page)], mainEntity: termId(page) };
     case "credits":
       return { type: "AboutPage", nodes: [] };
     case "cookies":
