@@ -32,7 +32,6 @@ import {
   ROLE_ORDER,
   SOURCE,
   backlinksFor,
-  hasBacklinks,
   strategiesIn,
   type Strategy,
 } from "../../data/strategies";
@@ -175,22 +174,21 @@ function strategyLink(locale: Locale, st: Strategy): string {
 /**
  * Sheet III's back-links, the same three lists the page renders: direct (a
  * plain list), via, conditional (each with its note). A moat nothing leads to
- * says so — the gap is a finding, not an omission.
+ * directly says so first — the gap is a finding, not an omission.
  */
 function sheetBacklinks(locale: Locale, n: number): string[] {
   const t = getTranslations(locale);
   const b = backlinksFor(n);
   const out = [`## ${t.sheet.strategies.title}`, ""];
-  if (!hasBacklinks(b)) return [...out, t.sheet.strategies.none];
 
   if (b.direct.length) out.push(...b.direct.map((st) => `- ${strategyLink(locale, st)}`));
+  else out.push(t.sheet.strategies.none);
   if (b.via.length) {
-    if (b.direct.length) out.push("");
-    out.push(t.sheet.strategies.via, "", ...b.via.map((st) => `- ${strategyLink(locale, st)}`));
+    out.push("", t.sheet.strategies.via, "", ...b.via.map((st) => `- ${strategyLink(locale, st)}`));
   }
   if (b.conditional.length) {
-    if (b.direct.length || b.via.length) out.push("");
     out.push(
+      "",
       t.sheet.strategies.conditional,
       "",
       ...b.conditional.map((st) => {

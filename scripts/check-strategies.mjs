@@ -120,7 +120,9 @@ for (const { code, prefix } of LOCALES) {
       if (want !== got) bad(`${code}: moat #${n} ${k}: expected [${want}] got [${got}]`);
     }
     if (lists.length !== kinds.length) bad(`${code}: moat #${n} renders ${lists.length} lists, expected ${kinds.length}`);
-    if (!kinds.length && !/class="none"/.test(block)) bad(`${code}: moat #${n} has no strategies but no notice`);
+    const notice = /class="none"/.test(block);
+    if (!expected.direct.length && !notice) bad(`${code}: moat #${n} has no direct strategy but no notice`);
+    if (expected.direct.length && notice) bad(`${code}: moat #${n} has direct strategies yet shows the notice`);
     checked++;
   }
   ok(`${code}: ${checked} moat sheets compared`);

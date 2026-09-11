@@ -4,7 +4,8 @@
  *
  * Fed by the derived map in `src/data/strategies.ts`, never hand-listed: the
  * three lists are the strategies whose `moats[]` name this moat, by kind. A
- * moat nothing leads to says so out loud — that gap is a finding the owner
+ * moat nothing leads to *directly* says so out loud, above whatever reaches
+ * it via another moat or under a condition — that gap is a finding the owner
  * wants on the page, not an empty block.
  *
  * Rendered inside `#sheet-article`, so the atlas modal shows it too; its
@@ -12,7 +13,7 @@
  */
 import type { Locale } from "../i18n/config";
 import { getTranslations, getLocalizedPath } from "../i18n/index";
-import { backlinksFor, hasBacklinks, type Strategy } from "../data/strategies";
+import { backlinksFor, type Strategy } from "../data/strategies";
 import { nameOf, noteOf } from "../lib/strategies";
 
 export interface Props {
@@ -29,7 +30,7 @@ const href = (s: Strategy) => `${base}#${s.slug}`;
 
 <section class="backlinks" id="strategies">
   <h2>{t.sheet.strategies.title}</h2>
-  {!hasBacklinks(b) && <p class="none">{t.sheet.strategies.none}</p>}
+  {b.direct.length === 0 && <p class="none">{t.sheet.strategies.none}</p>}
 
   {b.direct.length > 0 && (
     <ul class="direct">
