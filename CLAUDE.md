@@ -52,7 +52,8 @@ per component, with the shared palette and type scale as custom properties in
 - `src/layouts/PageLayout.astro` — Layout + header + footer + reading column, used by every content page
 - `src/pages/index.astro` — sheet I, the cross-section HUD
 - `src/pages/calculator.astro` — sheet II, the survey
-- `src/pages/strategies.astro` — sheet III, the 80-strategies table
+- `src/pages/strategies.astro` — sheet III, the 80 strategies: the table and
+  the lanes map, two views of one page
 - `src/scripts/atlas.ts` — the three.js scene: shafts, six groupings, core
   selection, rock isolation, `#moat-N` deep links
 - `src/scripts/section-state.ts` — sheet I's shared control state (view,
@@ -67,7 +68,13 @@ per component, with the shared palette and type scale as custom properties in
 - `src/scripts/calculator.ts` — the survey engine behind `/calculator/`
 - `src/data/strategies.v1.json` + `strategies.ts` — sheet III: the canonical
   dataset (checked in as published, never retyped) and its validator/deriver
-- `src/scripts/strategies.ts` — sheet III's filter/sort/URL engine
+- `src/scripts/strategies-state.ts` — sheet III's shared control state (view,
+  filters, highlight, sort); binds the filter bar once for both views
+- `src/scripts/strategies.ts` — the table renderer: hides, re-orders, counts
+- `src/scripts/strategies-lanes.ts` — the map renderer: lights, dims, collapses
+- `src/lib/lanes.ts` + `lanes-select.ts` — the lane model, and the pure rule
+  that decides which cards an address lights
+- `src/lib/lanes-svg.ts` — the map drawn at build time, `/strategies/lanes.svg`
 - `src/pages/strategies/[slug].astro` — sheet III-b, one page per strategy
 - `src/data/strategy-pages.v1.json` + `strategy-pages.ts` — the prose layer
   of the 80 pages, keyed by slug, validated at import
@@ -253,6 +260,41 @@ keys (`atlas.tabs.strategies`, `strategies.meta`, `ui.footer.strategies`,
   `src/lib/strategies.ts`, shared by the page and the twin.
 - The twin (`md-bodies.ts`) and the JSON-LD (`ld.ts`) are built from the same
   module; the sheet twin gets the back-link section from the same map.
+- After touching any of this: `npm run build && npm run strategies:check`.
+
+### The lanes (the map)
+
+`?view=lanes` is the second projection of the same page — 13 lanes in essay
+order, one small card per strategy — not a route: one page, one twin, one
+sitemap row, one JSON-LD graph, and the table stays the no-JS and agent form.
+`html.view-lanes` is set before first paint by an inline bootstrap in the head,
+exactly as sheet I does `?view=list`; both projections are server-rendered and
+the CSS decides which one shows. The map takes no card from a script: it
+lights, dims and collapses what Astro already wrote.
+
+- **One state, two renderers.** `strategies-state.ts` owns the query string and
+  binds the filter bar; `strategies.ts` and `strategies-lanes.ts` subscribe.
+  `cat`, `role`, `q` and `moat` survive a view switch; `sort` is the table's and
+  `hl`/`kind` are the map's, and each is dropped when its view is left.
+- **`moat=N` means the same thing in both views and renders differently**: the
+  table filters to the rows that lead to that moat, the map lights them and
+  dims the rest. That is deliberate — same parameter, same meaning, two
+  renderings. `role=` collapses cards to a ghost on the map instead of hiding
+  them, and `cat=` collapses whole lanes: the shape of the field is the thing
+  the map is for, so nothing is ever removed from it.
+- **The highlight protocol** — `moat`, `kind`, `hl`, `q` — is the contract every
+  inbound link uses: a moat sheet links with its own `moat=N`, a strategy page
+  with `hl=<slug>` and with `hl=<slug>,<partners>`. What an address lights is
+  decided by `src/lib/lanes-select.ts`, a pure function with no DOM and no
+  dataset, so the page and the gate can agree. Highlight URLs are never
+  indexable: the canonical stays the bare `/strategies/`, and no combination
+  reaches the sitemap or a twin.
+- **Nothing on the map is decorative.** Accent, example, chips, both counts and
+  the order are all derived in `src/lib/lanes.ts`; add a rendering need there,
+  never a field to the JSON.
+- `/strategies/lanes.svg` (both locales) is the same map drawn at build time
+  from the same data — real `<text>`, one `<a>` per card, the light palette
+  written out because an SVG used as an image sees no custom properties.
 - After touching any of this: `npm run build && npm run strategies:check`.
 
 ### The strategy pages (sheet III-b)

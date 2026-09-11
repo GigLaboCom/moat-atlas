@@ -70,6 +70,8 @@ const tablePath = getLocalizedPath("/strategies/", lang);
 const basePath = `/strategies/${s.slug}/`;
 const pagePath = getLocalizedPath(basePath, lang);
 const strategyHref = (slug: string) => getLocalizedPath(`/strategies/${slug}/`, lang);
+/** Sheet III's map with exactly these strategies lit — the combination, seen. */
+const mapHref = (slugs: string[]) => `${tablePath}?view=lanes&hl=${slugs.join(",")}`;
 const moatHref = (n: number) => getLocalizedPath(`/moats/${n}/`, lang);
 const moatName = (n: number) => getMoatStrings(lang, n).name;
 const kindWord = (kind: "direct" | "via" | "conditional") => p.kinds[kind];
@@ -234,7 +236,7 @@ const { title, description } = strategyMeta(lang, s);
       </ul>
     </section>
 
-    <!-- 12 · combines with -->
+    <!-- 12 · combines with, and the same set lit on the map -->
     <section class="refs">
       <h2>{p.blocks.combos}</h2>
       <ul>
@@ -244,6 +246,12 @@ const { title, description } = strategyMeta(lang, s);
           </li>
         ))}
       </ul>
+      <p class="map">
+        <a href={mapHref([s.slug])}>{p.map.self}</a>
+        {page.combos.length > 0 && (
+          <a href={mapHref([s.slug, ...page.combos.map((r) => r.slug)])}>{p.map.combos}</a>
+        )}
+      </p>
     </section>
 
     <!-- 13 · fights with — only when there is something honest to say -->
@@ -257,6 +265,9 @@ const { title, description } = strategyMeta(lang, s);
             </li>
           ))}
         </ul>
+        <p class="map">
+          <a href={mapHref([s.slug, ...page.tensions.map((r) => r.slug)])}>{p.map.tensions}</a>
+        </p>
       </section>
     )}
   </article>
@@ -494,6 +505,19 @@ const { title, description } = strategyMeta(lang, s);
   ul.cases b { font-weight: 600; color: var(--ink); }
 
   .refs li a { color: var(--ink); }
+
+  /* Into the map, with this page's strategies already lit. */
+  .refs .map {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px 20px;
+    margin-top: 12px;
+    font-family: var(--mono);
+    font-size: 11px;
+    letter-spacing: 0.08em;
+    color: var(--ink-dim);
+  }
+  .refs .map a:hover { color: var(--ink); text-decoration: underline; text-underline-offset: 3px; }
 
   /* ── the way on ──────────────────────────────────────── */
   .sheet-nav {

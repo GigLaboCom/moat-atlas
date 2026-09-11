@@ -32,6 +32,7 @@ import {
   ROLE_ORDER,
   SOURCE,
   backlinksFor,
+  hasBacklinks,
   strategiesIn,
   type Strategy,
 } from "../../data/strategies";
@@ -96,6 +97,11 @@ function table(head: string[], rows: string[][]): string {
 /** Strip the leading glyph off a dictionary value ("● high" → "high"). */
 function word(v: string): string {
   return v.replace(/^\S+\s+/, "");
+}
+
+/** Drop the arrows a UI string wears ("See them on the map →" → "See them…"). */
+function bare(label: string): string {
+  return label.replace(/^[←→]\s*/, "").replace(/\s*[←→]$/, "");
 }
 
 /** The seven-axis passport of one mechanic, as rows. */
@@ -196,6 +202,7 @@ function strategyLink(locale: Locale, st: Strategy): string {
 function sheetBacklinks(locale: Locale, n: number): string[] {
   const t = getTranslations(locale);
   const b = backlinksFor(n);
+  const map = `${u(locale, "/strategies/")}?view=lanes&moat=${n}`;
   const out = [`## ${t.sheet.strategies.title}`, ""];
 
   if (b.direct.length) out.push(...b.direct.map((st) => `- ${strategyLink(locale, st)}`));
@@ -214,6 +221,9 @@ function sheetBacklinks(locale: Locale, n: number): string[] {
       }),
     );
   }
+  // The same strategies, lit on sheet III's map — omitted on a moat no
+  // strategy reaches at all, where there would be nothing to light.
+  if (hasBacklinks(b)) out.push("", `[${bare(t.sheet.strategies.map)}](${map})`);
   return out;
 }
 
@@ -319,7 +329,17 @@ function calculatorBody(locale: Locale): string {
 function strategiesBody(locale: Locale): string {
   const p = strategiesPage[locale];
   const c = p.columns;
-  const out: string[] = [p.subtitle, "", p.intro, "", `${p.attribution} ${SOURCE.url}`];
+  const base = u(locale, "/strategies/");
+  const out: string[] = [
+    p.subtitle,
+    "",
+    p.intro,
+    "",
+    `${p.attribution} ${SOURCE.url}`,
+    "",
+    // The same 80 rows as a map: the page's other view, and its static drawing.
+    `[${p.lanes.view.map}](${base}?view=lanes) · [${p.lanes.svg}](${base}lanes.svg)`,
+  ];
 
   for (const cat of CATEGORIES) {
     const rows = strategiesIn(cat.slug);
@@ -433,18 +453,29 @@ function strategyBody(locale: Locale, st: Strategy): string {
     ...page.cases.map((x) => `- **${x.name}** — ${caseWhat(x, locale)}`),
   );
 
+  // The map with exactly these strategies lit — the page's own combination.
+  const map = (slugs: string[]) => `${u(locale, "/strategies/")}?view=lanes&hl=${slugs.join(",")}`;
   out.push(
     "",
     `## ${p.blocks.combos}`,
     "",
     ...page.combos.map((r) => `- ${strategyLink(locale, bySlug[r.slug])} — ${refWhy(r, locale)}`),
+    "",
+    `[${bare(p.map.self)}](${map([st.slug])})`,
   );
+  if (page.combos.length) {
+    out.push(
+      `[${bare(p.map.combos)}](${map([st.slug, ...page.combos.map((r) => r.slug)])})`,
+    );
+  }
   if (page.tensions.length) {
     out.push(
       "",
       `## ${p.blocks.tensions}`,
       "",
       ...page.tensions.map((r) => `- ${strategyLink(locale, bySlug[r.slug])} — ${refWhy(r, locale)}`),
+      "",
+      `[${bare(p.map.tensions)}](${map([st.slug, ...page.tensions.map((r) => r.slug)])})`,
     );
   }
 

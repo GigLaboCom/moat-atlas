@@ -13,7 +13,7 @@
  */
 import type { Locale } from "../i18n/config";
 import { getTranslations, getLocalizedPath } from "../i18n/index";
-import { backlinksFor, type Strategy } from "../data/strategies";
+import { backlinksFor, hasBacklinks, type Strategy } from "../data/strategies";
 import { nameOf, noteOf } from "../lib/strategies";
 
 export interface Props {
@@ -25,6 +25,9 @@ const { lang, n } = Astro.props;
 const t = getTranslations(lang);
 const b = backlinksFor(n);
 const href = (s: Strategy) => getLocalizedPath(`/strategies/${s.slug}/`, lang);
+// The same strategies, lit on sheet III's map. A moat nothing reaches at all
+// has nothing to show there, so the line is omitted rather than lying.
+const mapHref = `${getLocalizedPath("/strategies/", lang)}?view=lanes&moat=${n}`;
 ---
 
 <section class="backlinks" id="strategies">
@@ -63,6 +66,10 @@ const href = (s: Strategy) => getLocalizedPath(`/strategies/${s.slug}/`, lang);
       </ul>
     </div>
   )}
+
+  {hasBacklinks(b) && (
+    <p class="map"><a href={mapHref}>{t.sheet.strategies.map}</a></p>
+  )}
 </section>
 
 <style>
@@ -94,4 +101,12 @@ const href = (s: Strategy) => getLocalizedPath(`/strategies/${s.slug}/`, lang);
 
   .backlinks .note { color: var(--ink-dim); }
   .backlinks .none { color: var(--ink-dim); }
+
+  .backlinks .map {
+    margin-top: 14px;
+    font-family: var(--mono);
+    font-size: 11px;
+    letter-spacing: 0.08em;
+  }
+  .backlinks .map a:hover { text-decoration: underline; text-underline-offset: 3px; }
 </style>

@@ -30,6 +30,7 @@ import {
   roleName,
   searchText,
 } from "../lib/strategies";
+import { HOLD_COUNT, LANES, LANE_COUNT, cardExample, moatData } from "../lib/lanes";
 
 const headerLocale = Astro.request.headers.get("x-locale") as Locale | null;
 const lang: Locale = headerLocale ?? "en";
@@ -42,9 +43,10 @@ const moatHref = (n: number) => getLocalizedPath(`/moats/${n}/`, lang);
 const moatName = (n: number) => getMoatStrings(lang, n).name;
 
 /**
- * What the table script needs beyond the rows themselves — the words for the
- * count and the empty state, the role order for its sort. The rows carry their
- * own facts as data attributes, so the JSON is not shipped a second time.
+ * What the two view scripts need beyond the rows themselves — the words for the
+ * count, the empty state and the highlight banner, the role order for the
+ * table's sort. Rows and cards carry their own facts as data attributes, so the
+ * JSON is not shipped a second time.
  */
 const payload = {
   count: p.filters.count,
@@ -54,7 +56,18 @@ const payload = {
   roles: ROLE_ORDER,
   categories: CATEGORIES.map((c) => c.slug),
   path,
+  lanes: {
+    label: p.lanes.highlight.label,
+    moat: p.lanes.highlight.moat,
+    search: p.lanes.highlight.search,
+    none: p.lanes.highlight.none,
+  },
 };
+
+const summary = p.lanes.summary
+  .replace("{total}", String(STRATEGY_COUNT))
+  .replace("{hold}", String(HOLD_COUNT))
+  .replace("{lanes}", String(LANE_COUNT));
 ---
 
 <PageLayout
@@ -65,10 +78,37 @@ const payload = {
   section={t.strategies.heading}
   wide={true}
 >
+  <!-- Before anything paints: `?view=lanes` opens the page as the map. The
+       same bootstrap sheet I uses for `?view=list` — a view is an address, and
+       the class on <html> is what both projections key their CSS off. -->
+  <script slot="head" is:inline>
+    if (new URLSearchParams(location.search).get("view") === "lanes") {
+      document.documentElement.classList.add("view-lanes");
+    }
+  </script>
+
   <div class="eyebrow">{t.strategies.tagline}</div>
   <h1>{t.strategies.heading}</h1>
   <p class="subtitle">{p.subtitle}</p>
   <p class="intro">{p.intro}</p>
+
+  <!-- The same 80 rows, tabulated or mapped. Links, because a view is an
+       address — ?view=lanes — and the script only saves the round trip. -->
+  <div class="strip">
+    <nav class="view-switch" aria-label={p.lanes.view.label}>
+      <a data-view="table" href={path} aria-current="true">{p.lanes.view.table}</a>
+      <a data-view="lanes" href={`${path}?view=lanes`}>{p.lanes.view.map}</a>
+    </nav>
+    <p class="summary">{summary}</p>
+    <a class="svg-link" href={`${path}lanes.svg`}>{p.lanes.svg}</a>
+  </div>
+
+  <!-- The banner exists only when the address lights something; the lanes
+       script fills it, because a highlight is a thing only JavaScript does. -->
+  <p class="banner" id="banner" aria-live="polite" hidden>
+    <span class="what" id="banner-what"></span>
+    <a class="clear" href={`${path}?view=lanes`}>{p.lanes.highlight.clear}</a>
+  </p>
 
   <!-- The filter bar. Real form controls, so the labels and the checked
        state are the accessibility tree's; the script only listens. Without
@@ -237,6 +277,113 @@ const payload = {
     </table>
   </div>
 
+  <!-- The map. Thirteen lanes in essay order, every card an address: the card
+       leads to the strategy's page, a chip to the moat's sheet, the label to
+       the table filtered to that category. Nothing here is decorative — the
+       accent, the example, the chips and the two counts are all data. -->
+  <div class="lanes" id="lanes">
+    {LANES.map((lane) => {
+      const slug = lane.cat.slug;
+      return (
+        <section class="lane" data-lane={slug} aria-labelledby={`lane-${slug}`}>
+          <header class="lane-label">
+            <h2 id={`lane-${slug}`}>
+              <a href={`${path}?cat=${slug}`} data-cat={slug}>{categoryName(lane.cat, lang)}</a>
+            </h2>
+            <span class="alt" lang={other}>{categoryName(lane.cat, other)}</span>
+            <span class="counts mono">
+              <span class="n">· <span data-count>{lane.cards.length}</span></span>
+              <span class="holds">{p.lanes.hold.replace("{n}", String(lane.holds))}</span>
+            </span>
+            <button
+              type="button"
+              class="iso"
+              data-iso={slug}
+              aria-pressed="false"
+              aria-label={`${p.lanes.isolate} — ${categoryName(lane.cat, lang)}`}
+              title={p.lanes.isolate}
+            >⊙</button>
+          </header>
+
+          <ul class="cards" role="list">
+            {lane.cards.map(({ s, chips, more }) => {
+              const example = cardExample(s);
+              // `position` only leads to a moat — the arrow says so once: the
+              // via chips already carry it, so the lead appears only without them.
+              const lead = s.role === "position" && !s.moats.some((m) => m.kind === "via");
+              return (
+                <li
+                  class:list={["card", `role-${s.role}`, { disputed: s.disputed }]}
+                  data-slug={s.slug}
+                  data-cat={s.category}
+                  data-role={s.role}
+                  data-moats={moatData(s)}
+                  data-search={searchText(s)}
+                >
+                  <a class="name" href={`${path}${s.slug}/`} title={gistOf(s, lang)}>
+                    {nameOf(s, lang)}
+                  </a>
+                  {slug === "timing" ? (
+                    <span class="ex entry">{p.lanes.entry}</span>
+                  ) : (
+                    example && <span class="ex">{example}</span>
+                  )}
+                  {s.moats.length > 0 && (
+                    <span class="chips mono">
+                      {lead && <i class="lead" aria-hidden="true">{VIA_MARK}</i>}
+                      {chips.map((m) => (
+                        <a
+                          class:list={["chip", `kind-${m.kind}`]}
+                          data-n={m.n}
+                          href={moatHref(m.n)}
+                          title={moatName(m.n)}
+                          aria-label={`#${m.n} ${moatName(m.n)}${m.kind === "via" ? ` (${p.markers.viaLabel})` : m.kind === "conditional" ? ` (${p.markers.conditionalLabel})` : ""}`}
+                        >{moatMark(m)}</a>
+                      ))}
+                      {more > 0 && <span class="more">+{more}</span>}
+                    </span>
+                  )}
+                  {s.disputed && (
+                    <span class="badge" title={noteOf(s, lang)} aria-label={p.markers.disputed}>
+                      {CONDITIONAL_MARK}
+                    </span>
+                  )}
+                </li>
+              );
+            })}
+          </ul>
+        </section>
+      );
+    })}
+  </div>
+
+  <!-- The legend is the style guide: each role drawn as the card it makes. -->
+  <section class="lane-legend" aria-labelledby="lane-legend-title">
+    <h2 id="lane-legend-title">{p.legend.title}</h2>
+    <ul role="list">
+      {ROLE_ORDER.map((r) => (
+        <li>
+          <span class:list={["card", "mini", `role-${r}`]}>
+            {r === "hold" ? (
+              <a class="name" href={`${path}?role=hold`}>{roleName(ROLES[r], lang)}</a>
+            ) : (
+              <span class="name">{roleName(ROLES[r], lang)}</span>
+            )}
+          </span>
+          <p>{roleGist(ROLES[r], lang)}</p>
+        </li>
+      ))}
+      <li>
+        <span class="card mini legend-mark"><span class="name mono">{VIA_MARK} #N</span></span>
+        <p>{p.markers.viaLabel}</p>
+      </li>
+      <li>
+        <span class="card mini legend-mark"><span class="name mono">#N{CONDITIONAL_MARK}</span></span>
+        <p>{p.markers.conditionalLabel}</p>
+      </li>
+    </ul>
+  </section>
+
   <section class="legend" aria-labelledby="legend-title">
     <h2 id="legend-title">{p.legend.title}</h2>
     <dl>
@@ -270,6 +417,7 @@ const payload = {
 
   <script>
     import "../scripts/strategies";
+    import "../scripts/strategies-lanes";
   </script>
 </PageLayout>
 
@@ -536,6 +684,254 @@ const payload = {
   .mono { font-family: var(--mono); }
   tr.empty td { padding: 24px 10px; color: var(--ink-dim); text-align: center; }
 
+  /* ── the two projections ─────────────────────────────── */
+  /* One page, two addresses. `html.view-lanes` is set before first paint by
+     the inline bootstrap in the head; both projections are server-rendered and
+     the classes below decide which of them the reader gets. */
+  .lanes, .lane-legend, .strip .summary { display: none; }
+  :global(html.view-lanes) .lanes { display: block; }
+  :global(html.view-lanes) .lane-legend { display: block; }
+  :global(html.view-lanes) .strip .summary { display: block; }
+  :global(html.view-lanes) .table-wrap,
+  :global(html.view-lanes) .legend { display: none; }
+
+  .strip {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 10px 16px;
+    margin-bottom: 16px;
+  }
+
+  .view-switch { display: flex; border: 1px solid var(--line); }
+  .view-switch a {
+    padding: 7px 14px;
+    font-family: var(--mono);
+    font-size: 10px;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--ink-dim);
+    border-left: 1px solid var(--line);
+  }
+  .view-switch a:first-child { border-left: 0; }
+  .view-switch a:hover { color: var(--ink); }
+  .view-switch a[aria-current] { color: var(--ink); background: color-mix(in srgb, var(--ink) 8%, transparent); }
+
+  .strip .summary,
+  .strip .svg-link {
+    font-family: var(--mono);
+    font-size: 11px;
+    letter-spacing: 0.1em;
+    color: var(--ink-dim);
+  }
+  .strip .svg-link { margin-left: auto; }
+  .strip .svg-link:hover { color: var(--ink); }
+
+  /* The banner says what the address lit, and how to stop. */
+  .banner { display: none; }
+  :global(html.view-lanes) .banner:not([hidden]) {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    gap: 6px 14px;
+    margin-bottom: 16px;
+    padding: 8px 12px;
+    border: 1px solid var(--line);
+    border-left: 2px solid var(--ink);
+    font-size: 12.5px;
+    color: var(--ink-dim);
+  }
+  .banner .what { color: var(--ink); }
+  .banner .clear { font-family: var(--mono); font-size: 11px; letter-spacing: 0.08em; }
+
+  /* ── the lanes ───────────────────────────────────────── */
+  .lanes { border-top: 1px solid var(--line); }
+
+  .lane {
+    display: grid;
+    grid-template-columns: 150px minmax(0, 1fr);
+    gap: 8px 18px;
+    /* The reading column's section rhythm would pull the lanes apart; on the
+       map the hairline is the separator and the stack is the point. */
+    margin-bottom: 0;
+    padding: 14px 0;
+    border-bottom: 1px solid var(--line);
+  }
+
+  .lane-label { position: relative; padding-right: 26px; }
+  .lane-label h2 {
+    font-family: var(--display);
+    font-weight: 400;
+    font-size: 15px;
+    letter-spacing: 0.04em;
+    color: var(--ink);
+    margin-bottom: 0;
+  }
+  .lane-label h2 a:hover { text-decoration: underline; text-underline-offset: 3px; }
+  .lane-label .alt { display: block; margin-top: 1px; font-size: 11.5px; color: var(--ink-dim); }
+  .lane-label .counts {
+    display: block;
+    margin-top: 5px;
+    font-size: 10px;
+    letter-spacing: 0.12em;
+    color: var(--ink-dim);
+  }
+  .lane-label .holds { display: block; }
+
+  /* The isolator of the atlas HUD, one lane at a time. */
+  .iso {
+    position: absolute;
+    right: 0;
+    top: 0;
+    width: 22px;
+    height: 22px;
+    border: 1px solid var(--line);
+    background: transparent;
+    color: var(--ink-dim);
+    font-size: 11px;
+    line-height: 1;
+    cursor: pointer;
+  }
+  .iso:hover { color: var(--ink); border-color: var(--ink-dim); }
+  .iso[aria-pressed="true"] { color: var(--panel-solid); background: var(--ink); border-color: var(--ink); }
+  .iso:focus-visible { outline: 1px solid var(--ink); outline-offset: 2px; }
+
+  .cards {
+    list-style: none;
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+    gap: 8px;
+  }
+
+  .card {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    gap: 3px;
+    padding: 8px 10px;
+    border: 1px solid var(--line);
+    transition: opacity 0.12s ease, border-color 0.12s ease;
+  }
+
+  /* The whole card is the link to the strategy's page; the chips sit above it
+     with their own addresses, so nothing is nested inside an <a>. */
+  .card .name { font-size: 13px; font-weight: 500; line-height: 1.35; color: var(--ink); }
+  .card > .name::after { content: ""; position: absolute; inset: 0; }
+  .card:hover { border-color: var(--ink); }
+  .card:focus-within { border-color: var(--ink); }
+  .card .ex { font-size: 11px; line-height: 1.35; color: var(--ink-dim); }
+  .card .entry { font-style: italic; }
+
+  .card .chips { display: flex; flex-wrap: wrap; align-items: center; gap: 2px 4px; margin-top: auto; padding-top: 4px; font-size: 11px; }
+  /* Chips sit inside a card that is already one big link — they underline on
+     hover only, or the map reads as eighty hashed boxes. */
+  .card .chip {
+    position: relative;
+    z-index: 1;
+    padding: 2px 3px;
+    color: var(--ink);
+    white-space: nowrap;
+    text-decoration: none;
+  }
+  .card .chip.kind-via, .card .chip.kind-conditional { color: var(--ink-dim); }
+  .card .chip:hover { text-decoration: underline; text-underline-offset: 3px; }
+  .card .lead { font-style: normal; color: var(--ink-dim); }
+  .card .more { color: var(--ink-dim); }
+
+  /* The only accent on the map: a card that holds. Everything else is line. */
+  .card.role-hold { border-color: var(--ink); background: var(--panel-solid); }
+  .card.role-take .name,
+  .card.role-structure .name,
+  .card.role-protect .name,
+  .card.role-morph .name { color: var(--ink-dim); }
+
+  .card .badge {
+    position: absolute;
+    top: 4px;
+    right: 4px;
+    z-index: 1;
+    width: 14px;
+    height: 14px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: 1px solid var(--ink);
+    border-radius: 50%;
+    font-family: var(--mono);
+    font-size: 9px;
+    color: var(--ink);
+  }
+  .card.disputed .name { padding-right: 16px; }
+
+  /* Lit and dim. The dim is opacity on the whole card, never a paler ink: every
+     line inside goes to full ink underneath it, and the value is the lowest
+     that keeps the smallest of them above 4.5:1 — 0.52 dark, 0.66 light. (The
+     spec's own bar is 3:1, which 0.45/0.55 would have cleared; axe reads small
+     text at 4.5:1 and that is the stricter number, so that is the one shipped.)
+     A dimmed card also gives up its accent: while a highlight is on, the map
+     answers one question, and the lit cards are the only figures on it. */
+  .lanes.lit .card { opacity: 0.52; border-color: var(--line); background: none; }
+  .lanes.lit .card .name,
+  .lanes.lit .card .ex,
+  .lanes.lit .card .chip,
+  .lanes.lit .card .lead,
+  .lanes.lit .card .more { color: var(--ink); }
+  :global(html[data-theme="light"]) .lanes.lit .card { opacity: 0.66; }
+  .lanes.lit .card.lit {
+    opacity: 1;
+    outline: 2px solid var(--ink);
+    outline-offset: -1px;
+    /* Lifted off the ground as well as outlined: in the light theme the dim
+       alone is gentle, because the contrast floor sets how far it may go. */
+    background: var(--panel-solid);
+  }
+  .lanes.lit .card.lit.role-hold { border-color: var(--ink); }
+
+  /* Collapsed by a filter, never removed: the lane keeps its shape. A ghost is
+     a hairline and a dimmer word, not a faded one — faded 11px text is the
+     thing the contrast audit rightly refuses. */
+  .card.collapsed {
+    align-self: start;
+    height: 24px;
+    overflow: hidden;
+    padding: 3px 8px;
+    border-style: dashed;
+  }
+  .card.collapsed .ex,
+  .card.collapsed .chips,
+  .card.collapsed .badge { display: none; }
+  .card.collapsed .name {
+    font-size: 11px;
+    color: var(--ink-dim);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .lane.collapsed { padding: 8px 0; }
+  .lane.collapsed .cards { display: none; }
+
+  /* ── the map's legend: each role drawn as the card it makes ── */
+  .lane-legend { margin-top: 32px; max-width: 760px; }
+  .lane-legend ul { list-style: none; border-top: 1px solid var(--line); }
+  .lane-legend li {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    padding: 8px 0;
+    border-bottom: 1px solid var(--line);
+    font-size: 13px;
+  }
+  .lane-legend .mini { width: 150px; flex: none; padding: 6px 10px; }
+  .lane-legend .mini .name { font-size: 12px; }
+  .lane-legend .legend-mark { border-style: dashed; }
+  .lane-legend .legend-mark .name { color: var(--ink-dim); }
+  .lane-legend p { color: var(--ink-dim); }
+
+  @media (prefers-reduced-motion: reduce) {
+    .card { transition: none; }
+  }
+
   /* ── legend, attribution ─────────────────────────────── */
   .legend { margin-top: 32px; max-width: 760px; }
   .legend dl { border-top: 1px solid var(--line); }
@@ -559,5 +955,24 @@ const payload = {
     th, td { padding: 8px 6px; }
     .count { margin-left: 0; }
     .legend .row { flex-direction: column; gap: 4px; }
+
+    /* The map on a phone: the label becomes a row of its own above two
+       columns of cards, the example gives way, the chips stay. */
+    .strip .svg-link { margin-left: 0; }
+    .lane { grid-template-columns: minmax(0, 1fr); gap: 8px; }
+    .lane-label { display: flex; flex-wrap: wrap; align-items: baseline; gap: 4px 10px; padding-right: 0; }
+    .lane-label .alt { display: none; }
+    .lane-label .counts { display: flex; gap: 10px; margin-top: 0; }
+    .iso { position: static; margin-left: auto; }
+    .cards { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    .card .ex { display: none; }
+    :global(html.view-lanes) .banner:not([hidden]) {
+      position: sticky;
+      top: 0;
+      z-index: 4;
+      background: var(--earth);
+    }
+    .lane-legend li { flex-direction: column; align-items: flex-start; gap: 6px; }
+    .lane-legend .mini { width: auto; }
   }
 </style>

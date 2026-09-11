@@ -45,6 +45,12 @@ export interface StrategyStrings {
     all: string;
     twin: string;
   };
+  /** Into the lanes view of sheet III, with this page's strategies lit. */
+  map: {
+    self: string;
+    combos: string;
+    tensions: string;
+  };
 }
 
 export const strategyPage: Record<"en" | "ru", StrategyStrings> = {
@@ -78,6 +84,11 @@ export const strategyPage: Record<"en" | "ru", StrategyStrings> = {
       all: "All 80 strategies",
       twin: "Markdown twin",
     },
+    map: {
+      self: "This strategy on the map →",
+      combos: "Map this combination →",
+      tensions: "Map this tension →",
+    },
   },
   ru: {
     meta: { title: "{name} — стратегия в Атласе рвов" },
@@ -108,6 +119,11 @@ export const strategyPage: Record<"en" | "ru", StrategyStrings> = {
       next: "Следующая",
       all: "Все 80 стратегий",
       twin: "Markdown-двойник",
+    },
+    map: {
+      self: "Эта стратегия на карте →",
+      combos: "Показать сочетание на карте →",
+      tensions: "Показать конфликт на карте →",
     },
   },
 };

@@ -65,6 +65,40 @@ export interface StrategiesStrings {
     notes: string;
     disputedNote: string;
   };
+  /** The second projection of the same 80 rows — 13 lanes of cards. */
+  lanes: {
+    /** The view switch: one page, two addresses. */
+    view: {
+      label: string;
+      table: string;
+      map: string;
+    };
+    /** "{total} strategies · {hold} hold · {lanes} lanes" — all three computed. */
+    summary: string;
+    /** "{n} hold" — the second count under a lane's label. */
+    hold: string;
+    /** The ⊙ in a lane label that isolates that lane. */
+    isolate: string;
+    /** Accessible name of the map itself. */
+    region: string;
+    /** What a card with no moats has instead of chips, for screen readers. */
+    noMoats: string;
+    /** Trailing word under a Timing card's name, in place of an example. */
+    entry: string;
+    highlight: {
+      /** Lead-in of the banner: "Highlighting: …". */
+      label: string;
+      clear: string;
+      /** "{moats}" is "#1 Network effect", or several of them. */
+      moat: string;
+      /** "{q}" is the search text. */
+      search: string;
+      /** When the address lights nothing that exists. */
+      none: string;
+    };
+    /** Link to the build-time rendering of the map, next to the view switch. */
+    svg: string;
+  };
   backToAtlas: string;
 }
 
@@ -117,6 +151,27 @@ export const strategiesPage: Record<"en" | "ru", StrategiesStrings> = {
       notes: "Notes",
       disputedNote: "disputed",
     },
+    lanes: {
+      view: {
+        label: "View",
+        table: "Table",
+        map: "Lanes",
+      },
+      summary: "{total} strategies · {hold} hold · {lanes} lanes",
+      hold: "{n} hold",
+      isolate: "Isolate this lane",
+      region: "The 80 strategies as a map",
+      noMoats: "no moat",
+      entry: "entry",
+      highlight: {
+        label: "Highlighting",
+        clear: "Clear",
+        moat: "strategies that lead to {moats}",
+        search: "matches “{q}”",
+        none: "nothing on the map matches this address",
+      },
+      svg: "Map (SVG)",
+    },
     backToAtlas: "← Back to the section",
   },
   ru: {
@@ -166,6 +221,27 @@ export const strategiesPage: Record<"en" | "ru", StrategiesStrings> = {
       title: "Роли",
       notes: "Заметки",
       disputedNote: "спорно",
+    },
+    lanes: {
+      view: {
+        label: "Вид",
+        table: "Таблица",
+        map: "Дорожки",
+      },
+      summary: "{total} стратегий · {hold} держат · {lanes} дорожек",
+      hold: "{n} держат",
+      isolate: "Оставить только эту дорожку",
+      region: "80 стратегий картой",
+      noMoats: "рва нет",
+      entry: "вход",
+      highlight: {
+        label: "Подсвечено",
+        clear: "Сбросить",
+        moat: "стратегии, ведущие к {moats}",
+        search: "совпадения с «{q}»",
+        none: "по этому адресу на карте ничего нет",
+      },
+      svg: "Карта (SVG)",
     },
     backToAtlas: "← Назад к разрезу",
   },

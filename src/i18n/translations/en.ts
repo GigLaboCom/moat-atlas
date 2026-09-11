@@ -190,6 +190,8 @@ export default {
       via: "Through this moat:",
       conditional: "Under conditions:",
       none: "None of the 80 strategies maps here directly.",
+      /** To the lanes view of sheet III with this moat's strategies lit. */
+      map: "See them on the map →",
     },
   },
   calculator: {
