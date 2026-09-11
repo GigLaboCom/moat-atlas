@@ -1,0 +1,2039 @@
+{
+ "version": "1.0",
+ "source": {
+  "title": "Many ways to win",
+  "author": "kepano (Steph Ango)",
+  "url": "https://stephango.com/",
+  "note": "Strategy names, gists and examples paraphrase the essay. The role layer and the moat mapping are the Atlas's own overlay and are not part of the essay."
+ },
+ "roles": {
+  "hold": {
+   "en": "Holds",
+   "ru": "Держит",
+   "gist_en": "leads to a moat",
+   "gist_ru": "ведёт к рву"
+  },
+  "position": {
+   "en": "Position",
+   "ru": "Позиция",
+   "gist_en": "a positioning choice; becomes a moat only through #17 or #33",
+   "gist_ru": "выбор позиции; ров только через #17 или #33"
+  },
+  "take": {
+   "en": "Takes",
+   "ru": "Занимает",
+   "gist_en": "wins a position, does not keep it",
+   "gist_ru": "занимает позицию, не удерживает"
+  },
+  "structure": {
+   "en": "Structure",
+   "ru": "Устройство",
+   "gist_en": "how participants are organised; a moat only when it yields a standard or capture",
+   "gist_ru": "как организованы участники; ров только если породило стандарт или захват"
+  },
+  "protect": {
+   "en": "Protects",
+   "ru": "Защищает",
+   "gist_en": "protects but does not compound with scale",
+   "gist_ru": "защищает, но не растёт с масштабом"
+  },
+  "morph": {
+   "en": "Morphs",
+   "ru": "Меняет форму",
+   "gist_en": "adaptability, not defense",
+   "gist_ru": "адаптация, не защита"
+  }
+ },
+ "categories": [
+  {
+   "slug": "accumulation",
+   "en": "Accumulation",
+   "ru": "Накопление"
+  },
+  {
+   "slug": "price",
+   "en": "Price",
+   "ru": "Цена"
+  },
+  {
+   "slug": "time",
+   "en": "Time",
+   "ru": "Время"
+  },
+  {
+   "slug": "uniqueness",
+   "en": "Uniqueness",
+   "ru": "Уникальность"
+  },
+  {
+   "slug": "offense",
+   "en": "Offense",
+   "ru": "Нападение"
+  },
+  {
+   "slug": "defense",
+   "en": "Defense",
+   "ru": "Защита"
+  },
+  {
+   "slug": "deception",
+   "en": "Deception",
+   "ru": "Обман"
+  },
+  {
+   "slug": "timing",
+   "en": "Timing",
+   "ru": "Тайминг"
+  },
+  {
+   "slug": "accreditation",
+   "en": "Accreditation",
+   "ru": "Аккредитация"
+  },
+  {
+   "slug": "collaboration",
+   "en": "Collaboration",
+   "ru": "Кооперация"
+  },
+  {
+   "slug": "speed-scale",
+   "en": "Speed and scale",
+   "ru": "Скорость и масштаб"
+  },
+  {
+   "slug": "ease",
+   "en": "Ease",
+   "ru": "Лёгкость"
+  },
+  {
+   "slug": "transformation",
+   "en": "Transformation",
+   "ru": "Трансформация"
+  }
+ ],
+ "strategies": [
+  {
+   "slug": "usership",
+   "category": "accumulation",
+   "name_en": "Usership",
+   "name_ru": "Пользовательская масса",
+   "gist_en": "critical mass of users; network effect",
+   "gist_ru": "критическая масса пользователей; сетевой эффект",
+   "examples_nature": [
+    "ant trails"
+   ],
+   "examples_business": [
+    "phone system",
+    "the internet",
+    "large social networks"
+   ],
+   "role": "hold",
+   "moats": [
+    {
+     "n": 1,
+     "kind": "direct"
+    },
+    {
+     "n": 21,
+     "kind": "direct"
+    }
+   ],
+   "disputed": false,
+   "note_en": "",
+   "note_ru": ""
+  },
+  {
+   "slug": "completeness",
+   "category": "accumulation",
+   "name_en": "Completeness",
+   "name_ru": "Полнота",
+   "gist_en": "all-in-one, one-stop shop",
+   "gist_ru": "всё-в-одном, один магазин на всё",
+   "examples_nature": [],
+   "examples_business": [
+    "Swiss army knife",
+    "Walmart"
+   ],
+   "role": "hold",
+   "moats": [
+    {
+     "n": 5,
+     "kind": "direct"
+    },
+    {
+     "n": 27,
+     "kind": "direct"
+    }
+   ],
+   "disputed": false,
+   "note_en": "",
+   "note_ru": ""
+  },
+  {
+   "slug": "aggregation",
+   "category": "accumulation",
+   "name_en": "Aggregation",
+   "name_ru": "Агрегация",
+   "gist_en": "an environment built for broad participation",
+   "gist_ru": "среда, построенная для широкого участия",
+   "examples_nature": [
+    "reefs"
+   ],
+   "examples_business": [
+    "cities",
+    "malls",
+    "Amazon",
+    "Craigslist"
+   ],
+   "role": "hold",
+   "moats": [
+    {
+     "n": 2,
+     "kind": "direct"
+    },
+    {
+     "n": 1,
+     "kind": "direct"
+    }
+   ],
+   "disputed": false,
+   "note_en": "",
+   "note_ru": ""
+  },
+  {
+   "slug": "diversification",
+   "category": "accumulation",
+   "name_en": "Diversification",
+   "name_ru": "Диверсификация",
+   "gist_en": "low dependence on any single resource stream",
+   "gist_ru": "низкая зависимость от одного источника ресурсов",
+   "examples_nature": [
+    "omnivores"
+   ],
+   "examples_business": [
+    "conglomerates"
+   ],
+   "role": "hold",
+   "moats": [
+    {
+     "n": 22,
+     "kind": "direct"
+    }
+   ],
+   "disputed": false,
+   "note_en": "Weak moat on its own.",
+   "note_ru": "Слабый ров сам по себе."
+  },
+  {
+   "slug": "omnipresence",
+   "category": "accumulation",
+   "name_en": "Omnipresence",
+   "name_ru": "Вездесущность",
+   "gist_en": "available everywhere, accepted by default",
+   "gist_ru": "доступен везде, принимается по умолчанию",
+   "examples_nature": [
+    "dandelions"
+   ],
+   "examples_business": [
+    "Visa",
+    "Coca-Cola"
+   ],
+   "role": "hold",
+   "moats": [
+    {
+     "n": 16,
+     "kind": "direct"
+    },
+    {
+     "n": 31,
+     "kind": "direct"
+    }
+   ],
+   "disputed": false,
+   "note_en": "",
+   "note_ru": ""
+  },
+  {
+   "slug": "cloning",
+   "category": "accumulation",
+   "name_en": "Cloning",
+   "name_ru": "Клонирование",
+   "gist_en": "grows by replicating identical copies",
+   "gist_ru": "растёт, копируя себя один в один",
+   "examples_nature": [
+    "aspen groves",
+    "sourdough starter"
+   ],
+   "examples_business": [
+    "franchises"
+   ],
+   "role": "hold",
+   "moats": [
+    {
+     "n": 15,
+     "kind": "direct"
+    },
+    {
+     "n": 16,
+     "kind": "direct"
+    }
+   ],
+   "disputed": false,
+   "note_en": "",
+   "note_ru": ""
+  },
+  {
+   "slug": "affordability",
+   "category": "price",
+   "name_en": "Affordability",
+   "name_ru": "Доступность по цене",
+   "gist_en": "comparatively low cost",
+   "gist_ru": "сравнительно низкая цена",
+   "examples_nature": [],
+   "examples_business": [
+    "mass production",
+    "fast food",
+    "fast fashion"
+   ],
+   "role": "hold",
+   "moats": [
+    {
+     "n": 15,
+     "kind": "direct"
+    },
+    {
+     "n": 35,
+     "kind": "direct"
+    },
+    {
+     "n": 24,
+     "kind": "direct"
+    }
+   ],
+   "disputed": false,
+   "note_en": "A moat only if the cost structure itself is hard to copy.",
+   "note_ru": "Ров, только если саму структуру затрат трудно скопировать."
+  },
+  {
+   "slug": "luxury",
+   "category": "price",
+   "name_en": "Luxury",
+   "name_ru": "Люкс",
+   "gist_en": "deliberately high cost; status signal",
+   "gist_ru": "намеренно высокая цена; сигнал статуса",
+   "examples_nature": [],
+   "examples_business": [
+    "Veblen goods",
+    "supercars",
+    "luxury watches"
+   ],
+   "role": "position",
+   "moats": [
+    {
+     "n": 8,
+     "kind": "via"
+    },
+    {
+     "n": 18,
+     "kind": "via"
+    }
+   ],
+   "disputed": false,
+   "note_en": "",
+   "note_ru": ""
+  },
+  {
+   "slug": "skimming",
+   "category": "price",
+   "name_en": "Skimming",
+   "name_ru": "Просеивание",
+   "gist_en": "very many very small transactions",
+   "gist_ru": "очень много очень мелких транзакций",
+   "examples_nature": [
+    "baleen whales",
+    "planktivores"
+   ],
+   "examples_business": [
+    "credit cards"
+   ],
+   "role": "hold",
+   "moats": [
+    {
+     "n": 24,
+     "kind": "direct"
+    },
+    {
+     "n": 15,
+     "kind": "direct"
+    }
+   ],
+   "disputed": false,
+   "note_en": "",
+   "note_ru": ""
+  },
+  {
+   "slug": "bundling",
+   "category": "price",
+   "name_en": "Bundling",
+   "name_ru": "Бандлинг",
+   "gist_en": "packaged for free with something people already want",
+   "gist_ru": "идёт в комплекте с тем, что уже хотят",
+   "examples_nature": [
+    "seeds in fruit"
+   ],
+   "examples_business": [
+    "Microsoft Office",
+    "cable channels"
+   ],
+   "role": "hold",
+   "moats": [
+    {
+     "n": 27,
+     "kind": "direct"
+    },
+    {
+     "n": 26,
+     "kind": "direct"
+    }
+   ],
+   "disputed": false,
+   "note_en": "",
+   "note_ru": ""
+  },
+  {
+   "slug": "heritage",
+   "category": "time",
+   "name_en": "Heritage",
+   "name_ru": "Наследие",
+   "gist_en": "multi-generational legacy",
+   "gist_ru": "многопоколенческое наследие",
+   "examples_nature": [],
+   "examples_business": [
+    "religions",
+    "old companies"
+   ],
+   "role": "hold",
+   "moats": [
+    {
+     "n": 8,
+     "kind": "direct"
+    },
+    {
+     "n": 34,
+     "kind": "direct"
+    }
+   ],
+   "disputed": false,
+   "note_en": "Time is the input nobody can buy.",
+   "note_ru": "Время — ресурс, который нельзя купить."
+  },
+  {
+   "slug": "craftsmanship",
+   "category": "time",
+   "name_en": "Craftsmanship",
+   "name_ru": "Мастерство",
+   "gist_en": "more time, precision and care than peers",
+   "gist_ru": "больше времени, точности и внимания, чем у других",
+   "examples_nature": [],
+   "examples_business": [
+    "handmade watches",
+    "bespoke tailoring",
+    "Leica"
+   ],
+   "role": "hold",
+   "moats": [
+    {
+     "n": 13,
+     "kind": "direct"
+    },
+    {
+     "n": 19,
+     "kind": "conditional"
+    }
+   ],
+   "disputed": false,
+   "note_en": "#13 by default; #19 only when the craft is a team's repeatable process visible from outside.",
+   "note_ru": "#13 по умолчанию; #19 только когда мастерство — воспроизводимый процесс команды, видимый снаружи."
+  },
+  {
+   "slug": "organic",
+   "category": "time",
+   "name_en": "Organic",
+   "name_ru": "Органический рост",
+   "gist_en": "natural growth that cannot be accelerated",
+   "gist_ru": "естественный рост, который нельзя ускорить",
+   "examples_nature": [
+    "trees",
+    "ecosystems"
+   ],
+   "examples_business": [
+    "aged cheese"
+   ],
+   "role": "hold",
+   "moats": [
+    {
+     "n": 35,
+     "kind": "direct"
+    },
+    {
+     "n": 8,
+     "kind": "direct"
+    }
+   ],
+   "disputed": false,
+   "note_en": "",
+   "note_ru": ""
+  },
+  {
+   "slug": "endurance",
+   "category": "time",
+   "name_en": "Endurance",
+   "name_ru": "Выносливость",
+   "gist_en": "operates continuously for a very long time",
+   "gist_ru": "работает непрерывно очень долго",
+   "examples_nature": [
+    "marathon runners"
+   ],
+   "examples_business": [
+    "nuclear submarines"
+   ],
+   "role": "hold",
+   "moats": [
+    {
+     "n": 9,
+     "kind": "direct"
+    },
+    {
+     "n": 22,
+     "kind": "direct"
+    }
+   ],
+   "disputed": false,
+   "note_en": "",
+   "note_ru": ""
+  },
+  {
+   "slug": "specialization",
+   "category": "uniqueness",
+   "name_en": "Specialization",
+   "name_ru": "Специализация",
+   "gist_en": "deep competence in a narrow niche",
+   "gist_ru": "глубокая компетенция в узкой нише",
+   "examples_nature": [
+    "pandas"
+   ],
+   "examples_business": [
+    "trade schools"
+   ],
+   "role": "position",
+   "moats": [
+    {
+     "n": 17,
+     "kind": "via"
+    }
+   ],
+   "disputed": false,
+   "note_en": "",
+   "note_ru": ""
+  },
+  {
+   "slug": "versatility",
+   "category": "uniqueness",
+   "name_en": "Versatility",
+   "name_ru": "Универсальность",
+   "gist_en": "general competence across many tasks",
+   "gist_ru": "общая компетенция во многих задачах",
+   "examples_nature": [
+    "opposable thumbs"
+   ],
+   "examples_business": [
+    "CPUs"
+   ],
+   "role": "position",
+   "moats": [
+    {
+     "n": 17,
+     "kind": "via"
+    }
+   ],
+   "disputed": false,
+   "note_en": "",
+   "note_ru": ""
+  },
+  {
+   "slug": "hybrid",
+   "category": "uniqueness",
+   "name_en": "Hybrid",
+   "name_ru": "Гибрид",
+   "gist_en": "two strengths not usually found together",
+   "gist_ru": "две силы, которые редко встречаются вместе",
+   "examples_nature": [
+    "frogs"
+   ],
+   "examples_business": [
+    "cronuts",
+    "amphibious vehicles",
+    "hybrid cars"
+   ],
+   "role": "position",
+   "moats": [
+    {
+     "n": 17,
+     "kind": "via"
+    },
+    {
+     "n": 33,
+     "kind": "via"
+    }
+   ],
+   "disputed": false,
+   "note_en": "",
+   "note_ru": ""
+  },
+  {
+   "slug": "divergence",
+   "category": "uniqueness",
+   "name_en": "Divergence",
+   "name_ru": "Дивергенция",
+   "gist_en": "creative differentiation from the norm",
+   "gist_ru": "творческое отличие от нормы",
+   "examples_nature": [],
+   "examples_business": [
+    "Van Gogh",
+    "Picasso",
+    "Frank Gehry"
+   ],
+   "role": "position",
+   "moats": [
+    {
+     "n": 8,
+     "kind": "via"
+    },
+    {
+     "n": 33,
+     "kind": "via"
+    }
+   ],
+   "disputed": false,
+   "note_en": "",
+   "note_ru": ""
+  },
+  {
+   "slug": "authenticity",
+   "category": "uniqueness",
+   "name_en": "Authenticity",
+   "name_ru": "Подлинность",
+   "gist_en": "traceable to its source where fakes are common",
+   "gist_ru": "прослеживается до источника там, где много подделок",
+   "examples_nature": [],
+   "examples_business": [
+    "money",
+    "olive oil",
+    "art"
+   ],
+   "role": "hold",
+   "moats": [
+    {
+     "n": 8,
+     "kind": "direct"
+    },
+    {
+     "n": 12,
+     "kind": "direct"
+    }
+   ],
+   "disputed": false,
+   "note_en": "",
+   "note_ru": ""
+  },
+  {
+   "slug": "rarity",
+   "category": "uniqueness",
+   "name_en": "Rarity",
+   "name_ru": "Редкость",
+   "gist_en": "naturally limited quantity",
+   "gist_ru": "естественно ограниченное количество",
+   "examples_nature": [],
+   "examples_business": [
+    "beachfront property",
+    "Victor Wembanyama"
+   ],
+   "role": "hold",
+   "moats": [
+    {
+     "n": 18,
+     "kind": "direct"
+    }
+   ],
+   "disputed": false,
+   "note_en": "",
+   "note_ru": ""
+  },
+  {
+   "slug": "scarcity",
+   "category": "uniqueness",
+   "name_en": "Scarcity",
+   "name_ru": "Дефицит",
+   "gist_en": "artificially limited quantity",
+   "gist_ru": "искусственно ограниченное количество",
+   "examples_nature": [],
+   "examples_business": [
+    "collectibles",
+    "NFTs"
+   ],
+   "role": "hold",
+   "moats": [
+    {
+     "n": 18,
+     "kind": "direct"
+    }
+   ],
+   "disputed": false,
+   "note_en": "Weaker than Rarity: the limit can be abandoned.",
+   "note_ru": "Слабее Rarity: ограничение можно снять."
+  },
+  {
+   "slug": "secrecy",
+   "category": "uniqueness",
+   "name_en": "Secrecy",
+   "name_ru": "Секретность",
+   "gist_en": "hard to copy because knowledge is protected",
+   "gist_ru": "трудно скопировать, потому что знание защищено",
+   "examples_nature": [],
+   "examples_business": [
+    "magicians",
+    "Coca-Cola",
+    "trade secrets"
+   ],
+   "role": "hold",
+   "moats": [
+    {
+     "n": 3,
+     "kind": "direct"
+    },
+    {
+     "n": 4,
+     "kind": "direct"
+    },
+    {
+     "n": 19,
+     "kind": "direct"
+    }
+   ],
+   "disputed": false,
+   "note_en": "",
+   "note_ru": ""
+  },
+  {
+   "slug": "irreverence",
+   "category": "uniqueness",
+   "name_en": "Irreverence",
+   "name_ru": "Непочтительность",
+   "gist_en": "contrarian, disregards tradition",
+   "gist_ru": "идёт против традиции",
+   "examples_nature": [],
+   "examples_business": [
+    "Richard Branson",
+    "South Park"
+   ],
+   "role": "hold",
+   "moats": [
+    {
+     "n": 17,
+     "kind": "direct"
+    },
+    {
+     "n": 33,
+     "kind": "direct"
+    }
+   ],
+   "disputed": false,
+   "note_en": "A stance incumbents cannot copy without hurting themselves.",
+   "note_ru": "Позиция, которую лидер не может скопировать, не навредив себе."
+  },
+  {
+   "slug": "violence",
+   "category": "offense",
+   "name_en": "Violence",
+   "name_ru": "Насилие",
+   "gist_en": "destroys or consumes the opponent by force",
+   "gist_ru": "уничтожает или поглощает противника силой",
+   "examples_nature": [
+    "predators"
+   ],
+   "examples_business": [
+    "military attacks"
+   ],
+   "role": "take",
+   "moats": [],
+   "disputed": false,
+   "note_en": "",
+   "note_ru": ""
+  },
+  {
+   "slug": "litigation",
+   "category": "offense",
+   "name_en": "Litigation",
+   "name_ru": "Судебные тяжбы",
+   "gist_en": "weakens opponents with legal burden",
+   "gist_ru": "ослабляет противника юридическим давлением",
+   "examples_nature": [],
+   "examples_business": [
+    "patent trolls",
+    "lawsuits"
+   ],
+   "role": "hold",
+   "moats": [
+    {
+     "n": 14,
+     "kind": "direct"
+    }
+   ],
+   "disputed": false,
+   "note_en": "",
+   "note_ru": ""
+  },
+  {
+   "slug": "nettlesomeness",
+   "category": "offense",
+   "name_en": "Nettlesomeness",
+   "name_ru": "Назойливость",
+   "gist_en": "makes the opponent make mistakes",
+   "gist_ru": "заставляет противника ошибаться",
+   "examples_nature": [],
+   "examples_business": [
+    "Magnus Carlsen"
+   ],
+   "role": "take",
+   "moats": [],
+   "disputed": false,
+   "note_en": "",
+   "note_ru": ""
+  },
+  {
+   "slug": "sabotage",
+   "category": "offense",
+   "name_en": "Sabotage",
+   "name_ru": "Саботаж",
+   "gist_en": "creates weaknesses in the opponent's structure",
+   "gist_ru": "создаёт слабости в структуре противника",
+   "examples_nature": [],
+   "examples_business": [
+    "Stuxnet",
+    "cutting undersea cables"
+   ],
+   "role": "take",
+   "moats": [],
+   "disputed": false,
+   "note_en": "",
+   "note_ru": ""
+  },
+  {
+   "slug": "parasitism",
+   "category": "offense",
+   "name_en": "Parasitism",
+   "name_ru": "Паразитизм",
+   "gist_en": "extracts or hijacks resources from a host",
+   "gist_ru": "извлекает или перехватывает ресурсы хозяина",
+   "examples_nature": [
+    "mosquitoes",
+    "tapeworm"
+   ],
+   "examples_business": [],
+   "role": "take",
+   "moats": [],
+   "disputed": false,
+   "note_en": "",
+   "note_ru": ""
+  },
+  {
+   "slug": "scavenging",
+   "category": "offense",
+   "name_en": "Scavenging",
+   "name_ru": "Падальщичество",
+   "gist_en": "opportunistically consumes the weakened",
+   "gist_ru": "подбирает ослабевших",
+   "examples_nature": [
+    "vultures"
+   ],
+   "examples_business": [
+    "private equity"
+   ],
+   "role": "take",
+   "moats": [],
+   "disputed": false,
+   "note_en": "",
+   "note_ru": ""
+  },
+  {
+   "slug": "espionage",
+   "category": "offense",
+   "name_en": "Espionage",
+   "name_ru": "Шпионаж",
+   "gist_en": "acquires the enemy's secrets",
+   "gist_ru": "добывает секреты противника",
+   "examples_nature": [],
+   "examples_business": [
+    "spies"
+   ],
+   "role": "take",
+   "moats": [],
+   "disputed": false,
+   "note_en": "",
+   "note_ru": ""
+  },
+  {
+   "slug": "swarming",
+   "category": "offense",
+   "name_en": "Swarming",
+   "name_ru": "Рой",
+   "gist_en": "mass attack by individually weak agents",
+   "gist_ru": "массовая атака слабых по одиночке агентов",
+   "examples_nature": [
+    "bees"
+   ],
+   "examples_business": [
+    "DDoS",
+    "Zerg rush"
+   ],
+   "role": "take",
+   "moats": [],
+   "disputed": false,
+   "note_en": "",
+   "note_ru": ""
+  },
+  {
+   "slug": "highest-bidder",
+   "category": "offense",
+   "name_en": "Highest bidder",
+   "name_ru": "Самая высокая ставка",
+   "gist_en": "outbids competitors to secure exclusivity",
+   "gist_ru": "перебивает цену ради эксклюзива",
+   "examples_nature": [],
+   "examples_business": [
+    "Real Madrid",
+    "SoftBank",
+    "art collectors"
+   ],
+   "role": "hold",
+   "moats": [
+    {
+     "n": 22,
+     "kind": "direct"
+    },
+    {
+     "n": 18,
+     "kind": "direct"
+    }
+   ],
+   "disputed": false,
+   "note_en": "Holds only while the money lasts.",
+   "note_ru": "Держит, пока есть деньги."
+  },
+  {
+   "slug": "chokepoint",
+   "category": "offense",
+   "name_en": "Chokepoint",
+   "name_ru": "Узкое горло",
+   "gist_en": "controls a passage everyone must pass",
+   "gist_ru": "контролирует проход, через который все обязаны идти",
+   "examples_nature": [
+    "grizzlies at a waterfall"
+   ],
+   "examples_business": [
+    "Suez Canal"
+   ],
+   "role": "hold",
+   "moats": [
+    {
+     "n": 18,
+     "kind": "direct"
+    },
+    {
+     "n": 16,
+     "kind": "direct"
+    }
+   ],
+   "disputed": false,
+   "note_en": "",
+   "note_ru": ""
+  },
+  {
+   "slug": "puppeteering",
+   "category": "offense",
+   "name_en": "Puppeteering",
+   "name_ru": "Кукловодство",
+   "gist_en": "takes over a host's behaviour to serve itself",
+   "gist_ru": "перехватывает поведение хозяина себе на пользу",
+   "examples_nature": [
+    "Cordyceps",
+    "Toxoplasma"
+   ],
+   "examples_business": [],
+   "role": "take",
+   "moats": [],
+   "disputed": false,
+   "note_en": "",
+   "note_ru": ""
+  },
+  {
+   "slug": "deterrence",
+   "category": "defense",
+   "name_en": "Deterrence",
+   "name_ru": "Сдерживание",
+   "gist_en": "projected fear of retaliation",
+   "gist_ru": "проецируемый страх возмездия",
+   "examples_nature": [],
+   "examples_business": [
+    "nuclear weapons",
+    "trademarks",
+    "patents"
+   ],
+   "role": "hold",
+   "moats": [
+    {
+     "n": 14,
+     "kind": "direct"
+    }
+   ],
+   "disputed": true,
+   "note_en": "Broader than #14: deterrence by reputation or by capital has no moat in the Atlas.",
+   "note_ru": "Шире, чем #14: сдерживание репутацией или капиталом в Атласе рва не имеет."
+  },
+  {
+   "slug": "reliability",
+   "category": "defense",
+   "name_en": "Reliability",
+   "name_ru": "Надёжность",
+   "gist_en": "low maintenance, minimal downtime",
+   "gist_ru": "мало обслуживания, минимум простоев",
+   "examples_nature": [],
+   "examples_business": [
+    "Zippo lighters",
+    "Toyota"
+   ],
+   "role": "hold",
+   "moats": [
+    {
+     "n": 8,
+     "kind": "direct"
+    },
+    {
+     "n": 5,
+     "kind": "direct"
+    }
+   ],
+   "disputed": false,
+   "note_en": "",
+   "note_ru": ""
+  },
+  {
+   "slug": "predictability",
+   "category": "defense",
+   "name_en": "Predictability",
+   "name_ru": "Предсказуемость",
+   "gist_en": "repeatable, consistent experience",
+   "gist_ru": "повторяемый, одинаковый опыт",
+   "examples_nature": [],
+   "examples_business": [
+    "Disneyland",
+    "Starbucks"
+   ],
+   "role": "hold",
+   "moats": [
+    {
+     "n": 8,
+     "kind": "direct"
+    },
+    {
+     "n": 25,
+     "kind": "direct"
+    }
+   ],
+   "disputed": false,
+   "note_en": "",
+   "note_ru": ""
+  },
+  {
+   "slug": "unpredictability",
+   "category": "defense",
+   "name_en": "Unpredictability",
+   "name_ru": "Непредсказуемость",
+   "gist_en": "surprise, confusion, variability",
+   "gist_ru": "неожиданность, путаница, изменчивость",
+   "examples_nature": [
+    "squid ink"
+   ],
+   "examples_business": [
+    "smoke screen",
+    "Banksy",
+    "Lady Gaga"
+   ],
+   "role": "protect",
+   "moats": [],
+   "disputed": false,
+   "note_en": "",
+   "note_ru": ""
+  },
+  {
+   "slug": "decentralization",
+   "category": "defense",
+   "name_en": "Decentralization",
+   "name_ru": "Децентрализация",
+   "gist_en": "redundancy, no single point of failure",
+   "gist_ru": "избыточность, нет единой точки отказа",
+   "examples_nature": [],
+   "examples_business": [
+    "solar power",
+    "grassroots movements"
+   ],
+   "role": "protect",
+   "moats": [],
+   "disputed": false,
+   "note_en": "",
+   "note_ru": ""
+  },
+  {
+   "slug": "security",
+   "category": "defense",
+   "name_en": "Security",
+   "name_ru": "Безопасность",
+   "gist_en": "resistance to theft and unwanted access",
+   "gist_ru": "устойчивость к краже и нежелательному доступу",
+   "examples_nature": [],
+   "examples_business": [
+    "banks",
+    "vaults",
+    "locks"
+   ],
+   "role": "hold",
+   "moats": [
+    {
+     "n": 7,
+     "kind": "direct"
+    },
+    {
+     "n": 8,
+     "kind": "direct"
+    }
+   ],
+   "disputed": false,
+   "note_en": "",
+   "note_ru": ""
+  },
+  {
+   "slug": "privacy",
+   "category": "defense",
+   "name_en": "Privacy",
+   "name_ru": "Приватность",
+   "gist_en": "protection against information disclosure",
+   "gist_ru": "защита от раскрытия информации",
+   "examples_nature": [],
+   "examples_business": [
+    "encrypted messengers",
+    "VPNs"
+   ],
+   "role": "hold",
+   "moats": [
+    {
+     "n": 7,
+     "kind": "direct"
+    },
+    {
+     "n": 8,
+     "kind": "direct"
+    }
+   ],
+   "disputed": false,
+   "note_en": "",
+   "note_ru": ""
+  },
+  {
+   "slug": "durability",
+   "category": "defense",
+   "name_en": "Durability",
+   "name_ru": "Прочность",
+   "gist_en": "physical robustness",
+   "gist_ru": "физическая прочность",
+   "examples_nature": [
+    "LeBron James"
+   ],
+   "examples_business": [
+    "cast-iron skillets"
+   ],
+   "role": "protect",
+   "moats": [
+    {
+     "n": 10,
+     "kind": "conditional"
+    }
+   ],
+   "disputed": false,
+   "note_en": "#10 only for a physical product.",
+   "note_ru": "#10 только для физического продукта."
+  },
+  {
+   "slug": "neutrality",
+   "category": "defense",
+   "name_en": "Neutrality",
+   "name_ru": "Нейтралитет",
+   "gist_en": "long-term non-belligerence, safe haven",
+   "gist_ru": "долгосрочный нейтралитет, безопасная гавань",
+   "examples_nature": [],
+   "examples_business": [
+    "Switzerland",
+    "Red Cross"
+   ],
+   "role": "protect",
+   "moats": [],
+   "disputed": true,
+   "note_en": "Platform neutrality (not competing with your own customers) is a real reason to be chosen; the Atlas has no moat for it.",
+   "note_ru": "Нейтралитет платформы (не конкурировать со своими клиентами) — реальная причина выбора; в Атласе рва под это нет."
+  },
+  {
+   "slug": "obscurity",
+   "category": "defense",
+   "name_en": "Obscurity",
+   "name_ru": "Незаметность",
+   "gist_en": "survives by staying unknown",
+   "gist_ru": "выживает, оставаясь неизвестным",
+   "examples_nature": [
+    "deep-sea creatures"
+   ],
+   "examples_business": [
+    "closed-source software"
+   ],
+   "role": "protect",
+   "moats": [],
+   "disputed": true,
+   "note_en": "Arguably a moat: nobody attacks what nobody sees.",
+   "note_ru": "Спорно: можно считать рвом — никто не атакует то, чего не видит."
+  },
+  {
+   "slug": "antifragility",
+   "category": "defense",
+   "name_en": "Antifragility",
+   "name_ru": "Антихрупкость",
+   "gist_en": "gets stronger under stress or use",
+   "gist_ru": "становится сильнее от нагрузки",
+   "examples_nature": [
+    "muscles"
+   ],
+   "examples_business": [
+    "BitTorrent"
+   ],
+   "role": "hold",
+   "moats": [
+    {
+     "n": 1,
+     "kind": "direct"
+    },
+    {
+     "n": 9,
+     "kind": "direct"
+    }
+   ],
+   "disputed": false,
+   "note_en": "",
+   "note_ru": ""
+  },
+  {
+   "slug": "camouflage",
+   "category": "deception",
+   "name_en": "Camouflage",
+   "name_ru": "Камуфляж",
+   "gist_en": "blends into the environment",
+   "gist_ru": "сливается со средой",
+   "examples_nature": [
+    "chameleons"
+   ],
+   "examples_business": [
+    "stealth aircraft"
+   ],
+   "role": "take",
+   "moats": [],
+   "disputed": false,
+   "note_en": "",
+   "note_ru": ""
+  },
+  {
+   "slug": "mimicry",
+   "category": "deception",
+   "name_en": "Mimicry",
+   "name_ru": "Мимикрия",
+   "gist_en": "superficially imitates another to trick",
+   "gist_ru": "внешне подражает другому, чтобы обмануть",
+   "examples_nature": [
+    "harmless snakes mimicking venomous ones"
+   ],
+   "examples_business": [],
+   "role": "take",
+   "moats": [],
+   "disputed": false,
+   "note_en": "",
+   "note_ru": ""
+  },
+  {
+   "slug": "decoy",
+   "category": "deception",
+   "name_en": "Decoy",
+   "name_ru": "Приманка-обманка",
+   "gist_en": "distracts or misleads adversaries",
+   "gist_ru": "отвлекает или вводит противника в заблуждение",
+   "examples_nature": [],
+   "examples_business": [
+    "chaff",
+    "fake security cameras"
+   ],
+   "role": "take",
+   "moats": [],
+   "disputed": false,
+   "note_en": "",
+   "note_ru": ""
+  },
+  {
+   "slug": "lure",
+   "category": "deception",
+   "name_en": "Lure",
+   "name_ru": "Ловушка",
+   "gist_en": "attractive traps",
+   "gist_ru": "привлекательные ловушки",
+   "examples_nature": [
+    "anglerfish"
+   ],
+   "examples_business": [
+    "honeypot"
+   ],
+   "role": "take",
+   "moats": [],
+   "disputed": false,
+   "note_en": "",
+   "note_ru": ""
+  },
+  {
+   "slug": "infiltration",
+   "category": "deception",
+   "name_en": "Infiltration",
+   "name_ru": "Проникновение",
+   "gist_en": "gets past defenses unnoticed",
+   "gist_ru": "проходит защиту незамеченным",
+   "examples_nature": [],
+   "examples_business": [
+    "Trojan horse",
+    "malware",
+    "smuggling"
+   ],
+   "role": "take",
+   "moats": [],
+   "disputed": false,
+   "note_en": "",
+   "note_ru": ""
+  },
+  {
+   "slug": "first-mover",
+   "category": "timing",
+   "name_en": "First-mover",
+   "name_ru": "Первый ход",
+   "gist_en": "acts first",
+   "gist_ru": "действует первым",
+   "examples_nature": [],
+   "examples_business": [
+    "Netflix",
+    "Tesla"
+   ],
+   "role": "take",
+   "moats": [],
+   "disputed": false,
+   "note_en": "Timing is how the position was taken; it never holds.",
+   "note_ru": "Тайминг — как заняли позицию; он никогда не удерживает."
+  },
+  {
+   "slug": "second-mover",
+   "category": "timing",
+   "name_en": "Second-mover",
+   "name_ru": "Быстрый последователь",
+   "gist_en": "copies the first mover quickly",
+   "gist_ru": "быстро копирует первого",
+   "examples_nature": [],
+   "examples_business": [
+    "Facebook vs Snapchat"
+   ],
+   "role": "take",
+   "moats": [],
+   "disputed": false,
+   "note_en": "",
+   "note_ru": ""
+  },
+  {
+   "slug": "last-mover",
+   "category": "timing",
+   "name_en": "Last-mover",
+   "name_ru": "Последний ход",
+   "gist_en": "waits until others have burned energy on failed approaches",
+   "gist_ru": "ждёт, пока другие сожгут силы на неудачных подходах",
+   "examples_nature": [],
+   "examples_business": [
+    "Apple"
+   ],
+   "role": "take",
+   "moats": [],
+   "disputed": false,
+   "note_en": "",
+   "note_ru": ""
+  },
+  {
+   "slug": "monopoly",
+   "category": "accreditation",
+   "name_en": "Monopoly",
+   "name_ru": "Монополия",
+   "gist_en": "market control sanctioned by a governing body",
+   "gist_ru": "контроль рынка, одобренный регулятором",
+   "examples_nature": [],
+   "examples_business": [
+    "patents",
+    "regulatory capture"
+   ],
+   "role": "hold",
+   "moats": [
+    {
+     "n": 30,
+     "kind": "direct"
+    },
+    {
+     "n": 14,
+     "kind": "direct"
+    }
+   ],
+   "disputed": false,
+   "note_en": "",
+   "note_ru": ""
+  },
+  {
+   "slug": "prestige",
+   "category": "accreditation",
+   "name_en": "Prestige",
+   "name_ru": "Престиж",
+   "gist_en": "endorsed by authoritative sources",
+   "gist_ru": "подтверждён авторитетными источниками",
+   "examples_nature": [],
+   "examples_business": [
+    "Michelin-starred restaurants",
+    "Ivy League graduates"
+   ],
+   "role": "hold",
+   "moats": [
+    {
+     "n": 8,
+     "kind": "direct"
+    },
+    {
+     "n": 34,
+     "kind": "direct"
+    }
+   ],
+   "disputed": false,
+   "note_en": "",
+   "note_ru": ""
+  },
+  {
+   "slug": "curation",
+   "category": "accreditation",
+   "name_en": "Curation",
+   "name_ru": "Кураторство",
+   "gist_en": "selectiveness in choosing and grouping",
+   "gist_ru": "избирательность в отборе и группировке",
+   "examples_nature": [],
+   "examples_business": [
+    "art galleries",
+    "HBO",
+    "venture capital"
+   ],
+   "role": "hold",
+   "moats": [
+    {
+     "n": 33,
+     "kind": "direct"
+    },
+    {
+     "n": 8,
+     "kind": "direct"
+    }
+   ],
+   "disputed": false,
+   "note_en": "",
+   "note_ru": ""
+  },
+  {
+   "slug": "union",
+   "category": "collaboration",
+   "name_en": "Union",
+   "name_ru": "Союз",
+   "gist_en": "potential competitors adopt one set of rules",
+   "gist_ru": "потенциальные конкуренты принимают общие правила",
+   "examples_nature": [],
+   "examples_business": [
+    "M&A",
+    "United States",
+    "European Union"
+   ],
+   "role": "structure",
+   "moats": [
+    {
+     "n": 11,
+     "kind": "via"
+    },
+    {
+     "n": 29,
+     "kind": "via"
+    }
+   ],
+   "disputed": false,
+   "note_en": "",
+   "note_ru": ""
+  },
+  {
+   "slug": "alliance",
+   "category": "collaboration",
+   "name_en": "Alliance",
+   "name_ru": "Альянс",
+   "gist_en": "partnership with independence kept",
+   "gist_ru": "партнёрство с сохранением независимости",
+   "examples_nature": [],
+   "examples_business": [
+    "partnerships"
+   ],
+   "role": "structure",
+   "moats": [
+    {
+     "n": 11,
+     "kind": "via"
+    }
+   ],
+   "disputed": false,
+   "note_en": "",
+   "note_ru": ""
+  },
+  {
+   "slug": "emergence",
+   "category": "collaboration",
+   "name_en": "Emergence",
+   "name_ru": "Эмерджентность",
+   "gist_en": "hive mind, wisdom of the crowd",
+   "gist_ru": "коллективный разум",
+   "examples_nature": [
+    "ant colonies",
+    "beehives"
+   ],
+   "examples_business": [
+    "democracy"
+   ],
+   "role": "hold",
+   "moats": [
+    {
+     "n": 21,
+     "kind": "direct"
+    },
+    {
+     "n": 32,
+     "kind": "direct"
+    }
+   ],
+   "disputed": false,
+   "note_en": "",
+   "note_ru": ""
+  },
+  {
+   "slug": "centralization",
+   "category": "collaboration",
+   "name_en": "Centralization",
+   "name_ru": "Централизация",
+   "gist_en": "single decision-maker",
+   "gist_ru": "единый центр решений",
+   "examples_nature": [],
+   "examples_business": [
+    "dictatorships"
+   ],
+   "role": "structure",
+   "moats": [],
+   "disputed": false,
+   "note_en": "",
+   "note_ru": ""
+  },
+  {
+   "slug": "standardization",
+   "category": "collaboration",
+   "name_en": "Standardization",
+   "name_ru": "Стандартизация",
+   "gist_en": "emergent alignment that reduces friction",
+   "gist_ru": "стихийное выравнивание, снижающее трение",
+   "examples_nature": [],
+   "examples_business": [
+    "language",
+    "railway gauge",
+    "metric system"
+   ],
+   "role": "hold",
+   "moats": [
+    {
+     "n": 29,
+     "kind": "direct"
+    },
+    {
+     "n": 5,
+     "kind": "direct"
+    }
+   ],
+   "disputed": false,
+   "note_en": "",
+   "note_ru": ""
+  },
+  {
+   "slug": "symbiosis",
+   "category": "collaboration",
+   "name_en": "Symbiosis",
+   "name_ru": "Симбиоз",
+   "gist_en": "mutually beneficial dependency",
+   "gist_ru": "взаимовыгодная зависимость",
+   "examples_nature": [
+    "fig wasp"
+   ],
+   "examples_business": [
+    "two-party political system"
+   ],
+   "role": "structure",
+   "moats": [],
+   "disputed": false,
+   "note_en": "",
+   "note_ru": ""
+  },
+  {
+   "slug": "herding",
+   "category": "collaboration",
+   "name_en": "Herding",
+   "name_ru": "Стадность",
+   "gist_en": "grouping for protection",
+   "gist_ru": "объединение ради защиты",
+   "examples_nature": [
+    "schools of fish"
+   ],
+   "examples_business": [
+    "trade associations"
+   ],
+   "role": "structure",
+   "moats": [
+    {
+     "n": 11,
+     "kind": "via"
+    }
+   ],
+   "disputed": false,
+   "note_en": "",
+   "note_ru": ""
+  },
+  {
+   "slug": "distributed-ownership",
+   "category": "collaboration",
+   "name_en": "Distributed ownership",
+   "name_ru": "Распределённое владение",
+   "gist_en": "owned by the community",
+   "gist_ru": "принадлежит сообществу",
+   "examples_nature": [],
+   "examples_business": [
+    "REI Co-op",
+    "Green Bay Packers"
+   ],
+   "role": "hold",
+   "moats": [
+    {
+     "n": 21,
+     "kind": "direct"
+    },
+    {
+     "n": 32,
+     "kind": "direct"
+    }
+   ],
+   "disputed": false,
+   "note_en": "",
+   "note_ru": ""
+  },
+  {
+   "slug": "transparency",
+   "category": "collaboration",
+   "name_en": "Transparency",
+   "name_ru": "Прозрачность",
+   "gist_en": "visible inner workings that build trust",
+   "gist_ru": "открытое устройство, которое создаёт доверие",
+   "examples_nature": [],
+   "examples_business": [
+    "open-source software"
+   ],
+   "role": "hold",
+   "moats": [
+    {
+     "n": 21,
+     "kind": "direct"
+    },
+    {
+     "n": 20,
+     "kind": "direct"
+    }
+   ],
+   "disputed": false,
+   "note_en": "",
+   "note_ru": ""
+  },
+  {
+   "slug": "iteration",
+   "category": "speed-scale",
+   "name_en": "Iteration",
+   "name_ru": "Итерация",
+   "gist_en": "short cycle between improvements",
+   "gist_ru": "короткий цикл между улучшениями",
+   "examples_nature": [],
+   "examples_business": [
+    "SpaceX"
+   ],
+   "role": "hold",
+   "moats": [
+    {
+     "n": 23,
+     "kind": "direct"
+    }
+   ],
+   "disputed": false,
+   "note_en": "Depth 1; a real hold only when it compounds into #3 or #19.",
+   "note_ru": "Глубина 1; настоящий ров, только когда накапливается в #3 или #19."
+  },
+  {
+   "slug": "efficiency",
+   "category": "speed-scale",
+   "name_en": "Efficiency",
+   "name_ru": "Эффективность",
+   "gist_en": "same capability with less energy or resources",
+   "gist_ru": "та же возможность за меньше ресурсов",
+   "examples_nature": [],
+   "examples_business": [
+    "LED bulbs"
+   ],
+   "role": "hold",
+   "moats": [
+    {
+     "n": 15,
+     "kind": "direct"
+    },
+    {
+     "n": 35,
+     "kind": "direct"
+    }
+   ],
+   "disputed": false,
+   "note_en": "",
+   "note_ru": ""
+  },
+  {
+   "slug": "agility",
+   "category": "speed-scale",
+   "name_en": "Agility",
+   "name_ru": "Проворность",
+   "gist_en": "adapts easily to a changing environment",
+   "gist_ru": "легко подстраивается под меняющуюся среду",
+   "examples_nature": [
+    "squirrels"
+   ],
+   "examples_business": [
+    "gymnasts",
+    "go-karts"
+   ],
+   "role": "take",
+   "moats": [],
+   "disputed": false,
+   "note_en": "",
+   "note_ru": ""
+  },
+  {
+   "slug": "precision",
+   "category": "speed-scale",
+   "name_en": "Precision",
+   "name_ru": "Точность",
+   "gist_en": "high accuracy and exactness",
+   "gist_ru": "высокая точность",
+   "examples_nature": [],
+   "examples_business": [
+    "Swiss watches",
+    "CNC machining"
+   ],
+   "role": "take",
+   "moats": [
+    {
+     "n": 19,
+     "kind": "via"
+    }
+   ],
+   "disputed": false,
+   "note_en": "",
+   "note_ru": ""
+  },
+  {
+   "slug": "blitzing",
+   "category": "speed-scale",
+   "name_en": "Blitzing",
+   "name_ru": "Блиц",
+   "gist_en": "sudden concentrated expenditure of resources",
+   "gist_ru": "внезапный концентрированный расход ресурсов",
+   "examples_nature": [],
+   "examples_business": [
+    "hostile takeovers",
+    "blitz marketing"
+   ],
+   "role": "take",
+   "moats": [],
+   "disputed": false,
+   "note_en": "",
+   "note_ru": ""
+  },
+  {
+   "slug": "composability",
+   "category": "speed-scale",
+   "name_en": "Composability",
+   "name_ru": "Компонуемость",
+   "gist_en": "components assemble in many configurations",
+   "gist_ru": "компоненты собираются в разные конфигурации",
+   "examples_nature": [],
+   "examples_business": [
+    "APIs",
+    "Stripe"
+   ],
+   "role": "hold",
+   "moats": [
+    {
+     "n": 20,
+     "kind": "direct"
+    },
+    {
+     "n": 6,
+     "kind": "direct"
+    }
+   ],
+   "disputed": false,
+   "note_en": "",
+   "note_ru": ""
+  },
+  {
+   "slug": "modularity",
+   "category": "speed-scale",
+   "name_en": "Modularity",
+   "name_ru": "Модульность",
+   "gist_en": "independent units usable in combinations",
+   "gist_ru": "независимые блоки, работающие в комбинациях",
+   "examples_nature": [],
+   "examples_business": [
+    "LEGO",
+    "prefab buildings"
+   ],
+   "role": "hold",
+   "moats": [
+    {
+     "n": 20,
+     "kind": "direct"
+    },
+    {
+     "n": 6,
+     "kind": "direct"
+    }
+   ],
+   "disputed": false,
+   "note_en": "",
+   "note_ru": ""
+  },
+  {
+   "slug": "intuitiveness",
+   "category": "ease",
+   "name_en": "Intuitiveness",
+   "name_ru": "Интуитивность",
+   "gist_en": "usable without instruction",
+   "gist_ru": "понятен без инструкции",
+   "examples_nature": [],
+   "examples_business": [
+    "Dieter Rams designs"
+   ],
+   "role": "hold",
+   "moats": [
+    {
+     "n": 25,
+     "kind": "direct"
+    },
+    {
+     "n": 13,
+     "kind": "direct"
+    }
+   ],
+   "disputed": false,
+   "note_en": "",
+   "note_ru": ""
+  },
+  {
+   "slug": "fun",
+   "category": "ease",
+   "name_en": "Fun",
+   "name_ru": "Веселье",
+   "gist_en": "enjoyment and amusement",
+   "gist_ru": "удовольствие и развлечение",
+   "examples_nature": [],
+   "examples_business": [
+    "video games",
+    "amusement parks",
+    "Duolingo"
+   ],
+   "role": "hold",
+   "moats": [
+    {
+     "n": 25,
+     "kind": "direct"
+    },
+    {
+     "n": 8,
+     "kind": "direct"
+    }
+   ],
+   "disputed": false,
+   "note_en": "",
+   "note_ru": ""
+  },
+  {
+   "slug": "simplicity",
+   "category": "ease",
+   "name_en": "Simplicity",
+   "name_ru": "Простота",
+   "gist_en": "few points of failure, minimal design",
+   "gist_ru": "мало точек отказа, минимализм",
+   "examples_nature": [],
+   "examples_business": [
+    "hammer",
+    "MUJI"
+   ],
+   "role": "hold",
+   "moats": [
+    {
+     "n": 13,
+     "kind": "direct"
+    },
+    {
+     "n": 25,
+     "kind": "direct"
+    }
+   ],
+   "disputed": false,
+   "note_en": "",
+   "note_ru": ""
+  },
+  {
+   "slug": "low-friction",
+   "category": "ease",
+   "name_en": "Low-friction",
+   "name_ru": "Без трения",
+   "gist_en": "minimal hassle in use",
+   "gist_ru": "минимум усилий при использовании",
+   "examples_nature": [],
+   "examples_business": [
+    "one-click ordering"
+   ],
+   "role": "hold",
+   "moats": [
+    {
+     "n": 25,
+     "kind": "direct"
+    },
+    {
+     "n": 13,
+     "kind": "direct"
+    }
+   ],
+   "disputed": false,
+   "note_en": "",
+   "note_ru": ""
+  },
+  {
+   "slug": "charm",
+   "category": "ease",
+   "name_en": "Charm",
+   "name_ru": "Обаяние",
+   "gist_en": "loyalty through personality or aesthetics",
+   "gist_ru": "лояльность через характер или эстетику",
+   "examples_nature": [],
+   "examples_business": [
+    "Oprah Winfrey",
+    "Paris"
+   ],
+   "role": "hold",
+   "moats": [
+    {
+     "n": 8,
+     "kind": "direct"
+    },
+    {
+     "n": 32,
+     "kind": "direct"
+    }
+   ],
+   "disputed": false,
+   "note_en": "",
+   "note_ru": ""
+  },
+  {
+   "slug": "malleability",
+   "category": "transformation",
+   "name_en": "Malleability",
+   "name_ru": "Пластичность",
+   "gist_en": "easily modified or customised",
+   "gist_ru": "легко меняется и настраивается",
+   "examples_nature": [],
+   "examples_business": [
+    "clay",
+    "software code",
+    "method actors"
+   ],
+   "role": "morph",
+   "moats": [],
+   "disputed": false,
+   "note_en": "",
+   "note_ru": ""
+  },
+  {
+   "slug": "metamorphosis",
+   "category": "transformation",
+   "name_en": "Metamorphosis",
+   "name_ru": "Метаморфоза",
+   "gist_en": "switches between states optimised for different contexts",
+   "gist_ru": "переключается между формами под разные условия",
+   "examples_nature": [
+    "caterpillar → butterfly",
+    "tadpole → frog"
+   ],
+   "examples_business": [],
+   "role": "morph",
+   "moats": [],
+   "disputed": false,
+   "note_en": "",
+   "note_ru": ""
+  },
+  {
+   "slug": "copycat",
+   "category": "transformation",
+   "name_en": "Copycat",
+   "name_ru": "Подражатель",
+   "gist_en": "replicates another's method or style",
+   "gist_ru": "повторяет чужой метод или стиль",
+   "examples_nature": [],
+   "examples_business": [
+    "fast fashion",
+    "generic brands"
+   ],
+   "role": "morph",
+   "moats": [],
+   "disputed": false,
+   "note_en": "",
+   "note_ru": ""
+  }
+ ]
+}
