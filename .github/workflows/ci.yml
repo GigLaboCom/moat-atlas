@@ -56,6 +56,10 @@ jobs:
       # transcription has not drifted. See skills/moats/scripts/check.mjs.
       - run: npm run skill:check
 
+      # Sheet III against the build it just made: every row, every back-link,
+      # every twin cell re-derived from the dataset. See scripts/check-strategies.mjs.
+      - run: npm run strategies:check
+
   image:
     name: image builds
     runs-on: ubuntu-latest

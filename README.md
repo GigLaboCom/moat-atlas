@@ -20,6 +20,7 @@ npm run audit     # audit the agent-facing layer of a running build (see below)
 npm run hooks     # point git at .githooks/ — pre-commit secret scanning
 npm run skill     # install the /moats Claude Code skill (see below)
 npm run skill:check  # diff the skill's transcription against the matrix
+npm run strategies:check  # sheet III's gates against dist/ (rows, back-links, twins)
 ```
 
 Run `npm run lint && npm run build` before finishing any change — the build is the authoritative correctness check.
@@ -32,6 +33,7 @@ Run `npm run lint && npm run build` before finishing any change — the build is
 | `/moats/`        | The catalogue — all 35 mechanics as a table                  |
 | `/moats/{1..35}/`| One sheet per mechanic: passport, essence, build, bypass     |
 | `/calculator/`   | Sheet II — the survey: twelve questions, scored              |
+| `/strategies/`   | Sheet III — the 80 strategies, and which moat each leads to  |
 | `/credits/`      | Who made this — colophon                                     |
 | `/cookies/`      | Cookie policy + preference toggles                           |
 | `/404`           | Not found                                                    |
@@ -203,6 +205,47 @@ ladder worth 0, 25, 50, 75 or 100.
   pick an option, `←` steps back. Without JavaScript the page states as much and
   the start button stays disabled.
 
+## The strategies (sheet III)
+
+`/strategies/` lays out the 80 strategies of kepano's essay *Many ways to win*
+in its 13 categories, with the atlas's overlay on each: a *role* (holds,
+position, structure, protects, takes, morphs) and the moats of the matrix it
+leads to, linked as `direct`, `via` (`→ #N` — a positioning choice that becomes
+a moat only through that one) or `conditional` (`#N?` — only under the
+condition in the row's note). Three rows are marked disputed.
+
+- **Data.** `src/data/strategies.v1.json` is the canonical dataset, checked in
+  byte-for-byte as published; `src/data/strategies.ts` types it, validates it
+  at import (80 rows, unique slugs, every category, role, moat number and link
+  kind known, a note on every disputed row, both names and gists non-empty —
+  any of these fails the build) and derives what the pages need: a strategy's
+  depth is the deepest of its direct moats, taken from the matrix; a moat's
+  back-links are the strategies whose `moats[]` name it. Nothing derived is
+  stored. The dataset is bilingual by design, so it is the one place strings
+  live under `src/data/` — everything the page says *about* the table is in
+  `src/i18n/translations/pages/strategies.ts`.
+- **The page** is server-rendered whole — 80 rows under 13 group headers in
+  essay order, so a crawler or a client without JavaScript gets all of it.
+  `src/scripts/strategies.ts` only filters, sorts and counts; every fact it
+  needs sits on the row as a data attribute, so the JSON is never shipped
+  twice. The state lives in the query string — `?cat=price,time&role=hold&q=net&sort=depth:desc`
+  — defaults blank, unknown values dropped, `replaceState` not `pushState`, and
+  it composes with the row anchor: `/strategies/?role=hold#usership`.
+- **Slugs are identity.** A strategy's slug is its row anchor in both locales
+  and the link every moat sheet uses; slugs are never renamed.
+- **Back-links.** Every moat sheet ends with "Strategies that lead here" —
+  `src/components/StrategyBacklinks.astro`, fed by the derived map, in three
+  lists (direct, via, conditional with its note); a moat nothing leads to says
+  so, on purpose. The block sits inside `#sheet-article`, so the atlas modal
+  shows it too.
+- **For machines.** The twin carries the whole table, one per category, with
+  the notes as footnotes and the roles legend; the page's JSON-LD is a
+  `Dataset` (credited to the essay it is based on) plus an `ItemList` of the 80.
+- **Gates.** `npm run strategies:check` re-derives every expectation from the
+  JSON and compares it with `dist/`: row and group counts, both link directions,
+  every back-link set, every twin cell, locale parity, the disputed markers.
+  CI runs it after the build.
+
 ## The sheets
 
 Each of the 35 mechanics has a sheet at `/moats/N/`: a passport straight from
@@ -227,6 +270,8 @@ of how it gets bypassed, and a verdict. The prose lives in
   cross-section: the modal fetches `/moats/N/` and clones `#sheet-article` out of
   it, so the page stays the single renderer. A modified click, or a failed
   fetch, falls through to the page itself.
+- **Looking back.** The sheet ends with the strategies of sheet III that lead
+  to it — see "The strategies" above.
 
 ## Cookies and analytics
 

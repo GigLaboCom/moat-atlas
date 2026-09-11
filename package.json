@@ -18,7 +18,8 @@
     "og": "node scripts/generate-og-images.mjs",
     "icons": "node scripts/generate-icons.mjs",
     "skill": "bash scripts/install-skill.sh",
-    "skill:check": "node skills/moats/scripts/check.mjs"
+    "skill:check": "node skills/moats/scripts/check.mjs",
+    "strategies:check": "node scripts/check-strategies.mjs"
   },
   "dependencies": {
     "astro": "^5.17.1",

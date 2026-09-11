@@ -14,6 +14,7 @@ npm run icons     # re-render favicons/manifests/browserconfig from icons/*.svg
 npm run audit     # audit /llms.txt, the .md twins and the sitemap of a running build
 npm run skill     # install the /moats skill into ~/.claude/skills
 npm run skill:check  # diff the skill's transcription against the matrix and survey
+npm run strategies:check  # sheet III's gates against dist/ — run after every build that touches it
 ```
 
 No test runner is configured. **After touching any file, run `npm run lint && npm run build`** — the build is the authoritative correctness check.
@@ -50,6 +51,7 @@ per component, with the shared palette and type scale as custom properties in
 - `src/layouts/PageLayout.astro` — Layout + header + footer + reading column, used by every content page
 - `src/pages/index.astro` — sheet I, the cross-section HUD
 - `src/pages/calculator.astro` — sheet II, the survey
+- `src/pages/strategies.astro` — sheet III, the 80-strategies table
 - `src/scripts/atlas.ts` — the three.js scene: shafts, six groupings, core
   selection, rock isolation, `#moat-N` deep links
 - `src/scripts/section-state.ts` — sheet I's shared control state (view,
@@ -62,6 +64,11 @@ per component, with the shared palette and type scale as custom properties in
 - `src/data/moats.ts` — the 35-row survey matrix, language-neutral
 - `src/data/survey.ts` — sheet II: 12 questions, four segments, the scoring
 - `src/scripts/calculator.ts` — the survey engine behind `/calculator/`
+- `src/data/strategies.v1.json` + `strategies.ts` — sheet III: the canonical
+  dataset (checked in as published, never retyped) and its validator/deriver
+- `src/scripts/strategies.ts` — sheet III's filter/sort/URL engine
+- `src/components/StrategyBacklinks.astro` — "Strategies that lead here" on
+  every moat sheet
 - `src/i18n/` — locales, dictionaries, per-page and per-moat copy
 - `src/lib/` — consent, analytics, URL helpers
 - `src/lib/seo/` — the machine-readable layer: the page index, JSON-LD,
@@ -215,6 +222,29 @@ through `window.__SURVEY__` the way the cross-section takes `window.__ATLAS__`.
 - Elements the engine builds (options, segment bars, the two find-lists) are not
   stamped with Astro's scope attribute — their CSS in `calculator.astro` has to
   go through `:global()` under a server-rendered ancestor.
+
+## The strategies (sheet III)
+
+`src/data/strategies.v1.json` is canonical and bilingual — the one dataset that
+carries strings under `src/data/`, because it is checked in byte-for-byte as
+published (Watchword `moat-atlas-strategies-data-v1`). Never edit it by hand;
+a new version arrives as a new file. `src/data/strategies.ts` validates it at
+import — a bad row fails `astro build` naming the slug — and derives depth (max
+over direct moats, from the matrix) and the per-moat back-links. Copy *about*
+the table lives in `src/i18n/translations/pages/strategies.ts`; the shared
+keys (`atlas.tabs.strategies`, `strategies.meta`, `ui.footer.strategies`,
+`sheet.strategies.*` for the back-link block) in the main dictionaries.
+
+- The page is complete without JavaScript; `src/scripts/strategies.ts` hides,
+  re-orders and counts rows it never builds. Facts a filter needs go on the
+  row as `data-*`, not into a second copy of the JSON.
+- State is the query string, defaults blank, unknown values dropped,
+  `replaceState`; it composes with the `#slug` anchor. Slugs never change.
+- `→ #N` is *via*, `#N?` is *conditional* — typography fixed by the spec, in
+  `src/lib/strategies.ts`, shared by the page and the twin.
+- The twin (`md-bodies.ts`) and the JSON-LD (`ld.ts`) are built from the same
+  module; the sheet twin gets the back-link section from the same map.
+- After touching any of this: `npm run build && npm run strategies:check`.
 
 ## Moat sheets
 
