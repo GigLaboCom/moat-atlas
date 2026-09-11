@@ -240,6 +240,9 @@ export default {
       strategies: "Стратегии",
       credits: "Кто сделал",
       cookiePolicy: "Политика cookie",
+      /** Карта для агентов, подписанная именем файла — имя собственное. */
+      llms: "llms.txt",
+      llmsTitle: "Структура сайта и полный список страниц для агентов",
       giglabo: "GigLabo ↗",
       updated: "Обновлено",
     },

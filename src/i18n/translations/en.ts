@@ -240,6 +240,9 @@ export default {
       strategies: "Strategies",
       credits: "Who made this",
       cookiePolicy: "Cookie Policy",
+      /** The agent map, linked as its own file name — a proper noun. */
+      llms: "llms.txt",
+      llmsTitle: "Site structure and the full page list for agents",
       giglabo: "GigLabo ↗",
       updated: "Updated",
     },

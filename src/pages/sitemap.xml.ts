@@ -1,14 +1,20 @@
 /**
- * `/sitemap.xml` — canonical HTML URLs only.
+ * `/sitemap.xml` — every canonical HTML URL, and `/llms.txt`.
  *
  * The `.md` twins are deliberately absent and must never be added: a sitemap
  * declares canonical URLs, and every twin points its canonical back at the HTML
  * page. Listing both would have the sitemap and the `Link` header assert
  * opposite things. Twins are found through `/llms.txt` and the `<head>` link.
+ *
+ * `/llms.txt` itself is the one non-page entry, and it is not a twin: it is a
+ * document of its own, canonical at its own URL, duplicating nothing — it is
+ * here so a crawler that never read the `<head>` link still finds the map. One
+ * file serves both locales, so it carries no hreflang alternates.
  */
 import type { APIRoute } from "astro";
 import { defaultLocale } from "../i18n/config";
 import { allPages, alternatesOf } from "../lib/seo/pages";
+import { siteUrl } from "../lib/url";
 
 const lastmod = new Date().toISOString().slice(0, 10);
 
@@ -34,9 +40,18 @@ export const GET: APIRoute = () => {
     })
     .join("\n");
 
+  const agentMap = [
+    "  <url>",
+    `    <loc>${siteUrl("/llms.txt")}</loc>`,
+    `    <lastmod>${lastmod}</lastmod>`,
+    "    <priority>0.5</priority>",
+    "  </url>",
+  ].join("\n");
+
   const xml = `<?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9" xmlns:xhtml="http://www.w3.org/1999/xhtml">
 ${urls}
+${agentMap}
 </urlset>
 `;
 

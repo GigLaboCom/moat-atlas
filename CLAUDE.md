@@ -145,6 +145,12 @@ Rules:
 - **Twins are never listed in `sitemap.xml`.** Each twin sends
   `Link: rel="canonical"` at its HTML page; listing it would have the two assert
   opposite things. Discovery is `/llms.txt` plus the `<head>` link.
+- **`/llms.txt` is the one non-page URL in the sitemap**, and the only exception
+  to the rule above: it duplicates no page, so it competes with none, and a
+  crawler that never reads the `<head>` link still finds the map. It carries no
+  hreflang alternates — one file serves both locales — and the audit holds it
+  out of the page-for-page comparison while asserting it is there. The footer
+  links it for the same reason (`ui.footer.llms`).
 - **No `noindex` anywhere in this layer** — an agent that honours it refuses to
   use the file it just fetched.
 - **No invented strings.** A twin heading is a dictionary key or it does not
