@@ -9,7 +9,8 @@
  *
  *   G2  the page carries every strategy row and every category group row
  *   G4  every moat link on the page resolves; every strategy link on a moat
- *       sheet names a row that exists
+ *       sheet names a row that exists (the link now leads to the strategy's
+ *       own page, `/strategies/<slug>/`; the row anchor form is still accepted)
  *   G5  each moat sheet's back-links equal the set derived from the JSON
  *   G6  the twin has every row, and every Moats cell equals the JSON
  *   G8  the Russian page uses the Russian names; the two twins agree
@@ -84,7 +85,8 @@ for (const { code, prefix } of LOCALES) {
   const dangling = [];
   for (const n of moatNumbers) {
     const sheet = read(`${prefix}/moats/${n}/index.html`);
-    for (const [, href, slug] of sheet.matchAll(/href="([^"]*\/strategies\/)#([^"]+)"/g)) {
+    for (const [, href, anchor, dir] of sheet.matchAll(/href="([^"]*\/strategies\/)(?:#([^"]+)|([^"/]+)\/)"/g)) {
+      const slug = anchor ?? dir;
       anchors++;
       if (!href.startsWith(`${prefix}/strategies/`)) dangling.push(`#${n} → ${href} (locale)`);
       if (!slugs.has(slug) || !rowIds.has(slug)) dangling.push(`#${n} → #${slug}`);
@@ -160,7 +162,7 @@ for (const { code, prefix } of LOCALES) {
 // ── G8 ─────────────────────────────────────────────────────────────────────
 console.log("== G8: locale parity");
 {
-  const ruNames = [...pages.ru.matchAll(/<tr id="([^"]+)" class="strategy[^>]*>[\s\S]*?<strong[^>]*>([^<]*)<\/strong>/g)];
+  const ruNames = [...pages.ru.matchAll(/<tr id="([^"]+)" class="strategy[^>]*>[\s\S]*?<strong[^>]*>(?:<a[^>]*>)?([^<]*)</g)];
   const wrong = ruNames.filter(([, slug, name]) => {
     const s = data.strategies.find((x) => x.slug === slug);
     return s && decode(name) !== s.name_ru;

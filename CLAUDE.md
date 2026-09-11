@@ -15,6 +15,7 @@ npm run audit     # audit /llms.txt, the .md twins and the sitemap of a running 
 npm run skill     # install the /moats skill into ~/.claude/skills
 npm run skill:check  # diff the skill's transcription against the matrix and survey
 npm run strategies:check  # sheet III's gates against dist/ — run after every build that touches it
+npm run strategy-pages:check  # sheet III-b's gates (the 80 strategy pages) against dist/
 ```
 
 No test runner is configured. **After touching any file, run `npm run lint && npm run build`** — the build is the authoritative correctness check.
@@ -67,6 +68,9 @@ per component, with the shared palette and type scale as custom properties in
 - `src/data/strategies.v1.json` + `strategies.ts` — sheet III: the canonical
   dataset (checked in as published, never retyped) and its validator/deriver
 - `src/scripts/strategies.ts` — sheet III's filter/sort/URL engine
+- `src/pages/strategies/[slug].astro` — sheet III-b, one page per strategy
+- `src/data/strategy-pages.v1.json` + `strategy-pages.ts` — the prose layer
+  of the 80 pages, keyed by slug, validated at import
 - `src/components/StrategyBacklinks.astro` — "Strategies that lead here" on
   every moat sheet
 - `src/i18n/` — locales, dictionaries, per-page and per-moat copy
@@ -124,6 +128,7 @@ consumer walks the same index, and `scripts/audit-agents.sh` proves it did.
 | `src/pages/{llms.txt,sitemap.xml,robots.txt}.ts` | The three endpoints. |
 | `src/components/JsonLd.astro` | Emits the graph; `Layout.astro` renders it for every real page. |
 | `scripts/audit-agents.sh` | The audit, also run in CI against the container. |
+| `.claude/skills/generate-ldjson/` | The skill for editing the graph: per-kind anatomy, the field catalogue, and `scripts/check-ld.mjs`, which reads every graph out of `dist/` and checks its shape. |
 
 Rules:
 
@@ -147,6 +152,10 @@ Rules:
 - After changing anything here: `npm run build`, then `docker build` and
   `npm run audit -- http://localhost:PORT`. The audit checks coverage both
   ways, both URL forms, head links, sitemap agreement and the 404 shape.
+- The audit only proves a page *has* JSON-LD. For the graph itself use the
+  `generate-ldjson` skill and its checker,
+  `node .claude/skills/generate-ldjson/scripts/check-ld.mjs` — dangling `@id`s,
+  unlisted URLs, duplicates, empty values and a page type that quietly changed.
 
 ## Icons
 
@@ -245,6 +254,25 @@ keys (`atlas.tabs.strategies`, `strategies.meta`, `ui.footer.strategies`,
 - The twin (`md-bodies.ts`) and the JSON-LD (`ld.ts`) are built from the same
   module; the sheet twin gets the back-link section from the same map.
 - After touching any of this: `npm run build && npm run strategies:check`.
+
+### The strategy pages (sheet III-b)
+
+`/strategies/<slug>/` joins two datasets at build time: the frozen row from
+`strategies.v1.json` and the prose from `src/data/strategy-pages.v1.json`
+(keyed by slug, both locales, written for the atlas — never a translation of
+the essay). `src/data/strategy-pages.ts` validates the prose at import — keys
+are exactly the 80 slugs, every field non-empty in both locales, lists within
+bounds, `per_moat` exactly the row's moats, combos/tensions resolving and not
+self-referencing, no Russian field equal to its English one — and fails the
+build naming the slug and field. Copy around the page lives in
+`src/i18n/translations/pages/strategy.ts`; `src/lib/strategy-pages.ts` picks
+the locale and derives the description, the neighbours and the direct moats'
+matrix attributes for the page, the twin and the JSON-LD alike.
+
+- The page has no script and no parameters; everything is rendered at build.
+- `status` is the owner's review state — never rendered, only reported by
+  `npm run strategy-pages:check` together with the one-sided combo pairs.
+- After touching any of this: `npm run build && npm run strategy-pages:check`.
 
 ## Moat sheets
 

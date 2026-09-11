@@ -19,7 +19,8 @@
     "icons": "node scripts/generate-icons.mjs",
     "skill": "bash scripts/install-skill.sh",
     "skill:check": "node skills/moats/scripts/check.mjs",
-    "strategies:check": "node scripts/check-strategies.mjs"
+    "strategies:check": "node scripts/check-strategies.mjs",
+    "strategy-pages:check": "node scripts/check-strategy-pages.mjs"
   },
   "dependencies": {
     "astro": "^5.17.1",

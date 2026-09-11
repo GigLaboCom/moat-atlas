@@ -58,6 +58,7 @@ jobs:
           npm run build
           npm run skill:check
           npm run strategies:check
+          npm run strategy-pages:check
 
       - uses: docker/setup-qemu-action@v3
       - uses: docker/setup-buildx-action@v3

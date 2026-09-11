@@ -60,6 +60,10 @@ jobs:
       # every twin cell re-derived from the dataset. See scripts/check-strategies.mjs.
       - run: npm run strategies:check
 
+      # Sheet III-b: the 80 strategy pages and their twins against the two
+      # datasets, and the frozen hash of the rows. See scripts/check-strategy-pages.mjs.
+      - run: npm run strategy-pages:check
+
   image:
     name: image builds
     runs-on: ubuntu-latest

@@ -21,6 +21,7 @@ npm run hooks     # point git at .githooks/ — pre-commit secret scanning
 npm run skill     # install the /moats Claude Code skill (see below)
 npm run skill:check  # diff the skill's transcription against the matrix
 npm run strategies:check  # sheet III's gates against dist/ (rows, back-links, twins)
+npm run strategy-pages:check  # sheet III-b's gates against dist/ (the 80 pages, twins, links, hash)
 ```
 
 Run `npm run lint && npm run build` before finishing any change — the build is the authoritative correctness check.
@@ -34,6 +35,7 @@ Run `npm run lint && npm run build` before finishing any change — the build is
 | `/moats/{1..35}/`| One sheet per mechanic: passport, essence, build, bypass     |
 | `/calculator/`   | Sheet II — the survey: twelve questions, scored              |
 | `/strategies/`   | Sheet III — the 80 strategies, and which moat each leads to  |
+| `/strategies/{slug}/` | One page per strategy: the moats it grows into, and why  |
 | `/credits/`      | Who made this — colophon                                     |
 | `/cookies/`      | Cookie policy + preference toggles                           |
 | `/404`           | Not found                                                    |
@@ -231,13 +233,13 @@ condition in the row's note). Three rows are marked disputed.
   twice. The state lives in the query string — `?cat=price,time&role=hold&q=net&sort=depth:desc`
   — defaults blank, unknown values dropped, `replaceState` not `pushState`, and
   it composes with the row anchor: `/strategies/?role=hold#usership`.
-- **Slugs are identity.** A strategy's slug is its row anchor in both locales
-  and the link every moat sheet uses; slugs are never renamed.
+- **Slugs are identity.** A strategy's slug is its row anchor in both locales,
+  its page and the link every moat sheet uses; slugs are never renamed.
 - **Back-links.** Every moat sheet ends with "Strategies that lead here" —
   `src/components/StrategyBacklinks.astro`, fed by the derived map, in three
-  lists (direct, via, conditional with its note); a moat nothing leads to says
-  so, on purpose. The block sits inside `#sheet-article`, so the atlas modal
-  shows it too.
+  lists (direct, via, conditional with its note), each a link to the strategy's
+  page; a moat nothing leads to says so, on purpose. The block sits inside
+  `#sheet-article`, so the atlas modal shows it too.
 - **For machines.** The twin carries the whole table, one per category, with
   the notes as footnotes and the roles legend; the page's JSON-LD is a
   `Dataset` (credited to the essay it is based on) plus an `ItemList` of the 80.
@@ -245,6 +247,43 @@ condition in the row's note). Three rows are marked disputed.
   JSON and compares it with `dist/`: row and group counts, both link directions,
   every back-link set, every twin cell, locale parity, the disputed markers.
   CI runs it after the build.
+
+### A page per strategy (sheet III-b)
+
+`/strategies/<slug>/` is where a strategy is explained and tied to the atlas:
+the moats it grows into with one note per moat, why its role is what it is,
+the signs you already have it, how to dig it, how it erodes, what a solo
+builder without capital can do with it, cases, and the strategies it combines
+and fights with. The table stays the index.
+
+- **Two datasets, one join.** `strategies.v1.json` is frozen — the row. The
+  prose is `src/data/strategy-pages.v1.json`, keyed by slug, written for the
+  atlas in both locales, never a translation of the essay. `src/data/strategy-pages.ts`
+  validates it at import: the keys are exactly the 80 slugs, every field
+  non-empty in both locales, lists within their bounds, `per_moat` covering
+  exactly the row's moats, every combo and tension resolving to another slug,
+  and no Russian field a copy of its English twin — any of these fails the
+  build naming the slug and the field. Depth, moat names, the matrix
+  attributes and the neighbours are derived, never stored.
+- **No script.** The page is rendered whole at build time and loads nothing
+  beyond the shell; there are no parameters. Prev/next walk the category in
+  essay order and wrap at its edges.
+- **`status`** on a page is the owner's review state (`draft` / `reviewed`).
+  It never renders; `npm run strategy-pages:check` prints the queue, and the
+  one-sided combo pairs (A lists B, B does not list A) — the seed of a future
+  co-occurrence matrix.
+- **For machines.** Every page has a twin that carries the whole page with the
+  moat numbers, names and depths; llms.txt lists the 80 with their twin URLs;
+  the JSON-LD is a `DefinedTerm` like a sheet's, with the moats as references
+  to the sheets' own terms.
+- **Gates.** `npm run strategy-pages:check` walks `dist/`: every page and both
+  twin forms exist, every twin's Moats section equals the JSON, every block's
+  content is in the HTML, every link on the table, the sheets and the pages
+  resolves and every row anchor survives, the locales agree on shape and
+  differ in words, `strategies.v1.json` still hashes as published, the
+  attribution is everywhere, distinct descriptions and the head links on all
+  160 pages. Pass `--essay FILE` to also check that no 12-word run of the
+  prose appears in the essay text.
 
 ## The sheets
 
