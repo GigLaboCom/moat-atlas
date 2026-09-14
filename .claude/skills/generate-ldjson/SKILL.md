@@ -86,12 +86,13 @@ node .claude/skills/generate-ldjson/scripts/check-ld.mjs --print /moats/7/
 
 | The page is | `WebPage` `@type` | Entity nodes | `mainEntity` |
 | --- | --- | --- | --- |
-| sheet I, the cross-section (`atlas`) | `WebPage` | `DefinedTermSet` of the 35 sheets | the set |
+| the home page and sheet I (`atlas`) | `WebPage` | `DefinedTermSet` of the 35 sheets + `HowTo` (the three steps) + the calculator's `WebApplication` (same `@id` as on `/calculator/`) | the set |
 | the catalogue (`catalogue`) | `CollectionPage` | `Dataset` (the matrix, axes as `variableMeasured`) + `ItemList` | the list |
 | one moat sheet (`sheet`) | `WebPage` | `DefinedTerm` carrying the passport as `additionalProperty` | the term |
 | sheet II, the survey (`calculator`) | `WebPage` | `WebApplication` (shape of the instrument as `additionalProperty`) | the app |
 | sheet III, the table (`strategies`) | `CollectionPage` | `Dataset` (`isBasedOn` the essay) + `ItemList` | the list |
 | one strategy page (`strategy`) | `WebPage` | `DefinedTerm`, `mentions` the moats it leads to | the term |
+| the reading guide (`about`) | `AboutPage` | — | — |
 | credits (`credits`) | `AboutPage` | — | — |
 | cookies (`cookies`) | `WebPage` | — | — |
 
@@ -105,7 +106,9 @@ entities is a `ref()` to the other node's `@id`; a downloadable form of a
 dataset is a `DataDownload` pointing at the page's twin (`twinUrl(page.path)`).
 
 Types this site does not use, and why: `FAQPage` (no page is Q&A — the survey is
-an instrument, not a FAQ), `HowTo` (the sheets are descriptions, not procedures),
+an instrument, not a FAQ), `HowTo` anywhere but the home page (the sheets are
+descriptions, not procedures; the three steps — answer, get the depth, read the
+sheets — are the one procedure the site states),
 `Product`/`Offer` beyond the free web app, `VideoObject` (no video), `Article`
 (nothing here is dated editorial). Reach for one only when a page genuinely
 becomes that thing, and say so in the commit.

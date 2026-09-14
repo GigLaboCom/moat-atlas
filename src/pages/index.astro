@@ -2,6 +2,7 @@
 import Layout from "../layouts/Layout.astro";
 import SiteHeader from "../components/SiteHeader.astro";
 import SiteFooter from "../components/SiteFooter.astro";
+import SampleResult from "../components/SampleResult.astro";
 import type { Locale } from "../i18n/config";
 import { getTranslations, getLocalizedPath } from "../i18n/index";
 import { getAllMoatStrings } from "../i18n/translations/moats/index";
@@ -15,11 +16,26 @@ import {
   type DepthLevel,
   type Moat,
 } from "../data/moats";
+import { SAMPLE_PULSE } from "../data/sample-result";
+import { GUIDE_FINEPRINT_KEY, GUIDE_READING_KEYS } from "../lib/guide";
+import { fillHome, homeDescription, homeSteps, homeStrings, strategiesTeaser } from "../lib/home";
 
 const headerLocale = Astro.request.headers.get("x-locale") as Locale | null;
 const lang: Locale = headerLocale ?? "en";
 const t = getTranslations(lang);
 const names = getAllMoatStrings(lang);
+const h = homeStrings(lang);
+const guide = t.atlas.guide;
+const finePrint = guide.sections[GUIDE_FINEPRINT_KEY];
+
+const calculatorPath = getLocalizedPath("/calculator/", lang);
+const strategiesPath = getLocalizedPath("/strategies/", lang);
+const aboutPath = getLocalizedPath("/about/", lang);
+
+/** Every count in the copy comes from the data — see `src/lib/home.ts`. */
+const description = homeDescription(lang);
+const steps = homeSteps(lang);
+const cta = h.hero.cta;
 
 const rockGroups = ROCK_ORDER.map((rock) => ({
   rock,
@@ -69,20 +85,19 @@ const sceneData = {
     grouping: t.atlas.status.grouping,
     isolated: t.atlas.status.isolated,
     isolatedDepth: t.atlas.status.isolatedDepth,
+    first: t.atlas.status.first,
+    highlighted: t.atlas.status.highlighted,
   },
   specimen: { eyebrow: t.atlas.specimen.eyebrow, rock: t.atlas.specimen.rock },
   draft: t.sheet.draft,
   loading: t.atlas.loading,
+  // The shaft the bare section points at — the sample card's deepest mechanic.
+  firstContact: { pulse: SAMPLE_PULSE },
 };
 ---
 
-<Layout
-  title={t.meta.title}
-  description={t.meta.description}
-  lang={lang}
-  fixed={true}
->
-  <!-- Before anything paints: `?view=list` opens the page in its text mode.
+<Layout title={t.meta.title} description={description} lang={lang}>
+  <!-- Before anything paints: `?view=list` opens the section in its text mode.
        Everything else keys off this class; where WebGL cannot start, the
        scene module sets it too, so the list is also the fallback. -->
   <script is:inline>
@@ -91,163 +106,244 @@ const sceneData = {
     }
   </script>
 
-  <canvas id="scene" aria-hidden="true"></canvas>
+  <a href="#content" class="skip-link">{t.ui.skipToContent}</a>
 
-  <noscript>
-    <div class="noscript">
-      <p>{t.atlas.fallback}</p>
-      <a href={getLocalizedPath("/moats/", lang)}>{t.atlas.fallbackLink}</a>
-    </div>
-  </noscript>
-
-  <!-- header plate + mode tabs -->
-  <header class="hud top">
-    <div class="plate">
-      <div class="eyebrow">{t.atlas.eyebrow}</div>
-      <h1>{t.atlas.title}</h1>
-      <div class="rule"></div>
-      <p class="sub">{t.atlas.subtitle}</p>
-    </div>
-
-    <div class="top-right">
-      <SiteHeader lang={lang} basePath="/" />
-      <nav class="tabs" aria-label={t.atlas.tabs.atlas.title}>
-        <span class="tab active">
-          <strong>{t.atlas.tabs.atlas.title}</strong>
-          <span>{t.atlas.tabs.atlas.sub}</span>
-        </span>
-        <a class="tab" href={getLocalizedPath("/calculator/", lang)}>
-          <strong>{t.atlas.tabs.calc.title}</strong>
-          <span>{t.atlas.tabs.calc.sub}</span>
-        </a>
-        <a class="tab" href={getLocalizedPath("/strategies/", lang)}>
-          <strong>{t.atlas.tabs.strategies.title}</strong>
-          <span>{t.atlas.tabs.strategies.sub}</span>
-        </a>
-      </nav>
-
-      <!-- The same 35 sheets, drawn or written. Links, because a view is an
-           address — ?view=list — and the script only saves the round trip. -->
-      <nav class="view-switch" aria-label={t.atlas.view.label}>
-        <a data-view="scene" href={getLocalizedPath("/", lang)} aria-current="true">
-          {t.atlas.view.scene}
-        </a>
-        <a data-view="list" href={`${getLocalizedPath("/", lang)}?view=list`}>
-          {t.atlas.view.list}
-        </a>
-      </nav>
-
-      <button class="guide-open" id="guide-open" type="button" aria-haspopup="dialog">
-        <span aria-hidden="true">?</span>{t.atlas.guide.open}
-      </button>
-    </div>
-  </header>
-
-  <!-- The controls rail: grouping, rock isolation and the depth ruler serve
-       the drawing and the list alike, so they share one wrapper — fixed HUD
-       panels over the scene, a sidebar (or column) beside the list. -->
-  <div class="side">
-    <!-- grouping + rock isolation -->
-    <aside class="hud legend">
-      <h3>{t.atlas.legend.grouping}</h3>
-      <div class="groupers" id="groupers">
-        {GROUPING_AXES.map((axis, i) => (
-          <button class:list={["grp", { on: i === 0 }]} data-axis={axis} type="button">
-            {t.atlas.axes[axis]}
-          </button>
-        ))}
-      </div>
-
-      <h3>{t.atlas.legend.rocks}</h3>
-      <ul id="legend-list">
-        {rockCounts.map(({ rock, count }) => (
-          <li data-rock={rock}>
-            <i style={`background:${ROCK_COLORS[rock]}`}></i>
-            {t.rocks[rock]}
-            <em>{count}</em>
-          </li>
-        ))}
-      </ul>
-
-      <div class="foot" set:html={t.atlas.legend.foot}></div>
-    </aside>
-
-    <!-- depth ruler: the key to the vertical axis, and the second isolation filter -->
-    <aside class="hud ruler" aria-label={t.atlas.ruler.heading}>
-      <h3>{t.atlas.ruler.heading}</h3>
-      <p class="caption">{t.atlas.ruler.caption}</p>
-      <ul id="depth-list">
-        {DEPTH_LEVELS.map((lvl) => (
-          <li data-depth={lvl}>
-            <span class="lvl">{lvl}</span>
-            <span class="tool">
-              {t.atlas.ruler[lvl].tool}
-              <em class="yrs">{t.atlas.ruler[lvl].years}</em>
-            </span>
-            <span class="tally">
-              <i style={`--w:${depthCounts[lvl] / maxDepthCount}`}></i>
-              <b>{depthCounts[lvl]}</b>
-            </span>
-          </li>
-        ))}
-      </ul>
-    </aside>
+  <div class="column">
+    <SiteHeader lang={lang} basePath="/" />
   </div>
 
-  <!-- specimen card -->
-  <aside class="hud card specimen" id="specimen">
-    <button class="close" id="card-close" hidden aria-label={t.atlas.specimen.close}>✕</button>
-    <div class="eyebrow" id="card-eyebrow">{t.atlas.specimen.empty_eyebrow}</div>
-    <h2 id="card-title">{t.atlas.specimen.empty_title}</h2>
-    <div class="stats" id="card-stats" hidden>
-      <div>{t.atlas.specimen.stats.depth} <b id="s-depth"></b></div>
-      <div>{t.atlas.specimen.stats.cap} <b id="s-cap"></b></div>
-      <div>{t.atlas.specimen.stats.solo} <b id="s-solo"></b></div>
-      <div>{t.atlas.specimen.stats.ai} <b id="s-ai"></b></div>
-      <div>{t.atlas.specimen.stats.rent} <b id="s-rent"></b></div>
-    </div>
-    <p id="card-body">{t.atlas.specimen.empty_body}</p>
-    <a href="#" id="card-link" hidden>{t.atlas.specimen.link}</a>
-  </aside>
-
-  <!-- Sheet I's text mode: the same matrix as readable entries, server-rendered
-       grouped by rock (the default axis). atlas-list.ts re-groups and filters;
-       the entry anchors make /?view=list#moat-7 a walkable address. -->
-  <section class="atlas-list" aria-label={t.atlas.view.list}>
-    <div id="list-groups">
-      {rockGroups.map(({ rock, items }) => (
-        <section class="list-group">
-          <h2>
-            <i class="dot" style={`background:${ROCK_COLORS[rock]}`}></i>
-            <span>{t.rocks[rock]}</span>
-            <em>{items.length}</em>
-          </h2>
-          <ol>
-            {items.map((m) => (
-              <li class="entry" id={`moat-${m.n}`} data-n={m.n}>
-                <div class="entry-head">
-                  <span class="n">{m.n}</span>
-                  <h3>
-                    <a href={getLocalizedPath(`/moats/${m.n}/`, lang)}>{names[m.n].name}</a>
-                  </h3>
-                </div>
-                <ul class="chips" aria-label={t.sheet.passport}>
-                  <li>
-                    <i class="dot" style={`background:${ROCK_COLORS[m.rock]}`}></i>
-                    {t.rocks[m.rock]}
-                  </li>
-                  {chipRow(m).map((chip) => <li>{chip}</li>)}
-                </ul>
-                <p class:list={["essence", { draft: !names[m.n].essence }]}>
-                  {names[m.n].essence || t.sheet.draft}
-                </p>
-              </li>
-            ))}
-          </ol>
+  <main id="content">
+    <div class="column">
+      <!-- The fold: what the page is for, what to press, and what comes out —
+           the worked example beside the promise on a desktop, right under it
+           on a phone. The brand is the eyebrow; the canvas is a screen away. -->
+      <div class="fold">
+        <section class="hero" aria-labelledby="hero-title">
+          <p class="eyebrow">{t.atlas.title}</p>
+          <h1 id="hero-title">{h.hero.title}</h1>
+          <p class="sub">{description}</p>
+          <a class="btn" href={calculatorPath}>{cta}</a>
+          <p class="trust">{h.hero.trust}</p>
+          <p class="explore"><a href="#section">{fillHome(lang, h.hero.explore)}</a></p>
         </section>
-      ))}
+
+        <SampleResult lang={lang} />
+      </div>
+
+      <section class="steps" aria-labelledby="steps-title">
+        <h2 id="steps-title">{h.steps.title}</h2>
+        <ol>
+          {steps.map((step) => (
+            <li>
+              <h3>{step.title}</h3>
+              <p>{step.text}</p>
+            </li>
+          ))}
+        </ol>
+        <a class="btn" href={calculatorPath}>{cta}</a>
+      </section>
     </div>
-  </section>
+
+    <!-- Sheet I proper: the cross-section, its instruments, and the guide to
+         reading it — folded, because the drawing is entered from the result
+         above, not cold. -->
+    <section class="section" id="section" aria-labelledby="section-title">
+      <div class="column">
+        <h2 id="section-title">{fillHome(lang, h.section.title)}</h2>
+        <p class="caption">{h.section.caption}</p>
+
+        <details class="guide" id="guide">
+          <summary>{h.section.guide}</summary>
+          <p class="lede">{guide.lede}</p>
+          <dl>
+            {GUIDE_READING_KEYS.map((key) => (
+              <div class="row">
+                <dt>{guide.sections[key].title}</dt>
+                <dd>{guide.sections[key].body}</dd>
+              </div>
+            ))}
+          </dl>
+          <p class="full"><a href={aboutPath}>{h.section.fullGuide}</a></p>
+        </details>
+      </div>
+
+      <div class="stage" id="stage">
+        <canvas id="scene" aria-hidden="true"></canvas>
+
+        <noscript>
+          <div class="noscript">
+            <p>{t.atlas.fallback}</p>
+            <a href={getLocalizedPath("/moats/", lang)}>{t.atlas.fallbackLink}</a>
+          </div>
+        </noscript>
+
+        <!-- the top strip: the view switch, the sheet tabs, the help button -->
+        <header class="hud top">
+          <!-- The same 35 sheets, drawn or written. Links, because a view is an
+               address — ?view=list — and the script only saves the round trip. -->
+          <nav class="view-switch" aria-label={t.atlas.view.label}>
+            <a data-view="scene" href={getLocalizedPath("/", lang)} aria-current="true">
+              {t.atlas.view.scene}
+            </a>
+            <a data-view="list" href={`${getLocalizedPath("/", lang)}?view=list`}>
+              {t.atlas.view.list}
+            </a>
+          </nav>
+
+          <div class="top-right">
+            <!-- Calculator first: the page's hierarchy, not the sheet numbers. -->
+            <nav class="tabs" aria-label={t.atlas.tabs.atlas.title}>
+              <a class="tab" href={calculatorPath}>
+                <strong>{t.atlas.tabs.calc.title}</strong>
+                <span>{t.atlas.tabs.calc.sub}</span>
+              </a>
+              <span class="tab active">
+                <strong>{t.atlas.tabs.atlas.title}</strong>
+                <span>{t.atlas.tabs.atlas.sub}</span>
+              </span>
+              <a class="tab" href={strategiesPath}>
+                <strong>{t.atlas.tabs.strategies.title}</strong>
+                <span>{t.atlas.tabs.strategies.sub}</span>
+              </a>
+            </nav>
+
+            <button class="guide-open" id="guide-open" type="button" aria-controls="guide">
+              <span aria-hidden="true">?</span>{guide.open}
+            </button>
+          </div>
+        </header>
+
+        <!-- The controls rail: grouping, rock isolation and the depth ruler serve
+             the drawing and the list alike, so they share one wrapper — panels
+             over the scene, a sidebar (or column) beside the list. -->
+        <div class="side">
+          <!-- grouping + rock isolation -->
+          <aside class="hud legend">
+            <h3>{t.atlas.legend.grouping}</h3>
+            <div class="groupers" id="groupers">
+              {GROUPING_AXES.map((axis, i) => (
+                <button class:list={["grp", { on: i === 0 }]} data-axis={axis} type="button">
+                  {t.atlas.axes[axis]}
+                </button>
+              ))}
+            </div>
+
+            <h3>{t.atlas.legend.rocks}</h3>
+            <ul id="legend-list">
+              {rockCounts.map(({ rock, count }) => (
+                <li data-rock={rock}>
+                  <i style={`background:${ROCK_COLORS[rock]}`}></i>
+                  {t.rocks[rock]}
+                  <em>{count}</em>
+                </li>
+              ))}
+            </ul>
+
+            <div class="foot" set:html={t.atlas.legend.foot}></div>
+          </aside>
+
+          <!-- depth ruler: the key to the vertical axis, and the second isolation filter -->
+          <aside class="hud ruler" aria-label={t.atlas.ruler.heading}>
+            <h3>{t.atlas.ruler.heading}</h3>
+            <p class="caption">{t.atlas.ruler.caption}</p>
+            <ul id="depth-list">
+              {DEPTH_LEVELS.map((lvl) => (
+                <li data-depth={lvl}>
+                  <span class="lvl">{lvl}</span>
+                  <span class="tool">
+                    {t.atlas.ruler[lvl].tool}
+                    <em class="yrs">{t.atlas.ruler[lvl].years}</em>
+                  </span>
+                  <span class="tally">
+                    <i style={`--w:${depthCounts[lvl] / maxDepthCount}`}></i>
+                    <b>{depthCounts[lvl]}</b>
+                  </span>
+                </li>
+              ))}
+            </ul>
+          </aside>
+        </div>
+
+        <!-- specimen card -->
+        <aside class="hud card specimen" id="specimen">
+          <button class="close" id="card-close" hidden aria-label={t.atlas.specimen.close}>✕</button>
+          <div class="eyebrow" id="card-eyebrow">{t.atlas.specimen.empty_eyebrow}</div>
+          <h3 id="card-title">{t.atlas.specimen.empty_title}</h3>
+          <div class="stats" id="card-stats" hidden>
+            <div>{t.atlas.specimen.stats.depth} <b id="s-depth"></b></div>
+            <div>{t.atlas.specimen.stats.cap} <b id="s-cap"></b></div>
+            <div>{t.atlas.specimen.stats.solo} <b id="s-solo"></b></div>
+            <div>{t.atlas.specimen.stats.ai} <b id="s-ai"></b></div>
+            <div>{t.atlas.specimen.stats.rent} <b id="s-rent"></b></div>
+          </div>
+          <p id="card-body">{t.atlas.specimen.empty_body}</p>
+          <a href="#" id="card-link" hidden>{t.atlas.specimen.link}</a>
+        </aside>
+
+        <!-- Sheet I's text mode: the same matrix as readable entries, server-rendered
+             grouped by rock (the default axis). atlas-list.ts re-groups and filters;
+             the entry anchors make /?view=list#moat-7 a walkable address. -->
+        <section class="atlas-list" aria-label={t.atlas.view.list}>
+          <div id="list-groups">
+            {rockGroups.map(({ rock, items }) => (
+              <section class="list-group">
+                <h3>
+                  <i class="dot" style={`background:${ROCK_COLORS[rock]}`}></i>
+                  <span>{t.rocks[rock]}</span>
+                  <em>{items.length}</em>
+                </h3>
+                <ol>
+                  {items.map((m) => (
+                    <li class="entry" id={`moat-${m.n}`} data-n={m.n}>
+                      <div class="entry-head">
+                        <span class="n">{m.n}</span>
+                        <h4>
+                          <a href={getLocalizedPath(`/moats/${m.n}/`, lang)}>{names[m.n].name}</a>
+                        </h4>
+                      </div>
+                      <ul class="chips" aria-label={t.sheet.passport}>
+                        <li>
+                          <i class="dot" style={`background:${ROCK_COLORS[m.rock]}`}></i>
+                          {t.rocks[m.rock]}
+                        </li>
+                        {chipRow(m).map((chip) => <li>{chip}</li>)}
+                      </ul>
+                      <p class:list={["essence", { draft: !names[m.n].essence }]}>
+                        {names[m.n].essence || t.sheet.draft}
+                      </p>
+                    </li>
+                  ))}
+                </ol>
+              </section>
+            ))}
+          </div>
+        </section>
+
+        <!-- status line + interaction hint. The status is live only while it
+             carries the first-contact hint; the scene drops the attribute. -->
+        <div class="hud status" aria-live="polite"><span id="tooltip">{t.atlas.loading}</span></div>
+        <div class="hud hint"><span>{t.atlas.hint}</span></div>
+      </div>
+    </section>
+
+    <div class="column">
+      <!-- Sheet III, in one line -->
+      <section class="teaser" aria-labelledby="teaser-title">
+        <h2 id="teaser-title">{fillHome(lang, h.teaser.title)}</h2>
+        <p>{strategiesTeaser(lang)}</p>
+        <p class="more"><a href={strategiesPath}>{h.teaser.link}</a></p>
+      </section>
+
+      <section class="fineprint" aria-labelledby="fineprint-title">
+        <h2 id="fineprint-title">{finePrint.title}</h2>
+        <p>{finePrint.body}</p>
+      </section>
+    </div>
+  </main>
+
+  <div class="column">
+    <SiteFooter lang={lang} />
+  </div>
 
   <!-- the full sheet, over the section — the page at /moats/N/ stays as it is -->
   <dialog class="sheet-modal" id="sheet-modal" aria-label={t.atlas.specimen.link}>
@@ -256,59 +352,245 @@ const sceneData = {
     <a class="modal-page" id="modal-page" href="#">{t.atlas.specimen.page}</a>
   </dialog>
 
-  <!-- the guide: what the drawing means, and what the section can be asked to do -->
-  <dialog class="guide-modal" id="guide-modal" aria-labelledby="guide-title">
-    <button class="close" id="guide-close" aria-label={t.atlas.guide.close}>✕</button>
-    <h2 id="guide-title">{t.atlas.guide.title}</h2>
-    <p class="lede">{t.atlas.guide.lede}</p>
-    <dl>
-      {t.atlas.guide.sections.map((section) => (
-        <div class="row">
-          <dt>{section.title}</dt>
-          <dd>{section.body}</dd>
-        </div>
-      ))}
-    </dl>
-  </dialog>
-
-  <!-- status line + interaction hint -->
-  <div class="hud status"><span id="tooltip">{t.atlas.loading}</span></div>
-  <div class="hud hint"><span>{t.atlas.hint}</span></div>
-
-  <!-- The section is the one page with no page chrome, so the site footer joins
-       the HUD: the catalogue, the colophon and the cookie policy have to be one
-       click from here too. Same component as every other page. -->
-  <div class="hud footer-hud">
-    <SiteFooter lang={lang} />
-  </div>
-
   <script define:vars={{ sceneData }} is:inline>
-    // Handed to the scene module below; kept inline so the 3D layer stays
+    // Handed to the scene module; kept inline so the 3D layer stays
     // language-aware without a second fetch.
     window.__ATLAS__ = sceneData;
   </script>
 
   <script>
-    import "../scripts/atlas";
+    // The list and the controls bind at once; the scene waits for the canvas
+    // to come near the viewport (atlas-lazy.ts), so the fold never pays for it.
     import "../scripts/atlas-list";
+    import "../scripts/atlas-lazy";
     // Separate from the scene: the guide has to open even where WebGL does not.
     import "../scripts/guide";
   </script>
 </Layout>
 
 <style>
+  /* ── the page ────────────────────────────────────────── */
+  /* The same column every content page reads in; the stage alone runs the
+     full width of the window, between two of them. */
+  .column { max-width: 1280px; margin: 0 auto; padding: 0 32px; }
+  .column:first-child { padding-top: 40px; }
+  .column:last-child { padding-bottom: 40px; }
+
+  /* The home page shows the brand in the hero, not next to the controls. */
+  .column :global(.site-header .logo) { display: none; }
+
+  h2 {
+    font-family: var(--display);
+    font-weight: 400;
+    font-size: clamp(22px, 2.6vw, 30px);
+    letter-spacing: 0.03em;
+    line-height: 1.25;
+  }
+
+  /* ── the fold ────────────────────────────────────────── */
+  .fold {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(300px, 460px);
+    gap: 40px 64px;
+    align-items: start;
+  }
+
+  .fold :global(.sample) { margin-top: 64px; }
+
+  @media (max-width: 900px) {
+    .fold { grid-template-columns: 1fr; gap: 0; }
+    .fold :global(.sample) { margin-top: 40px; }
+  }
+
+  .hero { padding: 56px 0 8px; max-width: 720px; }
+
+  .hero .eyebrow {
+    font-family: var(--mono);
+    font-size: 10px;
+    letter-spacing: 0.28em;
+    text-transform: uppercase;
+    color: var(--ink-dim);
+    margin-bottom: 14px;
+  }
+
+  .hero h1 {
+    font-family: var(--display);
+    font-weight: 400;
+    font-size: clamp(34px, 5.2vw, 60px);
+    letter-spacing: 0.01em;
+    line-height: 1.08;
+    max-width: 16ch;
+  }
+
+  .hero .sub {
+    margin-top: 18px;
+    max-width: 60ch;
+    font-size: clamp(15px, 1.4vw, 17px);
+    line-height: 1.6;
+    color: var(--ink-dim);
+  }
+
+  .hero .btn { margin-top: 26px; padding: 14px 26px; font-size: 12px; }
+
+  .hero .trust {
+    margin-top: 12px;
+    font-family: var(--mono);
+    font-size: 11px;
+    letter-spacing: 0.04em;
+    line-height: 1.6;
+    color: var(--ink-dim);
+  }
+
+  .hero .explore { margin-top: 22px; font-size: 14px; }
+  .hero .explore a,
+  .teaser .more a,
+  .guide .full a {
+    color: var(--ink);
+    text-decoration: underline;
+    text-underline-offset: 3px;
+    text-decoration-color: var(--ink-faint);
+  }
+  .hero .explore a:hover,
+  .teaser .more a:hover,
+  .guide .full a:hover { text-decoration-color: var(--ink); }
+
+  /* ── the three steps ─────────────────────────────────── */
+  .steps { margin-top: 56px; }
+  .steps h2 { margin-bottom: 22px; }
+
+  .steps ol {
+    list-style: none;
+    counter-reset: step;
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 28px 32px;
+  }
+
+  .steps li { counter-increment: step; border-top: 1px solid var(--line); padding-top: 14px; }
+
+  .steps li::before {
+    content: counter(step, decimal-leading-zero);
+    display: block;
+    font-family: var(--mono);
+    font-size: 11px;
+    letter-spacing: 0.2em;
+    color: var(--ink-faint);
+    margin-bottom: 10px;
+  }
+
+  .steps h3 {
+    font-family: var(--display);
+    font-weight: 400;
+    font-size: 20px;
+    letter-spacing: 0.02em;
+    line-height: 1.3;
+    margin-bottom: 8px;
+  }
+
+  .steps p { font-size: 14px; line-height: 1.7; color: var(--ink-dim); max-width: 38ch; }
+  .steps .btn { margin-top: 28px; }
+
+  /* ── the section heading and its guide ───────────────── */
+  .section { margin-top: 72px; }
+  .section .column > h2 { margin-bottom: 8px; }
+  .section .caption { font-size: 14px; line-height: 1.6; color: var(--ink-dim); max-width: 64ch; }
+
+  .guide { margin-top: 18px; border-top: 1px solid var(--line); border-bottom: 1px solid var(--line); }
+
+  .guide summary {
+    cursor: pointer;
+    list-style: none;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 12px 0;
+    font-family: var(--mono);
+    font-size: 11px;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--ink-dim);
+  }
+
+  .guide summary::-webkit-details-marker { display: none; }
+  .guide summary::before { content: "+"; width: 1em; color: var(--ink-faint); }
+  .guide[open] summary::before { content: "−"; }
+  .guide summary:hover { color: var(--ink); }
+
+  .guide .lede {
+    margin: 4px 0 18px;
+    font-size: 14px;
+    line-height: 1.7;
+    color: var(--ink-dim);
+    max-width: 62ch;
+  }
+
+  .guide dl { border-top: 1px solid var(--line); }
+
+  .guide .row {
+    display: flex;
+    gap: 22px;
+    padding: 14px 0;
+    border-bottom: 1px solid var(--line);
+  }
+
+  .guide dt {
+    flex: 0 0 128px;
+    padding-top: 2px;
+    font-family: var(--mono);
+    font-size: 10px;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    color: var(--ink-faint);
+  }
+
+  .guide dd { font-size: 13.5px; line-height: 1.7; color: var(--ink-dim); max-width: 72ch; }
+  .guide .full { padding: 14px 0 16px; font-size: 13px; }
+
+  /* ── the teaser and the fine print ───────────────────── */
+  .teaser { margin-top: 64px; max-width: 720px; }
+  .teaser p { margin-top: 10px; font-size: 14px; line-height: 1.7; color: var(--ink-dim); }
+  .teaser .more { margin-top: 10px; }
+
+  .fineprint { margin-top: 48px; max-width: 720px; }
+  .fineprint h2 {
+    font-family: var(--mono);
+    font-size: 10px;
+    letter-spacing: 0.24em;
+    text-transform: uppercase;
+    color: var(--ink-faint);
+    margin-bottom: 8px;
+  }
+  .fineprint p { font-size: 12.5px; line-height: 1.7; color: var(--ink-faint); }
+
+  /* ── the stage ───────────────────────────────────────── */
+  /* The drawing owns a screen of its own, and the instruments hang on it the
+     way they used to hang on the window: absolute where they were fixed. */
+  .stage {
+    position: relative;
+    height: 100svh;
+    min-height: 620px;
+    margin-top: 22px;
+    border-top: 1px solid var(--line);
+    border-bottom: 1px solid var(--line);
+    overflow: hidden;
+    /* Where the deep links land: the strip is the target, not the heading. */
+    scroll-margin-top: 0;
+  }
+
   #scene {
-    position: fixed;
+    position: absolute;
     inset: 0;
     /* The element owns its size and the renderer follows it — a canvas is a
        replaced element, so with `inset: 0` and no width it would take its
-       intrinsic (device-pixel) width and overflow the viewport on retina. */
+       intrinsic (device-pixel) width and overflow the box on retina. */
     width: 100%;
     height: 100%;
     display: block;
     cursor: grab;
-    /* Orbit, pinch and wheel are the scene's own gestures; without this the
-       browser claims the touch for panning and the section never turns. */
+    /* Orbit, pinch and wheel are the scene's own gestures on a fine pointer;
+       without this the browser claims the touch for panning and the section
+       never turns. The coarse-pointer branch below trades vertical pans back
+       to the page, which has a hero above the drawing to come back from. */
     touch-action: none;
     /* Painted by the renderer; the earth colour keeps the first frame from
        flashing white. */
@@ -318,7 +600,7 @@ const sceneData = {
   #scene.dragging { cursor: grabbing; }
 
   .noscript {
-    position: fixed;
+    position: absolute;
     inset: 50% auto auto 50%;
     transform: translate(-50%, -50%);
     z-index: 20;
@@ -333,10 +615,10 @@ const sceneData = {
 
   .noscript a { color: var(--ink); text-decoration: underline; text-underline-offset: 3px; }
 
-  .hud { position: fixed; z-index: 10; pointer-events: none; }
+  .hud { position: absolute; z-index: 10; pointer-events: none; }
   .hud > * { pointer-events: auto; }
 
-  /* header */
+  /* the top strip */
   .top {
     top: 0;
     left: 0;
@@ -349,29 +631,6 @@ const sceneData = {
   }
 
   .top-right { display: flex; flex-direction: column; align-items: flex-end; gap: 12px; }
-  .top-right :global(.site-header) { border-bottom: 0; padding-bottom: 0; }
-  .top-right :global(.logo) { display: none; }
-
-  .plate .eyebrow {
-    font-family: var(--mono);
-    font-size: 10px;
-    letter-spacing: 0.28em;
-    text-transform: uppercase;
-    color: var(--ink-faint);
-    margin-bottom: 8px;
-  }
-
-  .plate h1 {
-    font-family: var(--display);
-    font-weight: 400;
-    font-size: clamp(26px, 4vw, 44px);
-    letter-spacing: 0.06em;
-    text-transform: uppercase;
-    line-height: 1;
-  }
-
-  .plate .rule { width: 64px; height: 1px; background: var(--ink-dim); margin: 10px 0 8px; }
-  .plate .sub { font-size: 12px; color: var(--ink-dim); max-width: 340px; line-height: 1.5; }
 
   /* mode tabs */
   .tabs {
@@ -413,8 +672,8 @@ const sceneData = {
   .tab.active { color: var(--ink); background: color-mix(in srgb, var(--ink) 6%, transparent); }
   .tab.active span { color: var(--ink-dim); }
 
-  /* "How it works" — the key to everything the section does. It sits under the
-     tabs in the corner stack and reads as a control, not as a link. */
+  /* "How it works" — opens the guide above the stage. It sits under the tabs
+     in the corner stack and reads as a control, not as a link. */
   .guide-open {
     align-self: flex-end;
     display: inline-flex;
@@ -445,57 +704,14 @@ const sceneData = {
     line-height: 1;
   }
 
-  /* The guide's own body — a definition list, the same shape as a passport. */
-  .guide-modal h2 {
-    font-family: var(--display);
-    font-weight: 400;
-    font-size: clamp(22px, 3vw, 30px);
-    letter-spacing: 0.04em;
-    text-transform: uppercase;
-  }
-
-  .guide-modal .lede {
-    margin: 12px 0 22px;
-    font-size: 14px;
-    line-height: 1.7;
-    color: var(--ink-dim);
-    max-width: 62ch;
-  }
-
-  .guide-modal dl { border-top: 1px solid var(--line); }
-
-  .guide-modal .row {
-    display: flex;
-    gap: 22px;
-    padding: 14px 0;
-    border-bottom: 1px solid var(--line);
-  }
-
-  .guide-modal dt {
-    flex: 0 0 128px;
-    padding-top: 2px;
-    font-family: var(--mono);
-    font-size: 10px;
-    letter-spacing: 0.16em;
-    text-transform: uppercase;
-    color: var(--ink-faint);
-  }
-
-  .guide-modal dd { font-size: 13.5px; line-height: 1.7; color: var(--ink-dim); }
-
-  @media (max-width: 640px) {
-    .guide-modal .row { flex-direction: column; gap: 6px; }
-    .guide-modal dt { flex: none; }
-  }
-
   /* Depth ruler — the key to the vertical axis. It reads like the legend
      because it works like it: a row is a filter, and its bar is how many of
      the 35 lie that deep. */
   .ruler {
     left: 26px;
-    /* Under the title plate, not centred: centred it drifted into the legend
+    /* Under the view switch, not centred: centred it drifted into the legend
        below it on anything shorter than a desktop screen. */
-    top: 176px;
+    top: 84px;
     background: var(--panel);
     border: 1px solid var(--line);
     backdrop-filter: blur(6px);
@@ -506,6 +722,7 @@ const sceneData = {
   .ruler h3 {
     font-family: var(--mono);
     font-size: 9px;
+    font-weight: 400;
     letter-spacing: 0.24em;
     text-transform: uppercase;
     color: var(--ink-faint);
@@ -587,6 +804,7 @@ const sceneData = {
   .legend h3 {
     font-family: var(--mono);
     font-size: 9px;
+    font-weight: 400;
     letter-spacing: 0.24em;
     text-transform: uppercase;
     color: var(--ink-faint);
@@ -638,12 +856,10 @@ const sceneData = {
     line-height: 1.6;
   }
 
-
   /* ── the sheet modal ─────────────────────────────────── */
   /* Its body is lifted out of /moats/N/, so it arrives without the scope
      attribute Astro stamps on this page — every rule below has to be global. */
-  .sheet-modal,
-  .guide-modal {
+  .sheet-modal {
     width: min(720px, calc(100vw - 32px));
     max-height: min(84vh, 900px);
     margin: auto;
@@ -655,11 +871,9 @@ const sceneData = {
     position: relative;
   }
 
-  .sheet-modal::backdrop,
-  .guide-modal::backdrop { background: rgba(10, 8, 5, 0.66); }
+  .sheet-modal::backdrop { background: rgba(10, 8, 5, 0.66); }
 
-  .sheet-modal .close,
-  .guide-modal .close {
+  .sheet-modal .close {
     position: absolute;
     top: 14px;
     right: 14px;
@@ -673,8 +887,7 @@ const sceneData = {
     cursor: pointer;
   }
 
-  .sheet-modal .close:hover,
-  .guide-modal .close:hover { color: var(--ink); border-color: var(--ink-dim); }
+  .sheet-modal .close:hover { color: var(--ink); border-color: var(--ink-dim); }
 
   .sheet-modal .modal-page {
     display: inline-block;
@@ -840,7 +1053,7 @@ const sceneData = {
     color: var(--ink-faint);
   }
 
-  .specimen h2 {
+  .specimen h3 {
     font-family: var(--display);
     font-weight: 400;
     font-size: 22px;
@@ -881,7 +1094,7 @@ const sceneData = {
 
   /* status line + hint */
   /* Centred by a full-width strip, not by `left: 50%` — that one gave the pill
-     only half the viewport to lay its line out in, and it wrapped early. */
+     only half the stage to lay its line out in, and it wrapped early. */
   .status { left: 0; right: 0; bottom: 24px; text-align: center; }
 
   .status span {
@@ -893,17 +1106,28 @@ const sceneData = {
     font-size: 11px;
     letter-spacing: 0.06em;
     color: var(--ink-dim);
-    max-width: calc(100vw - 40px);
+    max-width: calc(100% - 40px);
   }
 
-  /* The right corner stacks upwards: the status pill owns the bottom line,
-     the footer sits above it and the scene's hint above that. Their widths are
-     copy-driven, so sharing a band would put them on top of each other. */
-  .hint { right: 26px; bottom: 112px; }
+  /* The first-contact hint is the one line the section says first. */
+  .status[data-first-contact] span { color: var(--ink); border-color: var(--ink-dim); }
 
-  /* The left column holds the plate, the ruler and the legend. On a short
-     screen the ruler folds: the caption goes (the guide says the same at
-     length) and the years move onto the tool's line. Shorter still and it
+  /* The right corner stacks upwards: the status pill owns the bottom line and
+     the scene's hint sits above it. Their widths are copy-driven, so sharing
+     a band would put them on top of each other. */
+  .hint { right: 26px; bottom: 76px; }
+
+  .hint span {
+    font-family: var(--mono);
+    font-size: 9px;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--ink-faint);
+  }
+
+  /* The left column holds the view switch, the ruler and the legend. On a
+     short screen the ruler folds: the caption goes (the guide says the same
+     at length) and the years move onto the tool's line. Shorter still and it
      stands down altogether. */
   @media (max-height: 880px) {
     .ruler .caption { display: none; }
@@ -917,68 +1141,29 @@ const sceneData = {
     .ruler { display: none; }
   }
 
-  /* Narrow desktops cannot hold the hint beside the footer — and the guide
+  /* Narrow desktops cannot hold the hint beside the card — and the guide
      spells the controls out anyway. The status pill centres in what is left
-     beside the legend rather than in the viewport, or it runs under it. */
+     beside the legend rather than in the stage, or it runs under it. */
   @media (max-width: 1100px) {
     .hint { display: none; }
     .status { left: 320px; right: 26px; }
   }
 
-  /* The footer sits above the hint in the same corner; it keeps the component's
-     own layout and only trades its rule for the plate the other panels wear. */
-  /* Held clear of the legend in the opposite corner: when the line no longer
-     fits beside it, the links drop under the tagline instead of colliding. */
-  .footer-hud {
-    right: 26px;
-    bottom: 76px;
-    max-width: calc(100vw - 356px);
-    /* `.hud > *` carries this page's scope attribute, and the footer element
-       belongs to SiteFooter — it never matched, so the links were unclickable.
-       The panel takes the pointer itself and its children inherit. */
-    pointer-events: auto;
-  }
-
-  .footer-hud :global(.site-footer) {
-    margin-top: 0;
-    padding: 7px 12px;
-    border-top: 0;
-    border: 1px solid var(--line);
-    background: var(--panel);
-    backdrop-filter: blur(6px);
-    justify-content: flex-end;
-    flex-wrap: wrap;
-    white-space: nowrap;
-    font-size: 10px;
-    gap: 6px 14px;
-  }
-
-  .footer-hud :global(.footer-links) { gap: 6px 14px; }
-
-  .hint span {
-    font-family: var(--mono);
-    font-size: 9px;
-    letter-spacing: 0.18em;
-    text-transform: uppercase;
-    color: var(--ink-faint);
-  }
-
-  /* Below the tablet breakpoint the HUD cannot hold its corners — but the
+  /* Below the tablet breakpoint the stage cannot hold its corners — but the
      breakpoint is the pointer, not the width. A phone asked for the desktop
-     site reports 980px and used to get the overlay HUD folded onto itself,
-     a canvas with no `touch-action` (so nothing turned), a locked body (so
-     nothing scrolled) and a 980×2120 drawing buffer on a phone GPU. Coarse
-     pointer catches that case; the width keeps small windows honest. */
+     site reports 980px and used to get the overlay HUD folded onto itself and
+     a 980×2120 drawing buffer on a phone GPU. Coarse pointer catches that
+     case; the width keeps small windows honest. */
   @media (max-width: 900px), (pointer: coarse) {
-    /* Nothing is pinned any more: the page is a column and the panels sit
+    /* Nothing is pinned any more: the stage is a column and the panels sit
        under the section instead of on top of it. Order lives here rather than
        in the markup so the desktop overlay keeps the source order it needs. */
-    :global(body.fixed) {
+    .stage {
       height: auto;
-      overflow: visible;
+      min-height: 0;
       display: flex;
       flex-direction: column;
-      min-height: 100svh;
+      overflow: visible;
     }
 
     .hud { position: relative; inset: auto; }
@@ -1003,18 +1188,16 @@ const sceneData = {
       height: auto;
       max-height: 56svh;
       border-bottom: 1px solid var(--line);
+      /* A thumb dragging up and down is scrolling the page, which has a hero
+         above this band to return to; sideways turns the section, and two
+         fingers still zoom it. */
+      touch-action: pan-y;
     }
 
-    /* The header stops being an overlay and becomes the top of the page, its
-       controls a wrapping strip. It is also on a budget: whatever it spends
-       is height the drawing does not get on the first screen, so the tabs
-       drop their second line and the plate its slack. */
+    /* The top strip becomes the top of the band, its controls a wrapping row.
+       It is also on a budget: whatever it spends is height the drawing does
+       not get, so the tabs drop their second line. */
     .top { order: 1; flex-wrap: wrap; padding: 14px 16px 12px; gap: 8px; }
-    .plate, .top-right { flex: 1 1 100%; }
-    .plate .eyebrow { margin-bottom: 6px; }
-    .plate h1 { font-size: 26px; }
-    .plate .rule { margin: 8px 0 6px; }
-    .plate .sub { max-width: 62ch; }
     .top-right { flex-direction: row; flex-wrap: wrap; align-items: center; gap: 8px; }
     .tab { padding: 8px 14px; }
     .tab strong { font-size: 13px; }
@@ -1025,7 +1208,7 @@ const sceneData = {
        what to lay it out by, and what the depth axis means. The panels lose
        the blur — a live canvas under a backdrop filter is re-blurred every
        frame — and cap their line length for the 980px desktop-site case. */
-    .specimen, .side, .footer-hud {
+    .specimen, .side {
       width: 100%;
       max-width: min(720px, calc(100% - 32px));
       margin: 16px auto 0;
@@ -1045,10 +1228,9 @@ const sceneData = {
     }
 
     .specimen { order: 3; }
-    .side { order: 4; }
+    .side { order: 4; margin-bottom: 16px; }
     .ruler { display: block; }
     .ruler .caption { display: block; }
-    .footer-hud { order: 6; margin-bottom: 16px; }
 
     /* The list joins the column between the controls and the footer. */
     :global(html.view-list) .atlas-list {
@@ -1057,9 +1239,6 @@ const sceneData = {
       max-width: min(720px, calc(100% - 32px));
       margin: 16px auto 0;
     }
-
-    .footer-hud :global(.site-footer) { justify-content: flex-start; white-space: normal; }
-    .footer-hud :global(.footer-links) { margin-left: 0; }
   }
 
   /* ── the view switch ─────────────────────────────────── */
@@ -1093,7 +1272,7 @@ const sceneData = {
   /* ── the list view ───────────────────────────────────── */
   /* Sheet I's text mode. `html.view-list` is set before first paint by the
      inline bootstrap; everything below keys off it, so the two views are one
-     page and one set of controls. */
+     stage and one set of controls. */
   .atlas-list { display: none; }
 
   :global(html.view-list) .atlas-list { display: block; }
@@ -1104,8 +1283,9 @@ const sceneData = {
   :global(html.view-list) .status,
   :global(html.view-list) .hint { display: none; }
 
-  /* The page scrolls again and the HUD panels leave the glass for the flow. */
-  :global(html.view-list body.fixed) { height: auto; overflow: visible; }
+  /* The stage stops being a screen and becomes a reading page: the controls
+     in a rail, the 35 sheets in a column. */
+  :global(html.view-list) .stage { height: auto; min-height: 0; overflow: visible; }
   :global(html.view-list) .hud { position: static; inset: auto; }
   :global(html.view-list) .legend { max-width: none; }
   /* The short-screen media rules fold the ruler for the overlay; as a column
@@ -1114,22 +1294,19 @@ const sceneData = {
   :global(html.view-list) .ruler .caption { display: block; }
   :global(html.view-list) .ruler .yrs { display: block; margin-left: 0; }
 
-  /* A reading page: the controls in a rail, the 35 sheets in a column. Only
-     for the fine pointer above the tablet break — the coarse branch above
-     already lays the whole page in one column. */
+  /* Only for the fine pointer above the tablet break — the coarse branch above
+     already lays the whole stage in one column. */
   @media (min-width: 901px) and (pointer: fine) {
-    :global(html.view-list body.fixed) {
+    :global(html.view-list) .stage {
       display: grid;
       grid-template-columns: 288px minmax(0, 720px);
       grid-template-areas:
         "top top"
-        "side list"
-        "foot foot";
-      grid-template-rows: auto 1fr auto;
+        "side list";
+      grid-template-rows: auto 1fr;
       justify-content: center;
       align-items: start;
       column-gap: 48px;
-      min-height: 100svh;
       padding: 0 26px;
     }
 
@@ -1144,12 +1321,6 @@ const sceneData = {
     }
 
     :global(html.view-list) .atlas-list { grid-area: list; padding-bottom: 48px; }
-
-    :global(html.view-list) .footer-hud {
-      grid-area: foot;
-      max-width: none;
-      margin: 0 0 20px;
-    }
   }
 
   /* Group chrome is rebuilt by atlas-list.ts without Astro's scope attribute,
@@ -1158,7 +1329,7 @@ const sceneData = {
      only ever re-parented, so their selectors stay scoped. */
   .atlas-list :global(.list-group) { margin-bottom: 36px; }
 
-  .atlas-list :global(.list-group > h2) {
+  .atlas-list :global(.list-group > h3) {
     display: flex;
     align-items: center;
     gap: 10px;
@@ -1174,7 +1345,7 @@ const sceneData = {
 
   .atlas-list :global(.list-group .dot) { width: 10px; height: 10px; flex: 0 0 auto; }
 
-  .atlas-list :global(.list-group > h2 em) {
+  .atlas-list :global(.list-group > h3 em) {
     margin-left: auto;
     font-style: normal;
     font-size: 10px;
@@ -1196,7 +1367,7 @@ const sceneData = {
     text-align: right;
   }
 
-  .entry-head h3 {
+  .entry-head h4 {
     font-family: var(--display);
     font-weight: 400;
     font-size: 19px;
@@ -1245,7 +1416,22 @@ const sceneData = {
     background: color-mix(in srgb, var(--ink) 4%, transparent);
   }
 
+  /* ── the small screen ────────────────────────────────── */
   @media (max-width: 640px) {
+    .column { padding: 0 16px; }
+    .column:first-child { padding-top: 24px; }
+    .hero { padding-top: 32px; }
+    .hero .btn { width: 100%; }
+    .steps { margin-top: 44px; }
+    .steps ol { grid-template-columns: 1fr; gap: 20px; }
+    .steps .btn { width: 100%; }
+    .section { margin-top: 56px; }
+    /* Three tabs in a phone's width: tighter, and wrapping before overflowing. */
+    .tabs { max-width: 100%; flex-wrap: wrap; }
+    .tab { padding: 8px 10px; }
+    .tab strong { font-size: 12px; letter-spacing: 0.05em; }
+    .guide .row { flex-direction: column; gap: 6px; }
+    .guide dt { flex: none; }
     .chips, .entry .essence { margin-left: 0; }
   }
 </style>

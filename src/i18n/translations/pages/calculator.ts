@@ -39,6 +39,8 @@ export interface CalculatorStrings {
     shared: string;
     sheetLink: string;
     catalogueLink: string;
+    /** The hand-off: the result's mechanics lit on sheet I (`/?hl=…#section`). */
+    sectionLink: string;
   };
   nav: { back: string; skip: string };
   section: { title: string; ground: string; hint: string };
@@ -232,6 +234,7 @@ export const calculatorPage: Record<"en" | "ru", CalculatorStrings> = {
       shared: "Link copied",
       sheetLink: "Open the sheet →",
       catalogueLink: "All 35 mechanics →",
+      sectionLink: "Show my mechanics on the section",
     },
 
     nav: { back: "← Back", skip: "Skip" },
@@ -430,6 +433,7 @@ export const calculatorPage: Record<"en" | "ru", CalculatorStrings> = {
       shared: "Ссылка скопирована",
       sheetLink: "Открыть лист →",
       catalogueLink: "Все 35 механик →",
+      sectionLink: "Показать мои механики в разрезе",
     },
 
     nav: { back: "← Назад", skip: "Пропустить" },

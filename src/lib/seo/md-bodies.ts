@@ -40,11 +40,14 @@ import { QUESTIONS, SEGMENT_KEYS, OPTION_WEIGHTS, questionsOf } from "../../data
 import type { Locale } from "../../i18n/config";
 import { getLocalizedPath, getTranslations } from "../../i18n/index";
 import { getMoatStrings } from "../../i18n/translations/moats/index";
+import { aboutPage } from "../../i18n/translations/pages/about";
 import { calculatorPage } from "../../i18n/translations/pages/calculator";
 import { cookiesPage } from "../../i18n/translations/pages/cookies";
 import { creditsPage } from "../../i18n/translations/pages/credits";
 import { strategiesPage } from "../../i18n/translations/pages/strategies";
 import { strategyPage } from "../../i18n/translations/pages/strategy";
+import { GUIDE_FINEPRINT_KEY, GUIDE_KEYS } from "../guide";
+import { fillHome, homeDescription, homeSteps, homeStrings, strategiesTeaser } from "../home";
 import { CONTACTS, GIGLABO_URL, LAZY_SHOT_URL, MNEMOVI_URL, REPO_URL } from "../links";
 import {
   categoryName,
@@ -227,15 +230,39 @@ function sheetBacklinks(locale: Locale, n: number): string[] {
   return out;
 }
 
-/** Sheet I: what the drawing is, how to read it, and the whole matrix. */
+/**
+ * The home page, in the page's own order: the hero's promise and the three
+ * steps first, then the reading guide in full, the axes, the whole matrix,
+ * and the fine print last — exactly the sections the HTML renders, without
+ * the drawing itself and without the worked example, which is a rendering.
+ */
 function atlasBody(locale: Locale): string {
   const t = getTranslations(locale);
+  const h = homeStrings(locale);
   const out: string[] = [];
 
-  out.push(t.atlas.subtitle);
+  out.push(
+    `**${h.hero.title}**`,
+    "",
+    homeDescription(locale),
+    "",
+    h.hero.trust,
+    "",
+    `[${h.hero.cta}](${u(locale, "/calculator/")})`,
+  );
 
+  out.push("", `## ${h.steps.title}`, "");
+  homeSteps(locale).forEach((step, i) => out.push(`${i + 1}. **${step.title}** — ${step.text}`));
+
+  out.push("", `## ${fillHome(locale, h.section.title)}`, "", h.section.caption, "", t.atlas.subtitle);
+
+  // The guide as /about/ carries it, the fine print held back for the foot.
   out.push("", `## ${t.atlas.guide.title}`, "", t.atlas.guide.lede);
-  for (const s of t.atlas.guide.sections) out.push("", `### ${s.title}`, "", s.body);
+  for (const key of GUIDE_KEYS) {
+    if (key === GUIDE_FINEPRINT_KEY) continue;
+    const s = t.atlas.guide.sections[key];
+    out.push("", `### ${s.title}`, "", s.body);
+  }
 
   out.push(
     "",
@@ -268,7 +295,29 @@ function atlasBody(locale: Locale): string {
   );
 
   out.push("", `## ${t.catalogue.heading} (${MOAT_COUNT})`, "", matrixTable(locale));
+
+  out.push(
+    "",
+    `## ${fillHome(locale, h.teaser.title)}`,
+    "",
+    `${strategiesTeaser(locale)} [${bare(h.teaser.link)}](${u(locale, "/strategies/")})`,
+  );
+
+  const fine = t.atlas.guide.sections[GUIDE_FINEPRINT_KEY];
+  out.push("", `## ${fine.title}`, "", fine.body);
   return out.join("\n").replace(/\n{3,}/g, "\n\n");
+}
+
+/** The reading guide of sheet I in full — the lede and every section. */
+function aboutBody(locale: Locale): string {
+  const t = getTranslations(locale);
+  const out: string[] = [t.atlas.guide.lede];
+  for (const key of GUIDE_KEYS) {
+    const s = t.atlas.guide.sections[key];
+    out.push("", `## ${s.title}`, "", s.body);
+  }
+  out.push("", `[${bare(aboutPage[locale].backToSection)}](${u(locale, "/")}#section)`);
+  return out.join("\n");
 }
 
 /** Sheet I, flat: the matrix and nothing else. */
@@ -588,6 +637,8 @@ export function bodyFor(page: PageEntry): string {
       return strategiesBody(page.locale);
     case "strategy":
       return strategyBody(page.locale, page.strategy!);
+    case "about":
+      return aboutBody(page.locale);
     case "cookies":
       return cookiesBody(page.locale);
     case "credits":

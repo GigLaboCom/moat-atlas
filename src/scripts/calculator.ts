@@ -65,6 +65,7 @@ interface SurveyPayload {
   readout: { eyebrow: string; index: string; depth: string; verdict: string; empty: string };
   moats: Record<string, MoatPayload>;
   catalogueHref: string;
+  sectionHref: string;
 }
 
 declare global {
@@ -288,6 +289,16 @@ function boot(p: SurveyPayload): void {
 
     fill("r-restart", p.result.restart);
     fill("r-catalogue", p.result.catalogueLink);
+
+    // The hand-off: the mechanics held, lit on sheet I through its own
+    // `hl=` state — the same parameter the map on sheet III reads. A result
+    // that holds nothing has nothing to light, so the button stands down.
+    const toSection = el<HTMLAnchorElement>("r-section");
+    if (toSection) {
+      toSection.hidden = r.holding.length === 0;
+      toSection.textContent = p.result.sectionLink;
+      toSection.href = `${p.sectionHref}?hl=${r.holding.join(",")}#section`;
+    }
 
     const share = el<HTMLButtonElement>("r-share");
     if (share) {

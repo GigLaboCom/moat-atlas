@@ -2,8 +2,8 @@
 
 Interactive 3D atlas of 35 competitive moats — the geology of defensibility: rock types, depths, tools, and a survey to dig your own.
 
-**Live at [moa.giglabo.com](https://moa.giglabo.com)** — [the cross-section](https://moa.giglabo.com/),
-[the catalogue](https://moa.giglabo.com/moats/), [the survey](https://moa.giglabo.com/calculator/);
+**Live at [moa.giglabo.com](https://moa.giglabo.com)** — [the survey](https://moa.giglabo.com/calculator/),
+[the cross-section](https://moa.giglabo.com/#section), [the catalogue](https://moa.giglabo.com/moats/);
 in Russian at [moa.giglabo.com/ru/](https://moa.giglabo.com/ru/).
 
 ## Commands
@@ -22,6 +22,8 @@ npm run skill     # install the /moats Claude Code skill (see below)
 npm run skill:check  # diff the skill's transcription against the matrix
 npm run strategies:check  # sheet III's gates against dist/ (rows, back-links, twins)
 npm run strategy-pages:check  # sheet III-b's gates against dist/ (the 80 pages, twins, links, hash)
+npm run home:check   # the home page's static gates against dist/ (copy, sample card, /about/, twins)
+npm run home:check:browser -- http://localhost:4321  # its browser gates against a running build
 ```
 
 Run `npm run lint && npm run build` before finishing any change — the build is the authoritative correctness check.
@@ -30,7 +32,8 @@ Run `npm run lint && npm run build` before finishing any change — the build is
 
 | Route            | What it is                                                  |
 |------------------|-------------------------------------------------------------|
-| `/`              | Sheet I — the interactive cross-section of all 35 mechanics  |
+| `/`              | The home page: what you get, the three steps, a sample result — and sheet I, the interactive cross-section of all 35 mechanics, at `#section` |
+| `/about/`        | How to read the atlas — the reading guide of sheet I in full |
 | `/moats/`        | The catalogue — all 35 mechanics as a table                  |
 | `/moats/{1..35}/`| One sheet per mechanic: passport, essence, build, bypass     |
 | `/calculator/`   | Sheet II — the survey: twelve questions, scored              |
@@ -139,11 +142,25 @@ rewrite files under `src/pages/{locale}/`.
 Names and prose live in the translations, keyed by the same number that is used
 for the deep link (`/#moat-7`) and the sheet route (`/moats/7/`).
 
+## The home page
+
+`/` opens on the outcome, not the drawing: a headline, one primary button to
+the survey, a trust line ("2 minutes · no signup · nothing stored"), a sample
+result beside it — a real result of `src/data/sample-result.ts`, scored and
+encoded by the calculator's own code at build, so the card's link reproduces
+it exactly — and the three steps. Sheet I sits a screen below at `#section`,
+with its reading guide folded under it (`?guide=1`) and in full on `/about/`;
+three.js is fetched only once the canvas comes near the viewport. Copy is in
+`src/i18n/translations/pages/home.ts`; every count in it is filled from the
+data by `src/lib/home.ts`. `npm run home:check` and
+`npm run home:check:browser` are its gates.
+
 ## The cross-section (sheet I)
 
-`src/scripts/atlas.ts` is the three.js scene behind `/`, ported from the v3
-prototype. One shaft per mechanic hangs from the ground plane: colour and
-cross-section shape encode the rock, thickness the capital, length the depth.
+`src/scripts/atlas.ts` is the three.js scene on the home page, ported from
+the v3 prototype. One shaft per mechanic hangs from the ground plane: colour
+and cross-section shape encode the rock, thickness the capital, length the
+depth.
 
 - **Groupings.** The six axes of the catalogue (`GROUPING_AXES`) re-lay the sheet
   in place: shafts ease to new positions and each row gets a label with its
@@ -158,21 +175,32 @@ cross-section shape encode the rock, thickness the capital, length the depth.
   The first click of the pair takes the core, so the card fills behind it.
 - **Isolation.** Clicking a rock in the legend dims everything else; the depth
   ruler on the left works the same way, and the two are mutually exclusive.
+  `?hl=19,6,5` is the third filter — shafts named outright, which is how the
+  calculator's result hands its mechanics over ("Show my mechanics on the
+  section"); taking a core keeps it.
+- **First contact.** A bare section — no core, no query state — says one
+  thing in the status line and outlines (and pulses) the sample result's
+  deepest shaft until the first hover or press. Nothing is stored to
+  remember it.
 - **The depth ruler** is the key to the vertical axis: level, digging tool,
   years and how many of the 35 lie that deep. Hovering a row lights that
   level's stratum in the scene, clicking isolates it.
-- **The guide** behind “how it works” in the top-right corner is the page's own
-  documentation: what the drawing encodes, the seven rocks, the four depths, the
-  groupings, the filters, the controls and the caveats. `src/scripts/guide.ts`
-  only opens and closes it — it is deliberately outside the 3D module so the
+- **The guide** is the page's own documentation — what the drawing encodes,
+  the seven rocks, the four depths, the groupings, the filters, the list, the
+  controls — folded under the section's heading as a `<details>`, opened by
+  the “how it works” button in the HUD, and carried in full (with sheet II
+  and the fine print) on `/about/`. `src/scripts/guide.ts` only opens,
+  closes and remembers it — it is deliberately outside the 3D module so the
   guide survives a machine without WebGL.
-- **The footer** is the same `SiteFooter` every other page ends with, parked in
-  the HUD: the section is the one page without page chrome, and the catalogue,
-  the colophon and the cookie policy have to be reachable from it too.
-- **Below 900px** nothing is pinned: the header, the core card, the legend and
-  the footer stack in source order and scroll over the fixed canvas, which keeps
-  its own gestures (`touch-action: none`). The ruler, the hint and the status
-  line stand down — the guide and the card carry what they said.
+- **The wheel** is the page's until a press on the canvas engages the
+  section; Esc, a press anywhere else, or scrolling it off the screen hands
+  it back — so a reader wheeling down the page never stops dead at the
+  drawing.
+- **Below 900px** nothing is pinned: the tabs, the canvas as a band, the core
+  card and the legend stack in source order. The band takes
+  `touch-action: pan-y` — a thumb scrolls the page, a sideways drag turns the
+  section, two fingers zoom it. The hint and the status line stand down —
+  the guide and the card carry what they said.
 - The scene imports the matrix directly and receives every string through
   `window.__ATLAS__`, filled by `index.astro` from the locale dictionary — no
   user-visible text lives in the script. It follows the theme toggle, honours

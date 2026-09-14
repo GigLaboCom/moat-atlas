@@ -34,6 +34,8 @@ import { creditsPage } from "../../i18n/translations/pages/credits";
 import { calculatorPage } from "../../i18n/translations/pages/calculator";
 import { strategiesPage } from "../../i18n/translations/pages/strategies";
 import { strategyPage } from "../../i18n/translations/pages/strategy";
+import { homePage } from "../../i18n/translations/pages/home";
+import { homeSteps } from "../home";
 import { CONTACTS, GIGLABO_URL, REPO_URL } from "../links";
 import { categoryName, examples, gistOf, moatMark, nameOf, noteOf, roleName } from "../strategies";
 import { PAGES, bySlug, categoryOf, whyFor } from "../strategy-pages";
@@ -289,6 +291,41 @@ function strategyTerm(page: PageEntry): Node {
   };
 }
 
+/**
+ * Sheet II as an application — the calculator page's own entity, and the same
+ * node on the home page, whose first action it is. One id, so the two graphs
+ * describe one instrument.
+ */
+function calculatorApp(locale: Locale): Node {
+  const t = getTranslations(locale);
+  const c = calculatorPage[locale];
+  const url = siteUrl(getLocalizedPath("/calculator/", locale));
+  return {
+    "@type": "WebApplication",
+    "@id": `${url}#app`,
+    name: t.calculator.heading,
+    description: t.calculator.meta.description,
+    url,
+    inLanguage: locale,
+    applicationCategory: "BusinessApplication",
+    operatingSystem: "Any (web browser)",
+    browserRequirements: "Requires JavaScript",
+    isAccessibleForFree: true,
+    offers: { "@type": "Offer", price: 0, priceCurrency: "USD" },
+    author: ref(`${SITE}#author`),
+    publisher: ref(ORG_ID),
+    license: LICENSE,
+    featureList: SEGMENT_KEYS.map((k) => `${c.segments[k].name} — ${c.segments[k].blurb}`),
+    // The survey's shape, so an agent can describe the instrument without
+    // running it: twelve questions, five rungs, these weights.
+    additionalProperty: [
+      { "@type": "PropertyValue", name: "questions", value: QUESTION_COUNT },
+      { "@type": "PropertyValue", name: "segments", value: SEGMENT_KEYS.length },
+      { "@type": "PropertyValue", name: "optionWeights", value: OPTION_WEIGHTS.join(", ") },
+    ],
+  };
+}
+
 /** The nodes a page contributes beyond the WebPage itself. */
 function mainEntities(page: PageEntry): { type: string; nodes: Node[]; mainEntity?: string } {
   const t = getTranslations(page.locale);
@@ -307,7 +344,27 @@ function mainEntities(page: PageEntry): { type: string; nodes: Node[]; mainEntit
         creator: ref(`${SITE}#author`),
         hasDefinedTerm: sheets.map((s) => ref(termId(s))),
       };
-      return { type: "WebPage", nodes: [set], mainEntity: atlasSetId(page.locale) };
+      // The three steps of the home page are a procedure — answer, get the
+      // depth, read the sheets — which is the one place a HowTo is honest;
+      // the sheets themselves stay descriptions. Its tool is the calculator.
+      const howTo: Node = {
+        "@type": "HowTo",
+        "@id": `${page.url}#howto`,
+        name: homePage[page.locale].steps.title,
+        inLanguage: page.locale,
+        tool: ref(`${siteUrl(getLocalizedPath("/calculator/", page.locale))}#app`),
+        step: homeSteps(page.locale).map((step, i) => ({
+          "@type": "HowToStep",
+          position: i + 1,
+          name: step.title,
+          text: step.text,
+        })),
+      };
+      return {
+        type: "WebPage",
+        nodes: [set, howTo, calculatorApp(page.locale)],
+        mainEntity: atlasSetId(page.locale),
+      };
     }
     case "catalogue": {
       const dataset: Node = {
@@ -345,34 +402,8 @@ function mainEntities(page: PageEntry): { type: string; nodes: Node[]; mainEntit
     }
     case "sheet":
       return { type: "WebPage", nodes: [definedTerm(page)], mainEntity: termId(page) };
-    case "calculator": {
-      const c = calculatorPage[page.locale];
-      const app: Node = {
-        "@type": "WebApplication",
-        "@id": `${page.url}#app`,
-        name: t.calculator.heading,
-        description: t.calculator.meta.description,
-        url: page.url,
-        inLanguage: page.locale,
-        applicationCategory: "BusinessApplication",
-        operatingSystem: "Any (web browser)",
-        browserRequirements: "Requires JavaScript",
-        isAccessibleForFree: true,
-        offers: { "@type": "Offer", price: 0, priceCurrency: "USD" },
-        author: ref(`${SITE}#author`),
-        publisher: ref(ORG_ID),
-        license: LICENSE,
-        featureList: SEGMENT_KEYS.map((k) => `${c.segments[k].name} — ${c.segments[k].blurb}`),
-        // The survey's shape, so an agent can describe the instrument without
-        // running it: twelve questions, five rungs, these weights.
-        additionalProperty: [
-          { "@type": "PropertyValue", name: "questions", value: QUESTION_COUNT },
-          { "@type": "PropertyValue", name: "segments", value: SEGMENT_KEYS.length },
-          { "@type": "PropertyValue", name: "optionWeights", value: OPTION_WEIGHTS.join(", ") },
-        ],
-      };
-      return { type: "WebPage", nodes: [app], mainEntity: `${page.url}#app` };
-    }
+    case "calculator":
+      return { type: "WebPage", nodes: [calculatorApp(page.locale)], mainEntity: `${page.url}#app` };
     case "strategies": {
       const p = strategiesPage[page.locale];
       // The dataset node credits the essay the taxonomy comes from; the role and
@@ -434,6 +465,7 @@ function mainEntities(page: PageEntry): { type: string; nodes: Node[]; mainEntit
     }
     case "strategy":
       return { type: "WebPage", nodes: [strategyTerm(page)], mainEntity: termId(page) };
+    case "about":
     case "credits":
       return { type: "AboutPage", nodes: [] };
     case "cookies":
