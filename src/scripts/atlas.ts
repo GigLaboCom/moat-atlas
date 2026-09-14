@@ -1126,7 +1126,11 @@ function boot(data: AtlasPayload): void {
 
   document.addEventListener("visibilitychange", start);
   new IntersectionObserver((entries) => {
-    onScreen = entries[0].isIntersecting;
+    // The last entry is the current state: a canvas that left and came back
+    // between two callbacks delivers both, and the first would stop the loop
+    // for a drawing that is on screen. Below the fold that pair is routine —
+    // the page opens on the hero and a deep link scrolls the stage in.
+    onScreen = entries[entries.length - 1].isIntersecting;
     if (!onScreen) engaged = false;
     start();
   }).observe(canvas);
