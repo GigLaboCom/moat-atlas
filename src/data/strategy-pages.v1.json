@@ -115,7 +115,7 @@
           "why_ru": "Ценность между пользователями требует их видимости друг для друга; каждая стена ради приватности убирает повод быть внутри."
         }
       ],
-      "status": "draft"
+      "status": "reviewed"
     },
     "completeness": {
       "summary_en": "A strategy of covering every adjacent need in one place, so the customer stops looking elsewhere. Each added piece raises the price of leaving, because leaving means replacing all of them at once. It holds, but shallowly: both moats it digs are excavator depth, and both are losing ground as software becomes cheap to assemble.",
@@ -226,7 +226,7 @@
           "why_ru": "Каждая добавленная часть — ещё одна поверхность для поломки; полнота множит точки отказа, которые убирает простота."
         }
       ],
-      "status": "draft"
+      "status": "reviewed"
     },
     "aggregation": {
       "summary_en": "A strategy of building the place where many parties come to find each other, and owning the place rather than any of the parties. Value comes from the count on each side: more sellers draw buyers, more buyers draw sellers. It holds because the density of participants is what a rival cannot copy, and every new participant makes the place harder to leave.",
@@ -342,7 +342,7 @@
           "why_ru": "Место без владельца не удерживает ликвидность, которую создаёт; ров — в единственной точке, через которую проходят все."
         }
       ],
-      "status": "draft"
+      "status": "reviewed"
     },
     "diversification": {
       "summary_en": "A strategy of drawing income from several unrelated streams, so no single failure, customer or market can starve the whole. It holds only through the balance sheet: the surplus of one stream carries the losses of another, and that pool of patient money is a moat a single-stream rival cannot match. On its own the spread is resilience, not defense.",
@@ -448,7 +448,7 @@
           "why_ru": "Дублирующиеся накладные расходы по потокам — цена распределённости; худой соперник с одной линией в каждом из них работает дешевле."
         }
       ],
-      "status": "draft"
+      "status": "reviewed"
     },
     "omnipresence": {
       "summary_en": "A strategy of being wherever the customer already is, so that choosing you takes no decision. It works through coverage — every shelf, every terminal, every default setting — until the alternative is the one that costs effort. It holds because coverage is won one outlet at a time, and a rival has to rebuild the whole map before it counts.",
@@ -564,7 +564,7 @@
           "why_ru": "Покрытие требует больше единиц, чем кто-либо хочет; намеренный дефицит перечёркивает всю карту."
         }
       ],
-      "status": "draft"
+      "status": "reviewed"
     },
     "cloning": {
       "summary_en": "A strategy of growing by stamping out identical copies of a unit that already works — the same store, the same recipe, the same process — instead of making the original bigger. Every copy is cheaper than the last, because the design was paid for once. It holds because the count of copies spreads that fixed cost over a base no newcomer has.",
@@ -675,7 +675,7 @@
           "why_ru": "Позволить каждой копии перестраиваться по вкусу — значит разрушить верность шаблону, от которой зависит себестоимость."
         }
       ],
-      "status": "draft"
+      "status": "reviewed"
     },
     "affordability": {
       "summary_en": "A price low enough that buyers stop comparing and a rival cannot follow without losing money. The edge is not the number on the tag but the cost underneath it: fixed cost spread across volume, know-how that makes every unit cheaper than the last, or a market that pays for one producer only. With an ordinary cost structure the low price is a discount, and a discount holds nothing.",
@@ -791,7 +791,7 @@
           "why_ru": "Мастерство тратит на единицу больше времени, чем другие, а время на единицу — ровно то, что дешёвая линия должна вырезать."
         }
       ],
-      "status": "draft"
+      "status": "reviewed"
     },
     "luxury": {
       "summary_en": "A price set high so that paying it says something about the buyer. The product is not sold on cost or function; it is sold on what owning it signals, and the price is part of the product. It is a place to stand, not a wall: nothing stops a rival from charging as much tomorrow. It becomes a moat only when the name, not the number, carries the premium.",
@@ -912,7 +912,7 @@
           "why_ru": "Пользовательская масса требует критической массы пользователей; люксовая цена — противоположного, заметного меньшинства, и каждое растёт за счёт другого."
         }
       ],
-      "status": "draft"
+      "status": "reviewed"
     },
     "skimming": {
       "summary_en": "A take so small per transaction that nobody argues about it, multiplied across a flow so wide that the sum is large. The apparatus that filters the flow — the rails, the network, the baleen — costs a great deal to run and almost nothing per unit, so whoever already has the width covers the cost and a second filter in the same water starves.",
@@ -1028,7 +1028,7 @@
           "why_ru": "Кураторство отсеивает участников по замыслу, а каждый отсеянный участник — поток, которого фильтр больше не касается."
         }
       ],
-      "status": "draft"
+      "status": "reviewed"
     },
     "bundling": {
       "summary_en": "Attaching the new thing to something the buyer already pays for, at no extra price, so the choice to adopt it never gets made — it is simply there. The rival selling the same thing on its own now competes with free plus already installed. The edge comes from the base the bundle rides on; without a base of your own, you are the seed, not the fruit.",
@@ -1144,7 +1144,7 @@
           "why_ru": "Специализация выигрывает тем, что лучше всех в одном узком деле; добавку в бандле судят по охвату, а не по глубине, и лучшей в чём-либо она бывает редко."
         }
       ],
-      "status": "draft"
+      "status": "reviewed"
     },
     "heritage": {
       "summary_en": "Heritage is the edge of having been there longer than anyone else can claim. The product is hard to copy not because of what it does but because of how many years it has done it, and how many people passed that trust on. A rival can match the price and the features; the founding date is the one line they cannot copy.",
@@ -1260,7 +1260,7 @@
           "why_ru": "Продукт, который меняет форму под каждый контекст, теряет читаемую непрерывность, на которой держится запись."
         }
       ],
-      "status": "draft"
+      "status": "reviewed"
     },
     "craftsmanship": {
       "summary_en": "Craftsmanship is putting more hours into every unit than a rival is willing to pay for, and letting the finish show it. The edge can be verified on inspection, which is its strength; it is bought with hours a rival could also spend, which is its limit. By default it digs a shallow moat, and deepens only when the craft becomes a team's repeatable process.",
@@ -1376,7 +1376,7 @@
           "why_ru": "Короткие циклы отгружают до того, как отделка закончена; ремесло держит релиз, пока она не закончена, и они спорят о каждом сроке."
         }
       ],
-      "status": "draft"
+      "status": "reviewed"
     },
     "organic": {
       "summary_en": "Organic growth runs at the speed of a process nobody can hurry: a culture in a cave, a codebase hardened by years of production, a customer base that learned to trust you one season at a time. The edge is that a rival starting today is behind by exactly the calendar, whatever they spend. It holds through the experience curve and through brand and trust.",
@@ -1492,7 +1492,7 @@
           "why_ru": "Проворность разворачивается на ходу; органический процесс не может сменить направление посреди цикла, не потеряв цикл."
         }
       ],
-      "status": "draft"
+      "status": "reviewed"
     },
     "endurance": {
       "summary_en": "Endurance is the capacity to keep operating — under load, without resupply — for longer than a rival can stay in the race. The edge is not the speed of the sprint but the length of the runway: reserves counted in years, infrastructure that runs unattended, a cost of continuing lower than the rival's cost of entering. It holds through infrastructure scale and capital.",
@@ -1608,7 +1608,7 @@
           "why_ru": "Быть первым — платить за обучение рынка на коротких часах, а это тот запас хода, который выносливость отказывается тратить."
         }
       ],
-      "status": "draft"
+      "status": "reviewed"
     },
     "specialization": {
       "summary_en": "Specialization is the choice to serve one narrow job better than anyone who serves many. On the depth ruler it is a position, not a moat: depth of competence is what you do, not what stops a rival from doing it too. It becomes a moat only when the niche is one the generalist cannot enter without damaging its own business, and that is Counter-positioning.",
@@ -1710,7 +1710,7 @@
           "why_ru": "Глубина — ставка на один поток; распределение по нескольким — страховка ровно от этой ставки."
         }
       ],
-      "status": "draft"
+      "status": "reviewed"
     },
     "versatility": {
       "summary_en": "Versatility is the choice to do many jobs adequately rather than one job best. It wins wherever the buyer does not know tomorrow's job, or where owning three tools costs more than a slightly worse fit. It is a position: any rival can go general. It holds only when going general is something a specialist incumbent cannot do without giving up the depth its customers pay for, which is Counter-positioning.",
@@ -1810,7 +1810,7 @@
           "why_ru": "Сносно везде и точно в одном месте — разные продукты; допуски, которые принимает универсальный инструмент, точный отвергает."
         }
       ],
-      "status": "draft"
+      "status": "reviewed"
     },
     "hybrid": {
       "summary_en": "A hybrid pairs two strengths that a market usually forces you to choose between, the car that swims, the pastry that is both croissant and doughnut. It is a position: the pairing is a design choice a rival can make too. It holds only when the pairing gets a name and you are the name, or when neither parent's incumbent can copy it without hurting its own product.",
@@ -1915,7 +1915,7 @@
           "why_ru": "Гибрид несёт вес обоих родителей и делает каждую работу с большими затратами, чем инструмент, построенный под неё."
         }
       ],
-      "status": "draft"
+      "status": "reviewed"
     },
     "divergence": {
       "summary_en": "Divergence is a deliberate departure from how things are done in your field, a style nobody was asking for, kept up until it is recognisable. It is a position: a departure is a choice, and the next person can depart too. It holds only through recognition, when the style gets a name and you are its reference, and later when years of it turn the name into trust.",
@@ -2022,7 +2022,7 @@
           "why_ru": "Согласие с конвенциями отрасли — ровно та ось, которую отход покидает; нельзя снижать трение и быть исключением."
         }
       ],
-      "status": "draft"
+      "status": "reviewed"
     },
     "authenticity": {
       "summary_en": "Authenticity is being provably the real thing in a market where fakes are cheap: the oil from the named grove, the note issued by the central bank, the canvas with a paper trail. It holds, because the proof is the product and a rival cannot fake the trail. It digs Brand and trust, and Content and rights where the provenance itself is owned and enforceable.",
@@ -2129,7 +2129,7 @@
           "why_ru": "Размножить источник повсюду — значит обнулить происхождение; след, ведущий в тысячу мест, не ведёт никуда."
         }
       ],
-      "status": "draft"
+      "status": "reviewed"
     },
     "rarity": {
       "summary_en": "Rarity is holding something whose supply nature fixed: a beach that faces the sea, a player with a centre's height and a guard's hands, a band of spectrum. It holds because the limit is not a decision anyone can reverse. On the depth ruler it digs Cornered resource, the moat of owning what a rival cannot make more of, whatever it spends.",
@@ -2229,7 +2229,7 @@
           "why_ru": "Быть везде — значит, ресурс нигде в частности; редкость живёт в одном месте и отправляет туда людей."
         }
       ],
-      "status": "draft"
+      "status": "reviewed"
     },
     "scarcity": {
       "summary_en": "Scarcity is a limit you impose yourself: a numbered edition, a drop that sells out on purpose, a token capped by its own contract. It holds, and it digs Cornered resource, but a shallower one than a natural limit: the cap is a promise, and the market prices in the chance that you, or your successor, break it.",
@@ -2329,7 +2329,7 @@
           "why_ru": "Наценка — суть; потолок, который ещё и дёшев, — потолок, которого никто не заметит."
         }
       ],
-      "status": "draft"
+      "status": "reviewed"
     },
     "secrecy": {
       "summary_en": "Secrecy is protecting what you know instead of what you make: the formula, the training set, the routine on the shop floor. It holds, because a rival who can see the product still cannot see how it is made. It digs three moats, Proprietary data, Proprietary models and Process power, each as deep as the secret is hard to reconstruct.",
@@ -2441,7 +2441,7 @@
           "why_ru": "Сообщество, владеющее вещью, видит её целиком; ров из того, чего снаружи не видно, разделить нельзя."
         }
       ],
-      "status": "draft"
+      "status": "reviewed"
     },
     "irreverence": {
       "summary_en": "Irreverence is taking the stance the field's leaders cannot take: mocking the category, breaking its manners, refusing the tone its customers expect. It holds, because the incumbent's dignity is part of what it sells, and answering you in kind would cost it more than ignoring you. It digs Counter-positioning and, when the stance names a new category, Category leadership.",
@@ -2546,7 +2546,7 @@
           "why_ru": "Вызов традиции не может торговать поколениями этой же традиции; в день, когда вы ссылаетесь на основателей, шутка окончена."
         }
       ],
-      "status": "draft"
+      "status": "reviewed"
     },
     "violence": {
       "summary_en": "Violence removes a rival by force — you destroy or absorb the other side rather than out-build it. In markets that means a hostile takeover, an acqui-kill, or a price war run to bankrupt the target. It wins the ground the rival held, but keeps nothing on its own; the field is open again the moment a new entrant arrives.",
@@ -2640,7 +2640,7 @@
           "why_ru": "Трудно заслужить лояльность обаянием, пока рынок смотрит, как вы разбираете конкурента на части."
         }
       ],
-      "status": "draft"
+      "status": "reviewed"
     },
     "litigation": {
       "summary_en": "Litigation wins by making the fight expensive for the other side — you use patents, suits and the threat of them to burden a rival with cost, delay and risk. Practised seriously it forces you to build and enforce a real IP position, and that portfolio is the durable part. The lawsuits are the pressure; the patents are the moat.",
@@ -2740,7 +2740,7 @@
           "why_ru": "Сообщество, совместно владеющее продуктом, не потерпит, чтобы один участник судился из-за общей ИС."
         }
       ],
-      "status": "draft"
+      "status": "reviewed"
     },
     "nettlesomeness": {
       "summary_en": "Nettlesomeness wins by making the other side err — you play in a way that is hard to read and uncomfortable to face, so a rival overreaches, rushes or blunders. The edge comes from their mistake, not from anything you keep. Stop pressing and it is gone. It takes the point; it does not hold the position.",
@@ -2824,7 +2824,7 @@
           "why_ru": "Постоянная, предсказуемая манера выдаёт ваши ходы и дарит другой стороне время обойти ловушку."
         }
       ],
-      "status": "draft"
+      "status": "reviewed"
     },
     "sabotage": {
       "summary_en": "Sabotage wins by breaking the other side's ability to operate — you introduce faults into a rival's supply, infrastructure or code so it fails on its own. It takes ground while the damage lasts, but keeps nothing: the target repairs, hardens, and you have built no defence of your own. Often it is also illegal.",
@@ -2918,7 +2918,7 @@
           "why_ru": "Саботажник не может быть заодно и доверенным, невоюющим выбором, на который опирается рынок."
         }
       ],
-      "status": "draft"
+      "status": "reviewed"
     },
     "parasitism": {
       "summary_en": "Parasitism lives off a host's resources without owning them — you attach to a platform, an audience or infrastructure someone else built and extract value from its flow. It takes a stream of value for as long as the host tolerates you, but holds nothing: the host owns the moat, and can cut you off. It is access, not defence.",
@@ -3012,7 +3012,7 @@
           "why_ru": "Нельзя разом и кормиться с хозяина, и строить собственную среду, где собираются другие."
         }
       ],
-      "status": "draft"
+      "status": "reviewed"
     },
     "scavenging": {
       "summary_en": "Scavenging feeds on what is already failing — you move in on distressed assets, abandoned customers or laid-off talent and take value from someone else's collapse. It wins whatever the weakened leave behind, but keeps nothing on its own: when the supply of carcasses runs out, so does the strategy. It is opportunism, not defence.",
@@ -3106,7 +3106,7 @@
           "why_ru": "Перепродажа проблемных активов не строит многопоколенческого наследия; эти двое смотрят в разные стороны."
         }
       ],
-      "status": "draft"
+      "status": "reviewed"
     },
     "espionage": {
       "summary_en": "Espionage wins by taking the other side's secrets — you obtain a rival's plans, prices, roadmap or technology instead of working them out yourself. It buys an informational advantage while the knowledge is still current, but keeps nothing: information decays, the rival changes course, and often the act is a crime. It informs a move; it does not defend one.",
@@ -3200,7 +3200,7 @@
           "why_ru": "Известный шпион не может быть заодно доверенной, невоюющей стороной, на которую готовы опереться."
         }
       ],
-      "status": "draft"
+      "status": "reviewed"
     },
     "swarming": {
       "summary_en": "Swarming wins by numbers — many individually weak, cheap units attack at once and overwhelm a defender built for a few strong ones. Coordination and mass do the work, not any single agent. It can take ground a stronger opponent holds, but keeps nothing: the swarm disperses and the defender adapts. It is an assault, not a defence.",
@@ -3294,7 +3294,7 @@
           "why_ru": "Рой — неразборчивая масса; кураторство избирательно по замыслу, и эти двое тянут врозь."
         }
       ],
-      "status": "draft"
+      "status": "reviewed"
     },
     "highest-bidder": {
       "summary_en": "Highest bidder secures a scarce input by simply paying more than anyone else — the star talent, the exclusive licence, the only supply, the best shelf. It holds because winning the bid can corner a resource rivals now cannot reach, and it rests on capital. But it holds only while the money lasts: outbid at renewal, the prize walks away.",
@@ -3404,7 +3404,7 @@
           "why_ru": "Покупка дефицитных входов подменяет медленный, непокупаемый рост, на который опирается органика."
         }
       ],
-      "status": "draft"
+      "status": "reviewed"
     },
     "chokepoint": {
       "summary_en": "Chokepoint controls the one passage traffic must cross — the toll gate, the sole app store, the port, the connector everyone depends on. It holds because owning that passage corners a resource rivals cannot recreate and works as the default channel: everyone routes through you, so you set the terms. It holds only while no viable bypass exists.",
@@ -3509,7 +3509,7 @@
           "why_ru": "Привратник, облагающий сбором каждого проходящего, не может убедительно выдавать себя за нейтральную тихую гавань."
         }
       ],
-      "status": "draft"
+      "status": "reviewed"
     },
     "puppeteering": {
       "summary_en": "Puppeteering redirects another actor's behaviour to serve you — you capture a channel, an algorithm, a decision-maker or a user's habits so they act in your interest rather than their own. It takes control of behaviour while the grip holds, but keeps nothing: the host can regain its agency or be replaced. It is capture, not defence.",
@@ -3603,7 +3603,7 @@
           "why_ru": "Общинный контроль широко рассеивает волю — ровно то, что одиночке-кукловоду нужно перехватить."
         }
       ],
-      "status": "draft"
+      "status": "reviewed"
     },
     "deterrence": {
       "summary_en": "Deterrence is defense by the cost of attacking you. A rival who expects a lawsuit, a price war or a counter-strike does not move, and you keep the position without a fight. Only the legal form holds: a patent or a registered mark that a court will enforce. Fear built on reputation or on a war chest is real, but no row in the matrix is dug by it.",
@@ -3707,7 +3707,7 @@
           "why_ru": "Проект в общем владении не может никому правдоподобно угрожать: право запрета он отдал в момент, когда открылся."
         }
       ],
-      "status": "draft"
+      "status": "reviewed"
     },
     "reliability": {
       "summary_en": "Reliability is defense by the absence of incidents. The product works every time, needs little care, and the buyer stops checking. Over years that turns into trust that a rival's launch cannot buy, and into a switching cost: leaving means taking on the risk of the unknown again. Both moats are dug slowly and only with a clean record.",
@@ -3821,7 +3821,7 @@
           "why_ru": "Выйти первым — значит выйти непроверенным; история, нужная надёжности, начинается только после гонки."
         }
       ],
-      "status": "draft"
+      "status": "reviewed"
     },
     "predictability": {
       "summary_en": "Predictability is defense by sameness. The customer knows exactly what they will get, in every place and every time, so choosing you costs no thought. That certainty is both a trust asset and a habit: the brand stands for a known outcome and the hand reaches for it without a decision. A rival has to be better and be known to be better, which is two problems.",
@@ -3935,7 +3935,7 @@
           "why_ru": "Творческое отклонение от нормы ломает ожидание, на которое предсказуемость потратила годы."
         }
       ],
-      "status": "draft"
+      "status": "reviewed"
     },
     "unpredictability": {
       "summary_en": "Unpredictability is defense by denying a rival a target. If nobody knows what you will do next, nobody can prepare for it, and imitators are always a step behind. It protects the position you hold today. It does not compound: the tenth surprise is worth no more than the first, and no row among the moats is dug by a surprise.",
@@ -4041,7 +4041,7 @@
           "why_ru": "Партнёра надо предупредить, чтобы он строил с вами, а предупреждённый партнёр — утечка сюрприза."
         }
       ],
-      "status": "draft"
+      "status": "reviewed"
     },
     "decentralization": {
       "summary_en": "Decentralization is defense by having no centre to hit. Capacity, decision-making or ownership is spread across many independent nodes, so a failure, a raid or a regulator takes out one node and the rest continue. It protects what exists. It does not by itself make the whole harder to copy, and adding nodes deepens nothing on the ruler.",
@@ -4147,7 +4147,7 @@
           "why_ru": "Избыточность — оплаченная мощность, которая почти всегда простаивает; эффективная конструкция убирает именно её."
         }
       ],
-      "status": "draft"
+      "status": "reviewed"
     },
     "security": {
       "summary_en": "Security is defense by being the party that does not get robbed. The customer hands you something valuable, money, data or access, and you keep it safe from theft and intrusion. What holds is the proof: certifications and audits a regulated buyer must see, and a record of no breaches that a rival cannot show. The locks themselves are copyable; the standing is not.",
@@ -4261,7 +4261,7 @@
           "why_ru": "Каждое изменение заново открывает аудит; короткий цикл релизов и стабильная сертифицированная поверхность расходятся."
         }
       ],
-      "status": "draft"
+      "status": "reviewed"
     },
     "privacy": {
       "summary_en": "Privacy is defense by not knowing. A product that cannot read, sell or hand over what the customer puts into it is chosen by people who have something to lose from disclosure. The edge holds through the same two channels as security: the legal proof that you meet the rules on data, and the reputation of never having leaked or surrendered anything.",
@@ -4370,7 +4370,7 @@
           "why_ru": "Среда, построенная под широкое участие, собирает широкие данные; приватность — отказ их держать."
         }
       ],
-      "status": "draft"
+      "status": "reviewed"
     },
     "durability": {
       "summary_en": "Durability is defense by outlasting. The thing does not wear out, so the customer never returns to the market, and a rival gets no second chance to win them. It protects the sale already made. On the ruler it maps to one moat, and only when the product is a physical object: the hardware itself, its tooling and its supply chain. Software does not wear out.",
@@ -4479,7 +4479,7 @@
           "why_ru": "Толще стенки и ремонтопригодные детали стоят дороже; самая дешёвая единица в категории редко та, что служит."
         }
       ],
-      "status": "draft"
+      "status": "reviewed"
     },
     "neutrality": {
       "summary_en": "Neutrality is defense by being nobody's enemy. You do not compete with the parties who depend on you, you do not take sides between them, and so all sides can use you without fear. It protects the position by removing the reason to attack it. Being chosen for it is real; nothing on the ruler is dug by it.",
@@ -4575,7 +4575,7 @@
           "why_ru": "Платить за эксклюзив — значит выбрать одного против остальных; нейтральная сторона не перекупает ни для кого."
         }
       ],
-      "status": "draft"
+      "status": "reviewed"
     },
     "obscurity": {
       "summary_en": "Obscurity is defense by not being found. Nobody attacks, copies or regulates what nobody has noticed, so a small player in a corner nobody looks at survives while the visible ones fight. It protects exactly as long as the corner stays dark. Nothing on the ruler is dug by staying unknown, and the protection ends the moment the position is worth taking.",
@@ -4681,7 +4681,7 @@
           "why_ru": "Чтобы набрать критическую массу, надо быть известным; сеть из темноты не соберёшь."
         }
       ],
-      "status": "draft"
+      "status": "reviewed"
     },
     "antifragility": {
       "summary_en": "Antifragility is defense by feeding on the attack. Load, abuse and stress make the system stronger rather than weaker: each new user, each spike, each failure survived adds capacity or value. That is the shape of a network effect and of infrastructure that gets cheaper per unit as it absorbs more, which is why this one holds, and deeply.",
@@ -4795,7 +4795,7 @@
           "why_ru": "Избирательность ограничивает, кто входит; петле нужен объём, который кураторство существует, чтобы отсеять."
         }
       ],
-      "status": "draft"
+      "status": "reviewed"
     },
     "camouflage": {
       "summary_en": "Camouflage wins by not being seen. A product that looks like an ordinary tool, a company that describes itself in boring words, a launch nobody covers: the rival's radar never lights up, so no response comes. The edge is the quiet window this buys. It takes a position and holds nothing, because the first visible success switches the lights on.",
@@ -4899,7 +4899,7 @@
           "why_ru": "Сетевому эффекту нужно, чтобы толпа знала о вас; рост, который обязан быть заметным, не может оставаться в камуфляже."
         }
       ],
-      "status": "draft"
+      "status": "reviewed"
     },
     "mimicry": {
       "summary_en": "Mimicry wins the first encounter by looking like something the other side already has a reaction to. The rival's colours, the incumbent's vocabulary, a licence-shaped badge, a bank-shaped name: whoever is deciding acts on the appearance and gives you the model's treatment without the model's cost. The position is real; nothing under it is yours.",
@@ -5003,7 +5003,7 @@
           "why_ru": "Видимое устройство изнутри приглашает как раз тот внимательный взгляд, которого мимикрия построена избегать."
         }
       ],
-      "status": "draft"
+      "status": "reviewed"
     },
     "decoy": {
       "summary_en": "A decoy is a target you build so the other side spends its attention, budget or fire on it instead of on you. A loud pivot that hides the real product, a patent filed where you are not going, a pricing tier nobody is meant to pick. It buys one misallocated move from an adversary. It keeps nothing: a decoy works until it is compared with outcomes.",
@@ -5107,7 +5107,7 @@
           "why_ru": "Одобрение авторитетных источников требует истории честных сигналов; одной раскрытой обманки хватает, чтобы его лишиться."
         }
       ],
-      "status": "draft"
+      "status": "reviewed"
     },
     "lure": {
       "summary_en": "A lure is something attractive placed in front of the target so that the target moves toward you on its own. A free tier, a loss leader, a printer priced near cost, a fake server that looks worth breaking into. The lure wins the approach. Whether anything closes behind the target is a different mechanism, and a different moat.",
@@ -5211,7 +5211,7 @@
           "why_ru": "Искусственно ограниченное количество сдерживает цель; ловушка толкает её вперёд, а нормировать приманку и раздавать её одновременно нельзя."
         }
       ],
-      "status": "draft"
+      "status": "reviewed"
     },
     "infiltration": {
       "summary_en": "Infiltration enters where the defenses are not looking. An incumbent's gates — procurement, IT approval, a platform's review, a border — are built for rivals who come through the front. A free tool one employee installs, a checkbox inside another program's installer, code on a USB stick walk past them. It wins a foothold inside. Staying there is a separate question.",
@@ -5312,7 +5312,7 @@
           "why_ru": "Выходить вперёд с видимым устройством изнутри — значит самому напрашиваться на проверку безопасности; проникновение построено приходить до того, как о ней спросят."
         }
       ],
-      "status": "draft"
+      "status": "reviewed"
     },
     "first-mover": {
       "summary_en": "Being first is a date, not a property of the product. The first mover ships into an empty category and gets a window: months in which the buyer has no comparison, the vocabulary is yours to set, and the first users, data and integrations are there for the taking. The strategy takes a position; whether it stays taken depends on what you dig during the window.",
@@ -5417,7 +5417,7 @@
           "why_ru": "Точность и забота съедают месяцы, которых у первого хода нет; выйти первым — значит выйти недоделанным."
         }
       ],
-      "status": "draft"
+      "status": "reviewed"
     },
     "second-mover": {
       "summary_en": "The second mover lets the first pay the discovery bill, then ships the version that already knows what worked and what did not. The copy costs less than the original; the edge is that discount plus whatever the copier already owns. The strategy takes a position; it holds nothing, because copying is open to the third mover too.",
@@ -5522,7 +5522,7 @@
           "why_ru": "Копия по определению не восходит к источнику; там, где продаёт происхождение, последователь — подделка."
         }
       ],
-      "status": "draft"
+      "status": "reviewed"
     },
     "last-mover": {
       "summary_en": "The last mover waits until the category has run its experiments in public, then enters with the design the failures pointed to and an asset that makes the entry decisive. It skips the discovery bill and the dead ends, but arrives into a crowded field. The strategy takes a position; what holds it afterwards is dug on the day of entry, not earned by the wait.",
@@ -5627,7 +5627,7 @@
           "why_ru": "«Выпусти и улучшай» приучает команду выпускать черновики; последнему ходу нужна законченная вещь в первый же день."
         }
       ],
-      "status": "draft"
+      "status": "reviewed"
     },
     "monopoly": {
       "summary_en": "The rival is not outcompeted but forbidden: a patent office, a regulator or a licensing board declares that only you may do this, and punishes anyone else who tries. You pay once to obtain the sanction and continuously to enforce it; a rival pays in years, lawyers or a political campaign to remove it, and none of that is a product decision.",
@@ -5738,7 +5738,7 @@
           "why_ru": "Санкцию получают, угождая органу, который её выдаёт; Непочтительность к регламенту лишает места за столом."
         }
       ],
-      "status": "draft"
+      "status": "reviewed"
     },
     "prestige": {
       "summary_en": "An authority the buyer already trusts vouches for you, and its verdict replaces the buyer's own inspection. The edge is legibility: your quality is visible before the product is tried, while a rival's equal quality stays invisible until it too is endorsed. The endorsement is worth what the endorser's name is worth, and it holds only while the endorser keeps it scarce.",
@@ -5859,7 +5859,7 @@
           "why_ru": "Вездесущность делает метку обыденной; быть повсюду и приниматься по умолчанию — противоположность избранности."
         }
       ],
-      "status": "draft"
+      "status": "reviewed"
     },
     "curation": {
       "summary_en": "When supply exceeds anyone's ability to evaluate it, the edge goes to whoever evaluates for others and says no most of the time. The value is in what is left out: the buyer trusts the selection because the selector rejects. Grouping adds a second layer — a roster, a slate, a portfolio becomes a name people look for on its own.",
@@ -5975,7 +5975,7 @@
           "why_ru": "Агрегация открывает дверь широкому участию; отбирающий, который впускает всех, больше ничего не отбирает."
         }
       ],
-      "status": "draft"
+      "status": "reviewed"
     },
     "union": {
       "summary_en": "Rivals who could compete agree to run under one charter: a merger, a federation, a consortium with a rulebook. Being organised this way is not a defense; a union is a container. It holds only through what it produces — a format every member and every outsider must speak, or joint work its members cannot leave without losing the work.",
@@ -6085,7 +6085,7 @@
           "why_ru": "Связанный уставом участник не развернётся в одиночку: союз меняет проворность на вес блока."
         }
       ],
-      "status": "draft"
+      "status": "reviewed"
     },
     "alliance": {
       "summary_en": "Two or more independent firms agree to work together on something specific — a joint product, a shared channel, a co-sold bundle — while each keeps its own roadmap and its own exit. It is a structure for sharing an edge, not for keeping one. A moat appears only if the joint work grows into something neither side can run alone.",
@@ -6185,7 +6185,7 @@
           "why_ru": "Эксклюзивность, купленная любой ценой, и партнёрство с сохранённой независимостью хотят от одного партнёра противоположного."
         }
       ],
-      "status": "draft"
+      "status": "reviewed"
     },
     "emergence": {
       "summary_en": "Many small contributions, coordinated by no centre, add up to a result no single participant designed: an answer base, a taxonomy, a set of templates, a verdict on what is good. The edge is that the product gets richer as people use it, without you paying for the work. It holds because the crowd's labour and its attention are both hard for a rival to summon.",
@@ -6295,7 +6295,7 @@
           "why_ru": "Эмерджентности нужен открытый результат, чтобы притянуть следующего участника; защищённое знание морит её голодом."
         }
       ],
-      "status": "draft"
+      "status": "reviewed"
     },
     "centralization": {
       "summary_en": "One centre decides for everyone: one owner, one roadmap, one approval. The structure removes coordination cost and lets the organisation move as one, which is an operating advantage. It is not a defense: nothing about a single decision-maker stops a rival from copying the product, and the centre itself is a single point to attack.",
@@ -6394,7 +6394,7 @@
           "why_ru": "Владение, разложенное по сообществу, рассеивает то самое решение, ради которого центр и существует."
         }
       ],
-      "status": "draft"
+      "status": "reviewed"
     },
     "standardization": {
       "summary_en": "Participants settle on one way of doing a thing — a unit, a file layout, a wire protocol, a track width — because each of them saves effort by matching the rest. Once the settlement has happened, whoever defines the reference holds the industry's data. That is a mine on the ruler, and the deepest thing in this category.",
@@ -6504,7 +6504,7 @@
           "why_ru": "Форма, которую никто не может прочесть, не расходится: секретность защищает реализацию, но морит стандарт голодом."
         }
       ],
-      "status": "draft"
+      "status": "reviewed"
     },
     "symbiosis": {
       "summary_en": "Two parties depend on each other so tightly that each one's survival is the other's interest: a host and its pollinator, a platform and its sole supplier, two rivals who together shut out a third. The dependency is real and often durable. It belongs to the pair, though, not to you, and it keeps a rival out only while the partner has no better option.",
@@ -6598,7 +6598,7 @@
           "why_ru": "Общая компетенция во множестве задач уводит от той глубокой специализации, которой симбиоз требует от обеих сторон."
         }
       ],
-      "status": "draft"
+      "status": "reviewed"
     },
     "herding": {
       "summary_en": "Small players stand together so that no single one of them is the easy target: a trade body, a buying group, a shared lobby, a joint code of conduct. Numbers make attack costly and give each member a voice it lacks alone. The herd protects; it does not hold. Only when the herd starts working as one — shared tooling, shared rules — does a moat begin.",
@@ -6698,7 +6698,7 @@
           "why_ru": "Стадо заметно по своему устройству; стратегия оставаться неизвестным в него не вступит."
         }
       ],
-      "status": "draft"
+      "status": "reviewed"
     },
     "distributed-ownership": {
       "summary_en": "The people who use the thing also own it: members hold the shares, the votes or the profits, so the customer and the shareholder are the same person. The edge is loyalty that a rival cannot price against, because leaving means leaving your own property. It holds through the community that does the work and the audience that comes with it.",
@@ -6803,7 +6803,7 @@
           "why_ru": "Внезапной сосредоточенной трате нужен внешний капитал, а владение участниками — как раз та структура, которая его отвергает."
         }
       ],
-      "status": "draft"
+      "status": "reviewed"
     },
     "transparency": {
       "summary_en": "You show how the thing works: the source, the roadmap, the pricing logic, the incident history. Openness costs a rival nothing to read, so the edge is not in what is hidden. It is in who arrives because they can see: contributors who build on you and users who trust what they can inspect. It holds through the community and the developer ecosystem it attracts.",
@@ -6913,7 +6913,7 @@
           "why_ru": "Стратегия, которая живёт тем, что о ней не знают, не может выложить своё нутро на всеобщее чтение."
         }
       ],
-      "status": "draft"
+      "status": "reviewed"
     },
     "iteration": {
       "summary_en": "Iteration is a short loop of change, release and measurement, run more often than a rival runs theirs. Its edge is a learning rate: five cycles of hypothesis and data in the time it takes someone else to ship one version. It holds, but at depth 1 — the tempo itself is the moat called Speed, a shovel, and it only deepens when the loop leaves something behind.",
@@ -7013,7 +7013,7 @@
           "why_ru": "Те, кто выбрал вас за постоянство, платят за каждое ваше изменение; непрерывная итерация облагает налогом то самое, что они купили."
         }
       ],
-      "status": "draft"
+      "status": "reviewed"
     },
     "efficiency": {
       "summary_en": "Efficiency is producing the same output from less input — fewer parts, less energy, fewer hands, less waste per unit. The edge is a lower unit cost that a rival with the same volume cannot match. It holds through two math moats: Economies of scale, where cost falls with current volume, and the Experience curve, where it falls with everything you have ever produced.",
@@ -7125,7 +7125,7 @@
           "why_ru": "Разброс объёма по многим потокам держит каждый из них высоко на своей кривой; кривая же вознаграждает концентрацию."
         }
       ],
-      "status": "draft"
+      "status": "reviewed"
     },
     "agility": {
       "summary_en": "Agility is the capacity to change direction cheaply when the environment moves: a new platform, a new rule, a rival's launch. The edge is a shorter distance between noticing and responding. It takes: an agile team reaches the new position first, but the position is open to anyone who arrives next, and nothing about the move itself keeps them out.",
@@ -7221,7 +7221,7 @@
           "why_ru": "Наследие поколений строится тем, что не сворачивают; проворность расходует то самое постоянство, которым живёт наследие."
         }
       ],
-      "status": "draft"
+      "status": "reviewed"
     },
     "precision": {
       "summary_en": "Precision is doing the thing to a tolerance a rival cannot hit: the part fits, the number is right, the delivery lands on the minute. The edge is a buyer who cannot afford the error. It takes: accuracy wins the contract, but a single skilled hire matches it. It becomes a moat only when the accuracy stops living in people and starts living in a process.",
@@ -7328,7 +7328,7 @@
           "why_ru": "Каждый более жёсткий допуск стоит контроля, брака и медленных станков; сравнительно низкая цена тянет в другую сторону."
         }
       ],
-      "status": "draft"
+      "status": "reviewed"
     },
     "blitzing": {
       "summary_en": "Blitzing is spending a large share of your resources in one short burst — cash, people, attention — to take a position before a rival can respond. The edge is surprise and concentration: for a few weeks you are bigger than anyone in that place. It takes: the burst wins the ground, and whether you keep it depends entirely on what the money bought.",
@@ -7429,7 +7429,7 @@
           "why_ru": "Работать непрерывно очень долго — значит никогда не тратить большую часть годовых ресурсов за шесть недель."
         }
       ],
-      "status": "draft"
+      "status": "reviewed"
     },
     "composability": {
       "summary_en": "Composability is exposing your product as parts that others assemble in ways you did not plan: an API, a set of primitives, a pipe that fits any other pipe. The edge is that every assembly someone else builds is a reason to stay and a connector you did not have to write. It holds through a Developer ecosystem and through Integrations.",
@@ -7536,7 +7536,7 @@
           "why_ru": "Открыть свои части через публичный интерфейс — противоположность защите того, как они устроены."
         }
       ],
-      "status": "draft"
+      "status": "reviewed"
     },
     "modularity": {
       "summary_en": "Modularity is building the product as independent units with a fixed way of fitting together, so any unit can be replaced, added or made by someone else without touching the rest. The edge is that third parties can make units and buyers can combine them. It holds through a Developer ecosystem of unit makers and through the Integrations each unit carries.",
@@ -7643,7 +7643,7 @@
           "why_ru": "Каждый стык — шов, а каждый шов — точка отказа; минимальная конструкция из немногих частей тянет против того, чтобы каждая часть была сменной."
         }
       ],
-      "status": "draft"
+      "status": "reviewed"
     },
     "intuitiveness": {
       "summary_en": "Intuitiveness removes the cost of learning: the first session already works because the interface matches what the user's hands and eyes expect. In moat terms it prices the first use at nearly zero, so repetition can start at once — and repetition is what habit is made of. The clarity itself is shallow; the reflex it seeds is the deeper of the two.",
@@ -7759,7 +7759,7 @@
           "why_ru": "Каждая настройка — решение, переложенное на пользователя; Пластичность меняет очевидный путь на настраиваемый."
         }
       ],
-      "status": "draft"
+      "status": "reviewed"
     },
     "fun": {
       "summary_en": "Fun pays the user for using the product: the session is its own reward, so the return visit needs no reminder and no external reason. In moat terms that turns use into a habit that is independent of need, and, where the enjoyment is delivered consistently for years, into a name people trust to be worth their time before they have tried it.",
@@ -7875,7 +7875,7 @@
           "why_ru": "Бренду нужно одно и то же качество каждый раз, но сюрприз — часть награды; Предсказуемость и Веселье торгуются внутри каждого цикла."
         }
       ],
-      "status": "draft"
+      "status": "reviewed"
     },
     "simplicity": {
       "summary_en": "Simplicity is a decision about what the product will not do. Every part left out takes its failures, its explanations and its support load with it — and leaves the user with fewer things to think about, which is what lets the product become automatic. As a finishing discipline it is shallow; as the thing people reach for without deciding it is deeper.",
@@ -7996,7 +7996,7 @@
           "why_ru": "Кастомизация умножает конфигурации, а каждая конфигурация — точка отказа; Пластичность и Простота не выигрывают одновременно."
         }
       ],
-      "status": "draft"
+      "status": "reviewed"
     },
     "low-friction": {
       "summary_en": "Low-friction is about the cost of each act rather than of learning: how many steps, waits and confirmations stand between wanting something and having it. Cut them and the act happens more often, and the more often it happens the less the user thinks about where else it could be done. The trimmed path is copyable; the reflex it produces is not.",
@@ -8117,7 +8117,7 @@
           "why_ru": "Лист ожидания, запись и церемония — часть того, что продаёт Люкс; убрать возню — значит убрать статус."
         }
       ],
-      "status": "draft"
+      "status": "reviewed"
     },
     "charm": {
       "summary_en": "Charm makes people stay for who you are rather than for what you ship: a voice, a face, a look they like. In moat terms it turns attention into an audience that follows the personality wherever it goes next, and over years into a name people trust before they have checked. A rival can copy the product; the personality is not in the spec.",
@@ -8233,7 +8233,7 @@
           "why_ru": "Аудитория, которую держит один человек, — единая точка отказа по замыслу; Децентрализация отказывается ровно от этого."
         }
       ],
-      "status": "draft"
+      "status": "reviewed"
     },
     "malleability": {
       "summary_en": "Malleability is the property of a product that bends to its user without breaking: settings, templates, scripts, free-form fields. The edge is fit — every buyer gets a shape that matches their case, so you win deals a rigid rival loses. It is a way to follow demand, not a way to keep it: the clay does not resist a second potter.",
@@ -8334,7 +8334,7 @@
           "why_ru": "Продукт, принимающий у каждого клиента свою форму, не может обещать одинаковый опыт везде."
         }
       ],
-      "status": "draft"
+      "status": "reviewed"
     },
     "metamorphosis": {
       "summary_en": "Metamorphosis is a change of form between stages: one shape tuned to finding a market, another to exploiting it, a third to defending it, each dropped when its job is done. The edge is that no stage runs on a compromise built for another. It explains how a company arrived at the ground it defends; the defending is done by whatever the new form digs.",
@@ -8435,7 +8435,7 @@
           "why_ru": "Держать живой каждую старую линию — противоположность чистой смене формы; гусеница не оставляет себе пару ножек."
         }
       ],
-      "status": "draft"
+      "status": "reviewed"
     },
     "copycat": {
       "summary_en": "A copycat reproduces a method, a style or a product someone else has already proven, and skips the cost of finding out whether anyone wants it. The saved cost shows up as price, speed of entry or both. It is the rival every moat is measured against, and it holds nothing itself: the third entrant copies the second as easily as the second copied the first.",
@@ -8538,7 +8538,7 @@
           "why_ru": "Дивергенция берёт позицию, уходя от нормы; копия получает вход, держась за проверенное."
         }
       ],
-      "status": "draft"
+      "status": "reviewed"
     }
   }
 }
