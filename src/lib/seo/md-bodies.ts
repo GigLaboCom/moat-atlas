@@ -26,6 +26,16 @@ import {
   moatsInBucket,
   type Moat,
 } from "../../data/moats";
+import {
+  CATEGORIES,
+  ROLES,
+  ROLE_ORDER,
+  SOURCE,
+  backlinksFor,
+  hasBacklinks,
+  strategiesIn,
+  type Strategy,
+} from "../../data/strategies";
 import { QUESTIONS, SEGMENT_KEYS, OPTION_WEIGHTS, questionsOf } from "../../data/survey";
 import type { Locale } from "../../i18n/config";
 import { getLocalizedPath, getTranslations } from "../../i18n/index";
@@ -33,7 +43,36 @@ import { getMoatStrings } from "../../i18n/translations/moats/index";
 import { calculatorPage } from "../../i18n/translations/pages/calculator";
 import { cookiesPage } from "../../i18n/translations/pages/cookies";
 import { creditsPage } from "../../i18n/translations/pages/credits";
+import { strategiesPage } from "../../i18n/translations/pages/strategies";
+import { strategyPage } from "../../i18n/translations/pages/strategy";
 import { CONTACTS, GIGLABO_URL, LAZY_SHOT_URL, MNEMOVI_URL, REPO_URL } from "../links";
+import {
+  categoryName,
+  depthMark,
+  examples,
+  gistOf,
+  moatMark,
+  nameOf,
+  noteOf,
+  roleGist,
+  roleName,
+} from "../strategies";
+import {
+  PAGES,
+  buildOf,
+  bySlug,
+  caseWhat,
+  categoryOf,
+  directMoatsOf,
+  erosionOf,
+  howOf,
+  moatLogicOf,
+  refWhy,
+  signalsOf,
+  soloOf,
+  summaryOf,
+  whyFor,
+} from "../strategy-pages";
 import { siteUrl } from "../url";
 import type { PageEntry } from "./pages";
 
@@ -58,6 +97,11 @@ function table(head: string[], rows: string[][]): string {
 /** Strip the leading glyph off a dictionary value ("● high" → "high"). */
 function word(v: string): string {
   return v.replace(/^\S+\s+/, "");
+}
+
+/** Drop the arrows a UI string wears ("See them on the map →" → "See them…"). */
+function bare(label: string): string {
+  return label.replace(/^[←→]\s*/, "").replace(/\s*[←→]$/, "");
 }
 
 /** The seven-axis passport of one mechanic, as rows. */
@@ -141,7 +185,46 @@ function sheetBody(locale: Locale, n: number): string {
   }
 
   if (s.verdict) out.push("", `## ${t.sheet.verdict}`, "", s.verdict);
+  out.push("", ...sheetBacklinks(locale, n));
   return out.join("\n");
+}
+
+/** A strategy as a link to its own page. */
+function strategyLink(locale: Locale, st: Strategy): string {
+  return `[${nameOf(st, locale)}](${u(locale, `/strategies/${st.slug}/`)})`;
+}
+
+/**
+ * Sheet III's back-links, the same three lists the page renders: direct (a
+ * plain list), via, conditional (each with its note). A moat nothing leads to
+ * directly says so first — the gap is a finding, not an omission.
+ */
+function sheetBacklinks(locale: Locale, n: number): string[] {
+  const t = getTranslations(locale);
+  const b = backlinksFor(n);
+  const map = `${u(locale, "/strategies/")}?view=lanes&moat=${n}`;
+  const out = [`## ${t.sheet.strategies.title}`, ""];
+
+  if (b.direct.length) out.push(...b.direct.map((st) => `- ${strategyLink(locale, st)}`));
+  else out.push(t.sheet.strategies.none);
+  if (b.via.length) {
+    out.push("", t.sheet.strategies.via, "", ...b.via.map((st) => `- ${strategyLink(locale, st)}`));
+  }
+  if (b.conditional.length) {
+    out.push(
+      "",
+      t.sheet.strategies.conditional,
+      "",
+      ...b.conditional.map((st) => {
+        const note = noteOf(st, locale);
+        return `- ${strategyLink(locale, st)}${note ? ` — ${note}` : ""}`;
+      }),
+    );
+  }
+  // The same strategies, lit on sheet III's map — omitted on a moat no
+  // strategy reaches at all, where there would be nothing to light.
+  if (hasBacklinks(b)) out.push("", `[${bare(t.sheet.strategies.map)}](${map})`);
+  return out;
 }
 
 /** Sheet I: what the drawing is, how to read it, and the whole matrix. */
@@ -235,6 +318,168 @@ function calculatorBody(locale: Locale): string {
       ]),
     ),
   );
+  return out.join("\n").replace(/\n{3,}/g, "\n\n");
+}
+
+/**
+ * Sheet III: the intro, then one table per category in essay order — the
+ * whole 80, the same cells as the page — the notes as footnotes under each
+ * category, the roles legend, the attribution.
+ */
+function strategiesBody(locale: Locale): string {
+  const p = strategiesPage[locale];
+  const c = p.columns;
+  const base = u(locale, "/strategies/");
+  const out: string[] = [
+    p.subtitle,
+    "",
+    p.intro,
+    "",
+    `${p.attribution} ${SOURCE.url}`,
+    "",
+    // The same 80 rows as a map: the page's other view, and its static drawing.
+    `[${p.lanes.view.map}](${base}?view=lanes) · [${p.lanes.svg}](${base}lanes.svg)`,
+  ];
+
+  for (const cat of CATEGORIES) {
+    const rows = strategiesIn(cat.slug);
+    out.push(
+      "",
+      `## ${categoryName(cat, locale)} · ${rows.length}`,
+      "",
+      table(
+        [c.strategy, c.gist, c.nature, c.business, c.role, c.moats, c.depth],
+        rows.map((st) => [
+          `${nameOf(st, locale)}${st.disputed ? ` (${p.legend.disputedNote})` : ""}`,
+          cat.slug === "timing" ? `${gistOf(st, locale)} — ${p.markers.timing}` : gistOf(st, locale),
+          examples(st.examples_nature),
+          examples(st.examples_business),
+          roleName(ROLES[st.role], locale),
+          st.moats.length
+            ? st.moats.map((m) => `[${moatMark(m)}](${u(locale, `/moats/${m.n}/`)})`).join(", ")
+            : "—",
+          depthMark(st),
+        ]),
+      ),
+    );
+    const noted = rows.filter((st) => noteOf(st, locale));
+    if (noted.length) {
+      out.push(
+        "",
+        `${p.legend.notes}:`,
+        "",
+        ...noted.map((st) => `- **${nameOf(st, locale)}** — ${noteOf(st, locale)}`),
+      );
+    }
+  }
+
+  out.push(
+    "",
+    `## ${p.legend.title}`,
+    "",
+    ...ROLE_ORDER.map((r) => `- **${roleName(ROLES[r], locale)}** — ${roleGist(ROLES[r], locale)}`),
+    "",
+    `- ${moatMark({ n: 17, kind: "via" })} — ${p.markers.viaLabel}`,
+    `- ${moatMark({ n: 10, kind: "conditional" })} — ${p.markers.conditionalLabel}`,
+  );
+  return out.join("\n").replace(/\n{3,}/g, "\n\n");
+}
+
+/**
+ * Sheet III-b: one strategy, the row's facts first, then every block of the
+ * page in order — self-contained, so an agent that fetches only the twin gets
+ * the moat numbers, names and depths along with the prose.
+ */
+function strategyBody(locale: Locale, st: Strategy): string {
+  const t = getTranslations(locale);
+  const tp = strategiesPage[locale];
+  const p = strategyPage[locale];
+  const page = PAGES[st.slug];
+  const cat = categoryOf(st);
+  const c = tp.columns;
+  const moatName = (n: number) => getMoatStrings(locale, n).name;
+  const tool = (n: number) => t.atlas.ruler[Math.round(byNumber[n].d) as 1 | 2 | 3 | 4].tool;
+  const out: string[] = [
+    `${c.category}: ${categoryName(cat, locale)} · ${c.role}: ${roleName(ROLES[st.role], locale)} · ${c.depth}: ${depthMark(st)}`,
+    "",
+    `${c.gist}: ${gistOf(st, locale)}`,
+    "",
+    `## ${c.moats}`,
+    "",
+  ];
+
+  if (st.moats.length) {
+    out.push(
+      ...st.moats.map(
+        (m) =>
+          `- [${moatMark(m)} ${moatName(m.n)}](${u(locale, `/moats/${m.n}/`)}) (${p.kinds[m.kind]}, ${c.depth.toLowerCase()} ${byNumber[m.n].d} · ${tool(m.n)}) — ${whyFor(page, m.n, locale)}`,
+      ),
+    );
+  } else {
+    out.push(`> ${moatLogicOf(page, locale)}`);
+  }
+  const note = noteOf(st, locale);
+  if (note) out.push("", `> ${st.disputed ? `${tp.legend.disputedNote}: ` : ""}${note}`);
+
+  out.push("", `## ${p.blocks.summary}`, "", summaryOf(page, locale));
+  out.push("", `## ${p.blocks.how}`, "", howOf(page, locale).join("\n\n"));
+  if (st.moats.length) out.push("", `## ${p.blocks.logic}`, "", moatLogicOf(page, locale));
+  out.push("", `## ${p.blocks.signals}`, "", ...signalsOf(page, locale).map((x) => `- ${x}`));
+  out.push("", `## ${p.blocks.build}`, "", ...buildOf(page, locale).map((x) => `- ${x}`));
+  out.push("", `## ${p.blocks.erosion}`, "", ...erosionOf(page, locale).map((x) => `- ${x}`));
+  out.push("", `## ${p.blocks.solo}`, "", soloOf(page, locale));
+
+  const direct = directMoatsOf(st);
+  if (direct.length) {
+    out.push(
+      "",
+      `${p.blocks.soloAttrs}:`,
+      "",
+      ...direct.map(
+        (m) =>
+          `- [#${m.n} ${moatName(m.n)}](${u(locale, `/moats/${m.n}/`)}) — ${t.atlas.axes.solo}: ${t.values.solo[m.solo]} · ${t.atlas.axes.cap}: ${t.values.cap[Math.round(m.capN) as 1 | 2 | 3 | 4]} · ${t.atlas.axes.ai}: ${t.values.ai[m.ai]} · ${t.atlas.axes.rent}: ${t.values.rent[m.rent]}`,
+      ),
+    );
+  }
+
+  out.push(
+    "",
+    `## ${p.blocks.examples}`,
+    "",
+    `${c.nature}: ${examples(st.examples_nature)}`,
+    "",
+    `${c.business}: ${examples(st.examples_business)}`,
+    "",
+    ...page.cases.map((x) => `- **${x.name}** — ${caseWhat(x, locale)}`),
+  );
+
+  // The map with exactly these strategies lit — the page's own combination.
+  const map = (slugs: string[]) => `${u(locale, "/strategies/")}?view=lanes&hl=${slugs.join(",")}`;
+  out.push(
+    "",
+    `## ${p.blocks.combos}`,
+    "",
+    ...page.combos.map((r) => `- ${strategyLink(locale, bySlug[r.slug])} — ${refWhy(r, locale)}`),
+    "",
+    `[${bare(p.map.self)}](${map([st.slug])})`,
+  );
+  if (page.combos.length) {
+    out.push(
+      `[${bare(p.map.combos)}](${map([st.slug, ...page.combos.map((r) => r.slug)])})`,
+    );
+  }
+  if (page.tensions.length) {
+    out.push(
+      "",
+      `## ${p.blocks.tensions}`,
+      "",
+      ...page.tensions.map((r) => `- ${strategyLink(locale, bySlug[r.slug])} — ${refWhy(r, locale)}`),
+      "",
+      `[${bare(p.map.tensions)}](${map([st.slug, ...page.tensions.map((r) => r.slug)])})`,
+    );
+  }
+
+  out.push("", `## ${p.blocks.source}`, "", `${tp.attribution} ${SOURCE.url}`);
   return out.join("\n").replace(/\n{3,}/g, "\n\n");
 }
 
@@ -339,6 +584,10 @@ export function bodyFor(page: PageEntry): string {
       return sheetBody(page.locale, page.n!);
     case "calculator":
       return calculatorBody(page.locale);
+    case "strategies":
+      return strategiesBody(page.locale);
+    case "strategy":
+      return strategyBody(page.locale, page.strategy!);
     case "cookies":
       return cookiesBody(page.locale);
     case "credits":

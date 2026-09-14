@@ -17,6 +17,7 @@ import {
   LLMS_URL_CONVENTIONS,
   LLMS_USAGE_NOTES,
 } from "./llms.config";
+import { twinUrl } from "./md-twin";
 import { NOT_LISTED, pagesFor, shortTitle, type PageEntry } from "./pages";
 
 const BASE = siteUrl("/").replace(/\/$/, "");
@@ -39,7 +40,10 @@ function label(page: PageEntry): string {
 }
 
 function line(page: PageEntry): string {
-  return `- [${label(page)}](${page.url}): ${oneLine(page.description)}`;
+  const entry = `- [${label(page)}](${page.url}): ${oneLine(page.description)}`;
+  // The strategy pages spell their twin out — eighty pages an agent will
+  // usually want as Markdown, without deriving the URL each time.
+  return page.kind === "strategy" ? `${entry} — twin: ${twinUrl(page.path)}` : entry;
 }
 
 /** The four area sections for one locale, at the given heading depth. */

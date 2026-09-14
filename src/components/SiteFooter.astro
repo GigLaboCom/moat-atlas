@@ -14,6 +14,7 @@ const links = [
   { href: "/", label: t.ui.footer.atlas },
   { href: "/moats/", label: t.ui.footer.catalogue },
   { href: "/calculator/", label: t.ui.footer.calculator },
+  { href: "/strategies/", label: t.ui.footer.strategies },
   { href: "/credits/", label: t.ui.footer.credits },
   { href: "/cookies/", label: t.ui.footer.cookiePolicy },
 ];
@@ -25,6 +26,9 @@ const links = [
     {links.map((l) => (
       <a href={getLocalizedPath(l.href, lang)} class="footer-link">{l.label}</a>
     ))}
+    <!-- The machine-readable half of the site, in the open: one file for both
+         locales, so this link is never locale-prefixed. -->
+    <a href="/llms.txt" class="footer-link" title={t.ui.footer.llmsTitle}>{t.ui.footer.llms}</a>
     <a
       href={GIGLABO_URL}
       class="footer-link"

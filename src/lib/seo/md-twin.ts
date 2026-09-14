@@ -26,6 +26,9 @@
  */
 import { localeLabels, type Locale } from "../../i18n/config";
 import { getTranslations } from "../../i18n/index";
+import { strategyPage } from "../../i18n/translations/pages/strategy";
+import { nameOf } from "../strategies";
+import { neighboursOf } from "../strategy-pages";
 import { siteUrl } from "../url";
 import { bodyFor, u } from "./md-bodies";
 import { MOAT_COUNT, alternatesOf, shortTitle, type PageEntry } from "./pages";
@@ -78,10 +81,23 @@ function related(page: PageEntry): string[] {
     }
   }
 
+  // A strategy's neighbours in its category — the page's own prev/next.
+  if (page.strategy) {
+    const p = strategyPage[page.locale];
+    const { prev, next } = neighboursOf(page.strategy);
+    out.push(
+      `- ${p.nav.prev}: ${nameOf(prev, page.locale)} — ${u(page.locale, `/strategies/${prev.slug}/`)}`,
+      `- ${p.nav.next}: ${nameOf(next, page.locale)} — ${u(page.locale, `/strategies/${next.slug}/`)}`,
+    );
+  }
+
   if (page.kind !== "atlas") out.push(`- ${f.atlas}: ${u(page.locale, "/")}`);
   if (page.kind !== "catalogue") out.push(`- ${f.catalogue}: ${u(page.locale, "/moats/")}`);
   if (page.kind !== "calculator") {
     out.push(`- ${f.calculator}: ${u(page.locale, "/calculator/")}`);
+  }
+  if (page.kind !== "strategies") {
+    out.push(`- ${f.strategies}: ${u(page.locale, "/strategies/")}`);
   }
   out.push(`- Site map for agents: ${LLMS_TXT_URL}`);
   return out;

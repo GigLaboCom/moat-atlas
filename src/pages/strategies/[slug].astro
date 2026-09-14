@@ -1,0 +1,559 @@
+---
+/**
+ * Sheet III-b — one strategy, explained in the atlas's terms.
+ *
+ * The row comes from `strategies.v1.json`, the prose from
+ * `strategy-pages.v1.json`, joined here at build time; everything else on the
+ * page (moat names, depths, the matrix attributes, the neighbours) is derived.
+ * The page is complete without JavaScript — it loads nothing beyond the shell.
+ */
+import PageLayout from "../../layouts/PageLayout.astro";
+import type { Locale } from "../../i18n/config";
+import { getTranslations, getLocalizedPath } from "../../i18n/index";
+import { getMoatStrings } from "../../i18n/translations/moats/index";
+import { strategiesPage } from "../../i18n/translations/pages/strategies";
+import { strategyPage } from "../../i18n/translations/pages/strategy";
+import { byNumber } from "../../data/moats";
+import { ROLES, SOURCE, STRATEGIES, STRATEGY_COUNT, essayIndex } from "../../data/strategies";
+import {
+  CONDITIONAL_MARK,
+  categoryName,
+  depthLevel,
+  depthMark,
+  examples,
+  gistOf,
+  moatMark,
+  nameOf,
+  noteOf,
+  roleName,
+} from "../../lib/strategies";
+import {
+  PAGES,
+  buildOf,
+  bySlug,
+  caseWhat,
+  categoryOf,
+  directMoatsOf,
+  erosionOf,
+  howOf,
+  moatLogicOf,
+  neighboursOf,
+  refWhy,
+  signalsOf,
+  soloOf,
+  summaryOf,
+  whyFor,
+} from "../../lib/strategy-pages";
+import { strategyMeta } from "../../lib/seo/pages";
+import { twinPath } from "../../lib/seo/md-twin";
+
+export function getStaticPaths() {
+  return STRATEGIES.map((s) => ({ params: { slug: s.slug } }));
+}
+
+const headerLocale = Astro.request.headers.get("x-locale") as Locale | null;
+const lang: Locale = headerLocale ?? "en";
+const t = getTranslations(lang);
+const tp = strategiesPage[lang];
+const p = strategyPage[lang];
+const other: Locale = lang === "ru" ? "en" : "ru";
+
+const s = bySlug[Astro.params.slug!];
+const page = PAGES[s.slug];
+const cat = categoryOf(s);
+const note = noteOf(s, lang);
+const level = depthLevel(s);
+const { prev, next } = neighboursOf(s);
+const direct = directMoatsOf(s);
+
+const tablePath = getLocalizedPath("/strategies/", lang);
+const basePath = `/strategies/${s.slug}/`;
+const pagePath = getLocalizedPath(basePath, lang);
+const strategyHref = (slug: string) => getLocalizedPath(`/strategies/${slug}/`, lang);
+/** Sheet III's map with exactly these strategies lit — the combination, seen. */
+const mapHref = (slugs: string[]) => `${tablePath}?view=lanes&hl=${slugs.join(",")}`;
+const moatHref = (n: number) => getLocalizedPath(`/moats/${n}/`, lang);
+const moatName = (n: number) => getMoatStrings(lang, n).name;
+const kindWord = (kind: "direct" | "via" | "conditional") => p.kinds[kind];
+
+// The depth of a moat, as the specimen card and the sheet's passport write it.
+const depthOfMoat = (n: number) => {
+  const m = byNumber[n];
+  return `${m.d} · ${t.atlas.ruler[Math.round(m.d) as 1 | 2 | 3 | 4].tool}`;
+};
+const capLevel = (n: number) => Math.round(byNumber[n].capN) as 1 | 2 | 3 | 4;
+
+const { title, description } = strategyMeta(lang, s);
+---
+
+<PageLayout
+  lang={lang}
+  title={title}
+  description={description}
+  basePath={basePath}
+  section={t.strategies.heading}
+>
+  <nav class="crumbs" aria-label={t.ui.breadcrumbs}>
+    <a href={getLocalizedPath("/", lang)}>{t.ui.footer.atlas}</a>
+    <span class="sep" aria-hidden="true">/</span>
+    <a href={tablePath}>{t.ui.footer.strategies}</a>
+    <span class="sep" aria-hidden="true">/</span>
+    <span aria-current="page">{nameOf(s, lang)}</span>
+  </nav>
+
+  <article>
+    <!-- 1 · header -->
+    <div class="eyebrow">{t.strategies.tagline} · {p.eyebrow} {essayIndex[s.slug] + 1} / {STRATEGY_COUNT}</div>
+    <h1>{nameOf(s, lang)}</h1>
+    <p class="alt" lang={other}>{nameOf(s, other)}</p>
+    <p class="facts">
+      <a class="cat" href={`${tablePath}?cat=${cat.slug}`}>{categoryName(cat, lang)}</a>
+      <span class:list={["pill", `role-${s.role}`]}>{roleName(ROLES[s.role], lang)}</span>
+      <span class="depth mono" title={level ? t.atlas.ruler[level].tool : undefined}>
+        {tp.columns.depth} {depthMark(s)}{level && ` · ${t.atlas.ruler[level].tool}`}
+      </span>
+    </p>
+
+    <!-- 2 · gist -->
+    <p class="lede">{gistOf(s, lang)}</p>
+
+    <!-- 3 · the moats strip — the reason the page exists -->
+    <section class="moats" aria-labelledby="h-moats">
+      <h2 id="h-moats">
+        {p.blocks.moats}
+        {s.disputed && (
+          <span class="badge" title={tp.markers.disputed} aria-label={tp.markers.disputed}>{CONDITIONAL_MARK}</span>
+        )}
+      </h2>
+      {s.moats.length > 0 ? (
+        <ul class="strip">
+          {s.moats.map((m) => (
+            <li class:list={["card", `kind-${m.kind}`]}>
+              <a href={moatHref(m.n)} class="moat-link">
+                <span class="mark mono">{moatMark(m)}</span>
+                <span class="name">{moatName(m.n)}</span>
+              </a>
+              <span class="meta mono">
+                {depthOfMoat(m.n)}
+                {m.kind !== "direct" && <em class="kind"> · {kindWord(m.kind)}</em>}
+              </span>
+              <p>{whyFor(page, m.n, lang)}</p>
+            </li>
+          ))}
+        </ul>
+      ) : (
+        <p class="notice">{moatLogicOf(page, lang)}</p>
+      )}
+      {note && <p class="note">{note}</p>}
+    </section>
+
+    <!-- 4 · summary -->
+    <section>
+      <h2>{p.blocks.summary}</h2>
+      <p>{summaryOf(page, lang)}</p>
+    </section>
+
+    <!-- 5 · how it works -->
+    <section>
+      <h2>{p.blocks.how}</h2>
+      {howOf(page, lang).map((para) => <p>{para}</p>)}
+    </section>
+
+    <!-- 6 · why it holds — for a page with no moats this is the notice above -->
+    {s.moats.length > 0 && (
+      <section class="logic">
+        <h2>{p.blocks.logic}</h2>
+        <p>{moatLogicOf(page, lang)}</p>
+      </section>
+    )}
+
+    <!-- 7 · do you have it -->
+    <section>
+      <h2>{p.blocks.signals}</h2>
+      <ul class="checklist">
+        {signalsOf(page, lang).map((x) => <li>{x}</li>)}
+      </ul>
+    </section>
+
+    <!-- 8 · how to dig it -->
+    <section>
+      <h2>{p.blocks.build}</h2>
+      <ul class="plain">
+        {buildOf(page, lang).map((x) => <li>{x}</li>)}
+      </ul>
+    </section>
+
+    <!-- 9 · how it erodes -->
+    <section>
+      <h2>{p.blocks.erosion}</h2>
+      <ul class="plain">
+        {erosionOf(page, lang).map((x) => <li>{x}</li>)}
+      </ul>
+    </section>
+
+    <!-- 10 · solo, without capital — plus what the matrix says of the direct moats -->
+    <section class="solo">
+      <h2>{p.blocks.solo}</h2>
+      <p>{soloOf(page, lang)}</p>
+      {direct.length > 0 && (
+        <>
+          <h3>{p.blocks.soloAttrs}</h3>
+          <ul class="attrs">
+            {direct.map((m) => (
+              <li>
+                <a href={moatHref(m.n)}><span class="mono">#{m.n}</span> {moatName(m.n)}</a>
+                <span class="labels">
+                  <span class="label"><i>{t.atlas.axes.solo}</i> {t.values.solo[m.solo]}</span>
+                  <span class="label"><i>{t.atlas.axes.cap}</i> {t.values.cap[capLevel(m.n)]}</span>
+                  <span class="label"><i>{t.atlas.axes.ai}</i> {t.values.ai[m.ai]}</span>
+                  <span class="label"><i>{t.atlas.axes.rent}</i> {t.values.rent[m.rent]}</span>
+                </span>
+              </li>
+            ))}
+          </ul>
+        </>
+      )}
+    </section>
+
+    <!-- 11 · in nature, in business -->
+    <section class="examples">
+      <h2>{p.blocks.examples}</h2>
+      <dl>
+        <div class="row">
+          <dt>{tp.columns.nature}</dt>
+          <dd>{examples(s.examples_nature)}</dd>
+        </div>
+        <div class="row">
+          <dt>{tp.columns.business}</dt>
+          <dd>{examples(s.examples_business)}</dd>
+        </div>
+      </dl>
+      <h3>{p.blocks.cases}</h3>
+      <ul class="cases">
+        {page.cases.map((c) => (
+          <li><b>{c.name}</b> — {caseWhat(c, lang)}</li>
+        ))}
+      </ul>
+    </section>
+
+    <!-- 12 · combines with, and the same set lit on the map -->
+    <section class="refs">
+      <h2>{p.blocks.combos}</h2>
+      <ul>
+        {page.combos.map((r) => (
+          <li>
+            <a href={strategyHref(r.slug)}>{nameOf(bySlug[r.slug], lang)}</a> — {refWhy(r, lang)}
+          </li>
+        ))}
+      </ul>
+      <p class="map">
+        <a href={mapHref([s.slug])}>{p.map.self}</a>
+        {page.combos.length > 0 && (
+          <a href={mapHref([s.slug, ...page.combos.map((r) => r.slug)])}>{p.map.combos}</a>
+        )}
+      </p>
+    </section>
+
+    <!-- 13 · fights with — only when there is something honest to say -->
+    {page.tensions.length > 0 && (
+      <section class="refs">
+        <h2>{p.blocks.tensions}</h2>
+        <ul>
+          {page.tensions.map((r) => (
+            <li>
+              <a href={strategyHref(r.slug)}>{nameOf(bySlug[r.slug], lang)}</a> — {refWhy(r, lang)}
+            </li>
+          ))}
+        </ul>
+        <p class="map">
+          <a href={mapHref([s.slug, ...page.tensions.map((r) => r.slug)])}>{p.map.tensions}</a>
+        </p>
+      </section>
+    )}
+  </article>
+
+  <!-- 14 · prev / next inside the category, the table, the twin -->
+  <nav class="sheet-nav" aria-label={categoryName(cat, lang)}>
+    <a href={strategyHref(prev.slug)} rel="prev">
+      <span class="dir">← {p.nav.prev}</span>
+      <span class="target">{nameOf(prev, lang)}</span>
+    </a>
+    <span class="mid">
+      <a href={`${tablePath}#${s.slug}`}>{p.nav.all}</a>
+      <a href={twinPath(pagePath)} type="text/markdown">{p.nav.twin}</a>
+    </span>
+    <a href={strategyHref(next.slug)} rel="next">
+      <span class="dir">{p.nav.next} →</span>
+      <span class="target">{nameOf(next, lang)}</span>
+    </a>
+  </nav>
+
+  <!-- 15 · attribution, the table's footer verbatim -->
+  <p class="attribution">
+    {tp.attribution}
+    <a href={SOURCE.url} target="_blank" rel="noopener">{SOURCE.title} ↗</a>
+  </p>
+</PageLayout>
+
+<style>
+  .crumbs {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 26px;
+    font-family: var(--mono);
+    font-size: 11px;
+    letter-spacing: 0.08em;
+  }
+
+  .crumbs .sep,
+  .crumbs [aria-current] { color: var(--ink-dim); }
+
+  h1 { margin-bottom: 4px; }
+
+  .alt {
+    font-family: var(--display);
+    font-size: 15px;
+    letter-spacing: 0.03em;
+    color: var(--ink-dim);
+    margin-bottom: 14px;
+  }
+
+  /* Category, role, depth on one line — the row's facts, above the prose. */
+  .facts {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 22px;
+    font-size: 13px;
+  }
+
+  .facts .cat { color: var(--ink-dim); }
+  .facts .cat:hover { color: var(--ink); }
+  .facts .depth { font-size: 11px; letter-spacing: 0.08em; color: var(--ink-dim); }
+  .mono { font-family: var(--mono); }
+
+  /* Six pills that read by their words; only "holds" wears the ink. */
+  .pill {
+    display: inline-block;
+    padding: 2px 8px;
+    border: 1px solid var(--line);
+    font-family: var(--mono);
+    font-size: 10px;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--ink-dim);
+    white-space: nowrap;
+  }
+
+  .pill.role-hold { background: var(--ink); border-color: var(--ink); color: var(--panel-solid); }
+
+  .lede {
+    font-family: var(--display);
+    font-size: 19px;
+    line-height: 1.45;
+    letter-spacing: 0.02em;
+    color: var(--ink);
+    max-width: 40ch;
+    margin-bottom: 36px;
+  }
+
+  h2 { display: flex; align-items: center; gap: 10px; }
+
+  /* The disputed badge, as the table draws it — here beside the strip's heading. */
+  .badge {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 18px;
+    height: 18px;
+    border: 1px solid var(--ink);
+    border-radius: 50%;
+    font-family: var(--mono);
+    font-size: 11px;
+    color: var(--ink);
+  }
+
+  /* ── the moats strip ─────────────────────────────────── */
+  .strip {
+    list-style: none;
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: 1px;
+    background: var(--line);
+    border: 1px solid var(--line);
+  }
+
+  .card {
+    background: var(--panel-solid);
+    padding: 14px 16px;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+  }
+
+  .card .moat-link {
+    display: flex;
+    align-items: baseline;
+    gap: 8px;
+    text-decoration: none;
+    color: var(--ink);
+    font-weight: 600;
+    font-size: 14px;
+  }
+  .card .moat-link:hover .name { text-decoration: underline; text-underline-offset: 3px; }
+  .card .mark { font-size: 12px; font-weight: 400; color: var(--ink-dim); }
+  .card.kind-direct .mark { color: var(--ink); }
+  .card .meta { font-size: 11px; letter-spacing: 0.06em; color: var(--ink-dim); }
+  .card .kind { font-style: normal; }
+  .card p { font-size: 13px; line-height: 1.55; color: var(--ink-dim); margin: 2px 0 0; }
+
+  /* No moats: the same frame the sheet's draft notice uses. */
+  .notice {
+    border: 1px solid var(--line);
+    border-left: 2px solid var(--ink-dim);
+    padding: 12px 14px;
+    font-size: 13px;
+    line-height: 1.6;
+  }
+
+  .note {
+    margin-top: 12px;
+    padding: 8px 10px;
+    border-left: 2px solid var(--ink-dim);
+    font-size: 12.5px;
+    line-height: 1.55;
+    color: var(--ink-dim);
+  }
+
+  .logic {
+    border-left: 2px solid var(--ink-dim);
+    padding-left: 16px;
+  }
+
+  /* ── the lists ───────────────────────────────────────── */
+  ul.plain, ul.checklist, ul.cases, .refs ul, .attrs {
+    list-style: none;
+    display: grid;
+    gap: 1px;
+    border-top: 1px solid var(--line);
+  }
+
+  ul.plain li, ul.checklist li, ul.cases li, .refs li, .attrs li {
+    padding: 9px 0;
+    border-bottom: 1px solid var(--line);
+    font-size: 13.5px;
+    line-height: 1.55;
+  }
+
+  /* An empty box before each sign: a checklist to read, not to tick. */
+  ul.checklist li { display: flex; gap: 12px; }
+  ul.checklist li::before {
+    content: "";
+    flex: none;
+    width: 12px;
+    height: 12px;
+    margin-top: 4px;
+    border: 1px solid var(--ink-dim);
+  }
+
+  .solo h3, .examples h3 {
+    font-family: var(--mono);
+    font-size: 10px;
+    font-weight: 400;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    color: var(--ink-dim);
+    margin: 18px 0 6px;
+  }
+
+  .attrs li { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 14px; }
+  .attrs a { color: var(--ink); text-decoration: none; }
+  .attrs a:hover { text-decoration: underline; text-underline-offset: 3px; }
+  .attrs .labels { display: flex; flex-wrap: wrap; gap: 6px; }
+  .attrs .label {
+    display: inline-block;
+    padding: 2px 8px;
+    border: 1px solid var(--line);
+    font-family: var(--mono);
+    font-size: 10px;
+    letter-spacing: 0.08em;
+    color: var(--ink);
+    white-space: nowrap;
+  }
+  .attrs .label i { font-style: normal; text-transform: uppercase; color: var(--ink-dim); margin-right: 4px; }
+
+  .examples dl { border-top: 1px solid var(--line); }
+  .row {
+    display: flex;
+    gap: 16px;
+    padding: 9px 0;
+    border-bottom: 1px solid var(--line);
+    font-size: 13px;
+  }
+  dt {
+    font-family: var(--mono);
+    font-size: 10px;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    color: var(--ink-dim);
+    min-width: 140px;
+  }
+  dd { color: var(--ink); }
+  ul.cases b { font-weight: 600; color: var(--ink); }
+
+  .refs li a { color: var(--ink); }
+
+  /* Into the map, with this page's strategies already lit. */
+  .refs .map {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px 20px;
+    margin-top: 12px;
+    font-family: var(--mono);
+    font-size: 11px;
+    letter-spacing: 0.08em;
+    color: var(--ink-dim);
+  }
+  .refs .map a:hover { color: var(--ink); text-decoration: underline; text-underline-offset: 3px; }
+
+  /* ── the way on ──────────────────────────────────────── */
+  .sheet-nav {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 16px;
+    margin-top: 40px;
+    padding-top: 18px;
+    border-top: 1px solid var(--line);
+    font-family: var(--mono);
+    font-size: 11px;
+    letter-spacing: 0.08em;
+  }
+
+  .sheet-nav [rel] { display: flex; flex-direction: column; gap: 4px; text-decoration: none; }
+  .sheet-nav [rel="next"] { text-align: right; align-items: flex-end; }
+  .sheet-nav .dir { color: var(--ink-dim); }
+  .sheet-nav .target { color: var(--ink); }
+  .sheet-nav [rel]:hover .target { text-decoration: underline; text-underline-offset: 3px; }
+
+  .mid {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 9px;
+    text-align: center;
+  }
+
+  .attribution { margin-top: 24px; font-size: 12px; color: var(--ink-dim); max-width: 72ch; }
+
+  @media (max-width: 640px) {
+    .strip { grid-template-columns: 1fr; }
+    .row { flex-direction: column; gap: 4px; }
+    .sheet-nav { flex-direction: column; align-items: flex-start; }
+    .sheet-nav [rel="next"] { text-align: left; align-items: flex-start; }
+    .mid { align-items: flex-start; text-align: left; }
+  }
+</style>

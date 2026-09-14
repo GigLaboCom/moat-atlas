@@ -12,6 +12,7 @@ export default {
     tabs: {
       atlas: { title: "Classification", sub: "sheet I · cross-section" },
       calc: { title: "Calculator", sub: "sheet II · your moat" },
+      strategies: { title: "Strategies", sub: "sheet III · 80 ways to win" },
     },
     ruler: {
       heading: "Depth · click to isolate",
@@ -183,6 +184,15 @@ export default {
     backToList: "← Back to the list",
     prev: "← Previous",
     next: "Next →",
+    /** Sheet III's back-links — which of the 80 strategies grow into this moat. */
+    strategies: {
+      title: "Strategies that lead here",
+      via: "Through this moat:",
+      conditional: "Under conditions:",
+      none: "None of the 80 strategies maps here directly.",
+      /** To the lanes view of sheet III with this moat's strategies lit. */
+      map: "See them on the map →",
+    },
   },
   calculator: {
     meta: {
@@ -203,6 +213,15 @@ export default {
     },
     start: "Start the survey",
   },
+  strategies: {
+    meta: {
+      title: "80 strategies — Moat Atlas",
+      description:
+        "The 80 strategies from kepano's “Many ways to win” as a filterable table — and which of them grow into one of the 35 moats.",
+    },
+    heading: "80 strategies",
+    tagline: "sheet III",
+  },
   credits: {
     nav: "Who made this",
   },
@@ -218,8 +237,12 @@ export default {
       atlas: "Atlas",
       catalogue: "Catalogue",
       calculator: "Calculator",
+      strategies: "Strategies",
       credits: "Who made this",
       cookiePolicy: "Cookie Policy",
+      /** The agent map, linked as its own file name — a proper noun. */
+      llms: "llms.txt",
+      llmsTitle: "Site structure and the full page list for agents",
       giglabo: "GigLabo ↗",
       updated: "Updated",
     },

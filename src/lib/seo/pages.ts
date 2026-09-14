@@ -11,21 +11,28 @@
  * themselves render, so a twin can never disagree with its HTML page.
  */
 import { MOATS, MOAT_COUNT, byNumber, type Moat } from "../../data/moats";
+import { STRATEGIES, type Strategy } from "../../data/strategies";
+import { pageOf } from "../../data/strategy-pages";
 import { defaultLocale, locales, type Locale } from "../../i18n/config";
 import { getLocalizedPath, getTranslations } from "../../i18n/index";
 import { getMoatStrings, isDraft } from "../../i18n/translations/moats/index";
 import { cookiesPage } from "../../i18n/translations/pages/cookies";
 import { creditsPage } from "../../i18n/translations/pages/credits";
+import { strategyPage } from "../../i18n/translations/pages/strategy";
+import { descriptionOf } from "../strategy-pages";
+import { nameOf } from "../strategies";
 import { siteUrl } from "../url";
 
 /** The sections llms.txt groups pages under; also the breadcrumb trail. */
-export type AreaKey = "atlas" | "catalogue" | "calculator" | "about";
+export type AreaKey = "atlas" | "catalogue" | "calculator" | "strategies" | "about";
 
 export type PageKind =
   | "atlas"
   | "catalogue"
   | "sheet"
   | "calculator"
+  | "strategies"
+  | "strategy"
   | "cookies"
   | "credits";
 
@@ -45,6 +52,8 @@ export interface PageEntry {
   n?: number;
   moat?: Moat;
   draft?: boolean;
+  /** Strategy pages only: the row of sheet III the page explains. */
+  strategy?: Strategy;
   /** Sitemap hint. Nothing else reads it. */
   priority: number;
 }
@@ -63,6 +72,8 @@ export const NOT_LISTED: { path: string; why: string }[] = [
  */
 export function shortTitle(page: PageEntry): string {
   const t = getTranslations(page.locale);
+  // A strategy page's title is a sentence around the name, not name + suffix.
+  if (page.strategy) return nameOf(page.strategy, page.locale);
   return page.title.replace(new RegExp(`\\s*[—-]\\s*${t.atlas.title}$`), "");
 }
 
@@ -73,6 +84,18 @@ export function sheetMeta(locale: Locale, n: number) {
   return {
     title: `${s.name} — ${t.atlas.title}`,
     description: s.essence || t.catalogue.meta.description,
+  };
+}
+
+/**
+ * The strategy page's title and description, shared by `/strategies/[slug].astro`
+ * and its twin. The description is the first sentence of the page's own summary
+ * — never the gist, which would give eighty pages near-identical snippets.
+ */
+export function strategyMeta(locale: Locale, s: Strategy) {
+  return {
+    title: strategyPage[locale].meta.title.replace("{name}", nameOf(s, locale)),
+    description: descriptionOf(pageOf(s.slug), locale),
   };
 }
 
@@ -129,6 +152,20 @@ export function pagesFor(locale: Locale): PageEntry[] {
       t.calculator.meta.description,
       0.9,
     ),
+    entry(
+      "strategies",
+      "strategies",
+      "/strategies/",
+      t.strategies.meta.title,
+      t.strategies.meta.description,
+      0.9,
+    ),
+    ...STRATEGIES.map((s) => {
+      const meta = strategyMeta(locale, s);
+      return entry("strategy", "strategies", `/strategies/${s.slug}/`, meta.title, meta.description, 0.7, {
+        strategy: s,
+      });
+    }),
     entry(
       "credits",
       "about",

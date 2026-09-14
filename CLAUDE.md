@@ -14,6 +14,8 @@ npm run icons     # re-render favicons/manifests/browserconfig from icons/*.svg
 npm run audit     # audit /llms.txt, the .md twins and the sitemap of a running build
 npm run skill     # install the /moats skill into ~/.claude/skills
 npm run skill:check  # diff the skill's transcription against the matrix and survey
+npm run strategies:check  # sheet III's gates against dist/ — run after every build that touches it
+npm run strategy-pages:check  # sheet III-b's gates (the 80 strategy pages) against dist/
 ```
 
 No test runner is configured. **After touching any file, run `npm run lint && npm run build`** — the build is the authoritative correctness check.
@@ -50,6 +52,8 @@ per component, with the shared palette and type scale as custom properties in
 - `src/layouts/PageLayout.astro` — Layout + header + footer + reading column, used by every content page
 - `src/pages/index.astro` — sheet I, the cross-section HUD
 - `src/pages/calculator.astro` — sheet II, the survey
+- `src/pages/strategies.astro` — sheet III, the 80 strategies: the table and
+  the lanes map, two views of one page
 - `src/scripts/atlas.ts` — the three.js scene: shafts, six groupings, core
   selection, rock isolation, `#moat-N` deep links
 - `src/scripts/section-state.ts` — sheet I's shared control state (view,
@@ -62,6 +66,20 @@ per component, with the shared palette and type scale as custom properties in
 - `src/data/moats.ts` — the 35-row survey matrix, language-neutral
 - `src/data/survey.ts` — sheet II: 12 questions, four segments, the scoring
 - `src/scripts/calculator.ts` — the survey engine behind `/calculator/`
+- `src/data/strategies.v1.json` + `strategies.ts` — sheet III: the canonical
+  dataset (checked in as published, never retyped) and its validator/deriver
+- `src/scripts/strategies-state.ts` — sheet III's shared control state (view,
+  filters, highlight, sort); binds the filter bar once for both views
+- `src/scripts/strategies.ts` — the table renderer: hides, re-orders, counts
+- `src/scripts/strategies-lanes.ts` — the map renderer: lights, dims, collapses
+- `src/lib/lanes.ts` + `lanes-select.ts` — the lane model, and the pure rule
+  that decides which cards an address lights
+- `src/lib/lanes-svg.ts` — the map drawn at build time, `/strategies/lanes.svg`
+- `src/pages/strategies/[slug].astro` — sheet III-b, one page per strategy
+- `src/data/strategy-pages.v1.json` + `strategy-pages.ts` — the prose layer
+  of the 80 pages, keyed by slug, validated at import
+- `src/components/StrategyBacklinks.astro` — "Strategies that lead here" on
+  every moat sheet
 - `src/i18n/` — locales, dictionaries, per-page and per-moat copy
 - `src/lib/` — consent, analytics, URL helpers
 - `src/lib/seo/` — the machine-readable layer: the page index, JSON-LD,
@@ -117,6 +135,7 @@ consumer walks the same index, and `scripts/audit-agents.sh` proves it did.
 | `src/pages/{llms.txt,sitemap.xml,robots.txt}.ts` | The three endpoints. |
 | `src/components/JsonLd.astro` | Emits the graph; `Layout.astro` renders it for every real page. |
 | `scripts/audit-agents.sh` | The audit, also run in CI against the container. |
+| `.claude/skills/generate-ldjson/` | The skill for editing the graph: per-kind anatomy, the field catalogue, and `scripts/check-ld.mjs`, which reads every graph out of `dist/` and checks its shape. |
 
 Rules:
 
@@ -126,6 +145,12 @@ Rules:
 - **Twins are never listed in `sitemap.xml`.** Each twin sends
   `Link: rel="canonical"` at its HTML page; listing it would have the two assert
   opposite things. Discovery is `/llms.txt` plus the `<head>` link.
+- **`/llms.txt` is the one non-page URL in the sitemap**, and the only exception
+  to the rule above: it duplicates no page, so it competes with none, and a
+  crawler that never reads the `<head>` link still finds the map. It carries no
+  hreflang alternates — one file serves both locales — and the audit holds it
+  out of the page-for-page comparison while asserting it is there. The footer
+  links it for the same reason (`ui.footer.llms`).
 - **No `noindex` anywhere in this layer** — an agent that honours it refuses to
   use the file it just fetched.
 - **No invented strings.** A twin heading is a dictionary key or it does not
@@ -140,6 +165,10 @@ Rules:
 - After changing anything here: `npm run build`, then `docker build` and
   `npm run audit -- http://localhost:PORT`. The audit checks coverage both
   ways, both URL forms, head links, sitemap agreement and the 404 shape.
+- The audit only proves a page *has* JSON-LD. For the graph itself use the
+  `generate-ldjson` skill and its checker,
+  `node .claude/skills/generate-ldjson/scripts/check-ld.mjs` — dangling `@id`s,
+  unlisted URLs, duplicates, empty values and a page type that quietly changed.
 
 ## Icons
 
@@ -215,6 +244,83 @@ through `window.__SURVEY__` the way the cross-section takes `window.__ATLAS__`.
 - Elements the engine builds (options, segment bars, the two find-lists) are not
   stamped with Astro's scope attribute — their CSS in `calculator.astro` has to
   go through `:global()` under a server-rendered ancestor.
+
+## The strategies (sheet III)
+
+`src/data/strategies.v1.json` is canonical and bilingual — the one dataset that
+carries strings under `src/data/`, because it is checked in byte-for-byte as
+published (Watchword `moat-atlas-strategies-data-v1`). Never edit it by hand;
+a new version arrives as a new file. `src/data/strategies.ts` validates it at
+import — a bad row fails `astro build` naming the slug — and derives depth (max
+over direct moats, from the matrix) and the per-moat back-links. Copy *about*
+the table lives in `src/i18n/translations/pages/strategies.ts`; the shared
+keys (`atlas.tabs.strategies`, `strategies.meta`, `ui.footer.strategies`,
+`sheet.strategies.*` for the back-link block) in the main dictionaries.
+
+- The page is complete without JavaScript; `src/scripts/strategies.ts` hides,
+  re-orders and counts rows it never builds. Facts a filter needs go on the
+  row as `data-*`, not into a second copy of the JSON.
+- State is the query string, defaults blank, unknown values dropped,
+  `replaceState`; it composes with the `#slug` anchor. Slugs never change.
+- `→ #N` is *via*, `#N?` is *conditional* — typography fixed by the spec, in
+  `src/lib/strategies.ts`, shared by the page and the twin.
+- The twin (`md-bodies.ts`) and the JSON-LD (`ld.ts`) are built from the same
+  module; the sheet twin gets the back-link section from the same map.
+- After touching any of this: `npm run build && npm run strategies:check`.
+
+### The lanes (the map)
+
+`?view=lanes` is the second projection of the same page — 13 lanes in essay
+order, one small card per strategy — not a route: one page, one twin, one
+sitemap row, one JSON-LD graph, and the table stays the no-JS and agent form.
+`html.view-lanes` is set before first paint by an inline bootstrap in the head,
+exactly as sheet I does `?view=list`; both projections are server-rendered and
+the CSS decides which one shows. The map takes no card from a script: it
+lights, dims and collapses what Astro already wrote.
+
+- **One state, two renderers.** `strategies-state.ts` owns the query string and
+  binds the filter bar; `strategies.ts` and `strategies-lanes.ts` subscribe.
+  `cat`, `role`, `q` and `moat` survive a view switch; `sort` is the table's and
+  `hl`/`kind` are the map's, and each is dropped when its view is left.
+- **`moat=N` means the same thing in both views and renders differently**: the
+  table filters to the rows that lead to that moat, the map lights them and
+  dims the rest. That is deliberate — same parameter, same meaning, two
+  renderings. `role=` collapses cards to a ghost on the map instead of hiding
+  them, and `cat=` collapses whole lanes: the shape of the field is the thing
+  the map is for, so nothing is ever removed from it.
+- **The highlight protocol** — `moat`, `kind`, `hl`, `q` — is the contract every
+  inbound link uses: a moat sheet links with its own `moat=N`, a strategy page
+  with `hl=<slug>` and with `hl=<slug>,<partners>`. What an address lights is
+  decided by `src/lib/lanes-select.ts`, a pure function with no DOM and no
+  dataset, so the page and the gate can agree. Highlight URLs are never
+  indexable: the canonical stays the bare `/strategies/`, and no combination
+  reaches the sitemap or a twin.
+- **Nothing on the map is decorative.** Accent, example, chips, both counts and
+  the order are all derived in `src/lib/lanes.ts`; add a rendering need there,
+  never a field to the JSON.
+- `/strategies/lanes.svg` (both locales) is the same map drawn at build time
+  from the same data — real `<text>`, one `<a>` per card, the light palette
+  written out because an SVG used as an image sees no custom properties.
+- After touching any of this: `npm run build && npm run strategies:check`.
+
+### The strategy pages (sheet III-b)
+
+`/strategies/<slug>/` joins two datasets at build time: the frozen row from
+`strategies.v1.json` and the prose from `src/data/strategy-pages.v1.json`
+(keyed by slug, both locales, written for the atlas — never a translation of
+the essay). `src/data/strategy-pages.ts` validates the prose at import — keys
+are exactly the 80 slugs, every field non-empty in both locales, lists within
+bounds, `per_moat` exactly the row's moats, combos/tensions resolving and not
+self-referencing, no Russian field equal to its English one — and fails the
+build naming the slug and field. Copy around the page lives in
+`src/i18n/translations/pages/strategy.ts`; `src/lib/strategy-pages.ts` picks
+the locale and derives the description, the neighbours and the direct moats'
+matrix attributes for the page, the twin and the JSON-LD alike.
+
+- The page has no script and no parameters; everything is rendered at build.
+- `status` is the owner's review state — never rendered, only reported by
+  `npm run strategy-pages:check` together with the one-sided combo pairs.
+- After touching any of this: `npm run build && npm run strategy-pages:check`.
 
 ## Moat sheets
 

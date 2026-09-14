@@ -55,13 +55,18 @@ done < "$TMP/pages"
 echo "== E: the sitemap and llms.txt list the same pages, and no twin"
 curl -s "$BASE/sitemap.xml" \
   | sed -n 's#.*<loc>\(.*\)</loc>.*#\1#p' \
-  | sed -E "s#^https?://[^/]+##" | sort -u > "$TMP/sitemap"
-grep -qE '\.md$' "$TMP/sitemap" && bad "the sitemap lists a .md twin"
+  | sed -E "s#^https?://[^/]+##" | sort -u > "$TMP/sitemap-all"
+grep -qE '\.md$' "$TMP/sitemap-all" && bad "the sitemap lists a .md twin"
+# /llms.txt is in the sitemap on purpose — it is a document, not a page and not
+# a twin, so it has no entry in its own page list and is held out of the
+# page-for-page comparison below.
+grep -q '^/llms\.txt$' "$TMP/sitemap-all" || bad "the sitemap does not list /llms.txt"
+grep -v '^/llms\.txt$' "$TMP/sitemap-all" > "$TMP/sitemap"
 if ! diff "$TMP/pages" "$TMP/sitemap" > "$TMP/diff"; then
   bad "sitemap and llms.txt disagree:"
   sed 's/^/      /' "$TMP/diff"
 fi
-echo "  sitemap: $(wc -l < "$TMP/sitemap" | tr -d ' ') URLs"
+echo "  sitemap: $(wc -l < "$TMP/sitemap" | tr -d ' ') pages + /llms.txt"
 
 echo "== F: every link inside /llms.txt resolves"
 grep -oE "$host[^ )\`]*" "$TMP/llms.txt" | sed -E 's/[.,:;]+$//' | sort -u > "$TMP/links"

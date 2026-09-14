@@ -5,6 +5,7 @@ import { getTranslations, getLocalizedPath } from "../../i18n/index";
 import { getMoatStrings, isDraft } from "../../i18n/translations/moats/index";
 import { MOATS, byNumber, ROCK_COLORS, MOAT_COUNT } from "../../data/moats";
 import { sheetMeta } from "../../lib/seo/pages";
+import StrategyBacklinks from "../../components/StrategyBacklinks.astro";
 
 export function getStaticPaths() {
   return MOATS.map((m) => ({ params: { n: String(m.n) } }));
@@ -153,6 +154,9 @@ const { title, description } = sheetMeta(lang, n);
     <h2>{t.sheet.verdict}</h2>
     {s.verdict ? <p>{s.verdict}</p> : <p class="placeholder">—</p>}
   </section>
+
+  <!-- Sheet III looking back: the strategies whose moat this is. -->
+  <StrategyBacklinks lang={lang} n={n} />
 
   </article>
 
