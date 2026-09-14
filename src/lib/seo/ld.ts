@@ -17,12 +17,14 @@
 import { GROUPING_AXES, MOAT_COUNT, byNumber, type GroupingAxis, type Moat } from "../../data/moats";
 import {
   CATEGORIES,
+  LINK_KINDS,
   ROLES,
   SOURCE,
-  STRATEGIES,
   STRATEGY_COUNT,
   DATASET_VERSION,
+  backlinksFor,
   depthOf,
+  type LinkKind,
 } from "../../data/strategies";
 import { OPTION_WEIGHTS, QUESTION_COUNT, SEGMENT_KEYS } from "../../data/survey";
 import type { Locale } from "../../i18n/config";
@@ -33,7 +35,7 @@ import { calculatorPage } from "../../i18n/translations/pages/calculator";
 import { strategiesPage } from "../../i18n/translations/pages/strategies";
 import { strategyPage } from "../../i18n/translations/pages/strategy";
 import { CONTACTS, GIGLABO_URL, REPO_URL } from "../links";
-import { categoryName, gistOf, moatMark, nameOf, roleName } from "../strategies";
+import { categoryName, examples, gistOf, moatMark, nameOf, noteOf, roleName } from "../strategies";
 import { PAGES, bySlug, categoryOf, whyFor } from "../strategy-pages";
 import { siteUrl } from "../url";
 import { twinUrl } from "./md-twin";
@@ -50,6 +52,18 @@ const ref = (id: string) => ({ "@id": id });
 /** The set every sheet is a term of — one node per locale. */
 const atlasSetId = (locale: Locale) => `${SITE}#atlas-${locale}`;
 const termId = (page: PageEntry) => `${page.url}#term`;
+
+/** The two pages a cross-sheet reference points at, in the reader's locale. */
+const sheetUrl = (locale: Locale, n: number) => siteUrl(getLocalizedPath(`/moats/${n}/`, locale));
+const strategyUrl = (locale: Locale, slug: string) =>
+  siteUrl(getLocalizedPath(`/strategies/${slug}/`, locale));
+
+/** The propertyID each of the three back-link lists takes on a sheet. */
+const BACKLINK_IDS: Record<LinkKind, string> = {
+  direct: "strategiesDirect",
+  via: "strategiesVia",
+  conditional: "strategiesConditional",
+};
 
 function organization(): Node {
   return {
@@ -142,7 +156,10 @@ function variables(locale: Locale): Node[] {
 /** One sheet, as a defined term carrying its whole passport. */
 function definedTerm(page: PageEntry): Node {
   const t = getTranslations(page.locale);
+  const p = strategyPage[page.locale];
   const m = page.moat as Moat;
+  const back = backlinksFor(m.n);
+  const leadHere = LINK_KINDS.flatMap((k) => back[k]);
   return {
     "@type": "DefinedTerm",
     "@id": termId(page),
@@ -167,7 +184,29 @@ function definedTerm(page: PageEntry): Node {
             { "@type": "PropertyValue", name: t.sheet.sample.median, propertyID: "sampleMedianPrice", value: m.sample.median, unitText: "USD" },
           ]
         : []),
+      // Sheet III seen from this side — the back-link block the sheet renders.
+      // Which way a strategy reaches the moat is a fact about the pair, so it
+      // is stated here, on the moat's own node, rather than on a term another
+      // page defines; an empty list is left out, never written as a dash.
+      ...LINK_KINDS.filter((k) => back[k].length > 0).map((k) => ({
+        "@type": "PropertyValue",
+        name: p.kinds[k],
+        propertyID: BACKLINK_IDS[k],
+        value: back[k].map((s) => nameOf(s, page.locale)).join(", "),
+      })),
     ],
+    // The strategies themselves, as the terms their own pages define.
+    ...(leadHere.length > 0
+      ? {
+          mentions: leadHere.map((s) => ({
+            "@type": "DefinedTerm",
+            "@id": `${strategyUrl(page.locale, s.slug)}#term`,
+            identifier: s.slug,
+            name: nameOf(s, page.locale),
+            url: strategyUrl(page.locale, s.slug),
+          })),
+        }
+      : {}),
   };
 }
 
@@ -183,7 +222,6 @@ function strategyTerm(page: PageEntry): Node {
   const s = page.strategy!;
   const prose = PAGES[s.slug];
   const depth = depthOf(s);
-  const sheetUrl = (n: number) => siteUrl(getLocalizedPath(`/moats/${n}/`, page.locale));
   return {
     "@type": "DefinedTerm",
     "@id": termId(page),
@@ -204,15 +242,42 @@ function strategyTerm(page: PageEntry): Node {
         ? [{ "@type": "PropertyValue", name: tp.columns.depth, propertyID: "depth", value: depth.d, maxValue: 4 }]
         : []),
       { "@type": "PropertyValue", name: tp.columns.moats, propertyID: "moats", value: s.moats.length ? s.moats.map(moatMark).join(", ") : "—" },
+      // The two example columns, joined as every cell joins them. A row with
+      // no examples emits neither — absent, not a dash a crawler has to read.
+      ...(s.examples_nature.length
+        ? [{ "@type": "PropertyValue", name: tp.columns.nature, propertyID: "nature", value: examples(s.examples_nature) }]
+        : []),
+      ...(s.examples_business.length
+        ? [{ "@type": "PropertyValue", name: tp.columns.business, propertyID: "business", value: examples(s.examples_business) }]
+        : []),
+      // The owner's caveat on the mapping, marked on the table and printed
+      // under the moats strip — a graph that dropped it would read as settled.
+      ...(s.disputed
+        ? [{ "@type": "PropertyValue", name: tp.markers.disputed, propertyID: "disputed", value: noteOf(s, page.locale) }]
+        : []),
+      // The page's own sentence on each moat it leads to. It belongs to the
+      // pair, not to the moat, so it is a property of this strategy: the
+      // sheet's `#term` is one node, and eighty pages must not each give it a
+      // different description.
+      ...s.moats.map((m) => ({
+        "@type": "PropertyValue",
+        name: getMoatStrings(page.locale, m.n).name,
+        propertyID: `moat-${m.n}`,
+        value: `${p.kinds[m.kind]} · ${t.atlas.axes.depth} ${byNumber[m.n].d} — ${whyFor(prose, m.n, page.locale)}`,
+      })),
     ],
-    // Every moat the strategy leads to, with the page's own words on why.
-    mentions: s.moats.map((m) => ({
-      "@type": "DefinedTerm",
-      "@id": `${sheetUrl(m.n)}#term`,
-      identifier: String(m.n),
-      name: getMoatStrings(page.locale, m.n).name,
-      description: `${p.kinds[m.kind]} · ${t.atlas.axes.depth} ${byNumber[m.n].d} — ${whyFor(prose, m.n, page.locale)}`,
-    })),
+    // Every moat the strategy leads to, by the term its own sheet defines.
+    ...(s.moats.length
+      ? {
+          mentions: s.moats.map((m) => ({
+            "@type": "DefinedTerm",
+            "@id": `${sheetUrl(page.locale, m.n)}#term`,
+            identifier: String(m.n),
+            name: getMoatStrings(page.locale, m.n).name,
+            url: sheetUrl(page.locale, m.n),
+          })),
+        }
+      : {}),
     // The strategies it stacks with and fights with, by their own terms.
     ...(prose.combos.length || prose.tensions.length
       ? {
@@ -334,6 +399,11 @@ function mainEntities(page: PageEntry): { type: string; nodes: Node[]; mainEntit
           { "@type": "PropertyValue", name: p.columns.category, propertyID: "category", description: CATEGORIES.map((c) => categoryName(c, page.locale)).join(", ") },
           { "@type": "PropertyValue", name: p.columns.role, propertyID: "role", description: Object.values(ROLES).map((r) => roleName(r, page.locale)).join(", ") },
           { "@type": "PropertyValue", name: p.columns.moats, propertyID: "moats", description: "direct, via, conditional" },
+          // Depth is the matrix's own axis, derived per row; the two example
+          // columns take open text, so they are declared without values.
+          { "@type": "PropertyValue", name: p.columns.depth, propertyID: "depth", description: Object.values(t.values.depth).join(", ") },
+          { "@type": "PropertyValue", name: p.columns.nature, propertyID: "nature" },
+          { "@type": "PropertyValue", name: p.columns.business, propertyID: "business" },
         ],
         size: `${STRATEGY_COUNT} rows`,
         distribution: {
@@ -342,18 +412,23 @@ function mainEntities(page: PageEntry): { type: string; nodes: Node[]; mainEntit
           contentUrl: twinUrl(page.path),
         },
       };
+      // The list walks the index, like the catalogue's: every item is the
+      // strategy's own page (sheet III-b), not the row's anchor in this table
+      // — a summary list points at the pages it summarises.
       const list: Node = {
         "@type": "ItemList",
         "@id": `${page.url}#list`,
         numberOfItems: STRATEGY_COUNT,
         itemListOrder: "https://schema.org/ItemListOrderAscending",
-        itemListElement: STRATEGIES.map((st, i) => ({
-          "@type": "ListItem",
-          position: i + 1,
-          name: nameOf(st, page.locale),
-          description: gistOf(st, page.locale),
-          url: `${page.url}#${st.slug}`,
-        })),
+        itemListElement: pagesFor(page.locale)
+          .filter((sp) => sp.kind === "strategy")
+          .map((sp, i) => ({
+            "@type": "ListItem",
+            position: i + 1,
+            name: shortTitle(sp),
+            description: gistOf(sp.strategy!, page.locale),
+            url: sp.url,
+          })),
       };
       return { type: "CollectionPage", nodes: [dataset, list], mainEntity: `${page.url}#list` };
     }
