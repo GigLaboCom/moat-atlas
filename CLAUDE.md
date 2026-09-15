@@ -16,6 +16,8 @@ npm run skill     # install the /moats skill into ~/.claude/skills
 npm run skill:check  # diff the skill's transcription against the matrix and survey
 npm run strategies:check  # sheet III's gates against dist/ — run after every build that touches it
 npm run strategy-pages:check  # sheet III-b's gates (the 80 strategy pages) against dist/
+npm run home:check   # the home page's static gates against dist/ — copy, sample card, /about/, twins
+npm run home:check:browser -- http://localhost:4321   # its browser gates (Playwright) against a running build
 ```
 
 No test runner is configured. **After touching any file, run `npm run lint && npm run build`** — the build is the authoritative correctness check.
@@ -50,19 +52,33 @@ per component, with the shared palette and type scale as custom properties in
 
 - `src/layouts/Layout.astro` — html/head, hreflang, canonical, theme bootstrap, GA4 consent defaults, cookie banner
 - `src/layouts/PageLayout.astro` — Layout + header + footer + reading column, used by every content page
-- `src/pages/index.astro` — sheet I, the cross-section HUD
+- `src/pages/index.astro` — the home page: hero, the sample result, the
+  three steps, then sheet I (the cross-section and its HUD) at `#section`,
+  the sheet III teaser and the fine print
+- `src/pages/about.astro` — the reading guide of sheet I in full
+- `src/components/SampleResult.astro` + `src/data/sample-result.ts` — the
+  worked example on the home page: one answer set, scored and encoded by the
+  real calculator code at build
+- `src/lib/home.ts` — the home copy's placeholders filled from the data
+  (`{questions}`, `{moats}`, `{levels}`, `{strategies}`, `{tools}`)
+- `src/lib/guide.ts` — which guide sections the home page folds and which
+  `/about/` carries
 - `src/pages/calculator.astro` — sheet II, the survey
 - `src/pages/strategies.astro` — sheet III, the 80 strategies: the table and
   the lanes map, two views of one page
 - `src/scripts/atlas.ts` — the three.js scene: shafts, six groupings, core
-  selection, rock isolation, `#moat-N` deep links
+  selection, rock isolation, `#moat-N` deep links, the `hl=` highlight, the
+  first-contact hint
+- `src/scripts/atlas-lazy.ts` — when the scene loads: near the viewport,
+  never for the fold, never for a page that stays in the list
 - `src/scripts/section-state.ts` — sheet I's shared control state (view,
-  grouping axis, the two isolation filters); binds the HUD buttons once for
-  both views and mirrors the view into `?view=list`
+  grouping axis, the three isolation filters — rock, depth, `hl`); binds the
+  HUD buttons once for both views and mirrors everything into the query string
 - `src/scripts/atlas-list.ts` — sheet I's text mode: re-groups and filters
   the list `index.astro` server-renders
-- `src/scripts/guide.ts` — the "how it works" dialog on sheet I, outside the
-  3D module so it opens without WebGL
+- `src/scripts/guide.ts` — the folded reading guide on the home page
+  (`<details>`, `?guide=1`) and the `?` button in the HUD that opens it,
+  outside the 3D module so it works without WebGL
 - `src/data/moats.ts` — the 35-row survey matrix, language-neutral
 - `src/data/survey.ts` — sheet II: 12 questions, four segments, the scoring
 - `src/scripts/calculator.ts` — the survey engine behind `/calculator/`
@@ -201,6 +217,43 @@ dictionaries, specimens from `src/data/moats.ts`). Re-run and commit the PNGs
 after changing the card copy — `og.stats`, `atlas.*`, `ui.tagline`, `rocks.*` —
 or the matrix. Never hard-code card text in the script.
 
+## The home page
+
+The page leads with the outcome and the action, not with the drawing: hero
+(H1, sub, the primary `.btn` to `/calculator/`, the trust line), the sample
+result beside it, the three steps, then sheet I at `#section`, the sheet III
+teaser and the fine print. Copy lives in `src/i18n/translations/pages/home.ts`
+with counts as placeholders that `src/lib/home.ts` fills from the data — never
+type a count. The hero sub is also the page's description and
+`og:description` (`homeDescription()` in `pages.ts`), so the four agree.
+
+- **The sample card** is a real result: `src/data/sample-result.ts` holds one
+  answer set (an archetype, not a real product's figures — the owner may
+  replace it), and the card is rendered from `scoreSurvey()` with a link
+  built by `encodeAnswers()`. The card and the calculator cannot disagree;
+  `npm run home:check` proves it. Its deepest mechanic is the shaft the bare
+  section pulses on first contact.
+- **The reading guide** is `t.atlas.guide.sections`, a keyed record. The home
+  page folds the seven about the drawing (`GUIDE_READING_KEYS`) under a
+  `<details>` (`?guide=1` remembers it open), `/about/` carries all nine, and
+  the fine print stands at the foot of the home page. The `?` button in the
+  HUD opens the same `<details>`.
+- **Above `#section` the copy avoids the guide's vocabulary** — no
+  "defensibility", "geology", "core", "stratum" (nor their Russian stems);
+  the gate lists them. The site title in `<head>` is not DOM text.
+- **The stage** (`.stage`) is a screen of its own in the flow; the HUD panels
+  are `absolute` in it where they used to be `fixed` on the window. The
+  wheel is the page's until a press on the canvas engages the section
+  (Esc, a press elsewhere or scrolling it off the screen hands it back), and
+  on a coarse pointer the canvas takes `touch-action: pan-y` — a thumb
+  scrolls the page, a sideways drag turns the section.
+- **three.js loads lazily**: `atlas-lazy.ts` imports the scene when the
+  canvas is within 200px of the viewport. Deep links (`#moat-N`, `hl=`,
+  `?view=list`) land on the stage after the browser's own fragment scroll.
+- After touching any of this: `npm run build && npm run home:check`, and
+  `npm run home:check:browser -- <url>` against `npm run preview` for the
+  fold, the hand-off, the first contact and the network.
+
 ## The cross-section
 
 `src/scripts/atlas.ts` imports the matrix from `src/data/moats.ts` directly and
@@ -216,7 +269,14 @@ anchors make `/?view=list#moat-7` a real address. The HUD controls are bound
 once in `section-state.ts`; the scene and `atlas-list.ts` both subscribe, so
 the grouping and the isolation filters are one state across the two views —
 and the whole of it mirrors into the URL (`view`, `group`, `rock`, `depth`,
-defaults blank), so a link reproduces the exact setup. Links that leave for a
+`hl`, defaults blank, unknown values dropped), so a link reproduces the exact
+setup. `hl=19,6,5` is the third isolation — shafts named outright, the
+calculator's hand-off (`/?hl=…#section`) and the same parameter name sheet
+III's map takes; taking a core clears `rock`/`depth` but keeps `hl`, because
+the highlight is the visitor's own map. A bare section — no core, no query
+state — shows one hint in the status line and outlines (and, without reduced
+motion, pulses) the sample result's deepest shaft until the first hover or
+press; nothing is stored to remember it. Links that leave for a
 sheet page (list entries, the card, the modal's page link) wear that query
 via `stateSearch()`; on the sheet, a page script reads it from its own URL
 (referrer is only the fallback) and hangs it on the Atlas crumb and the
@@ -241,6 +301,10 @@ through `window.__SURVEY__` the way the cross-section takes `window.__ATLAS__`.
   is the check.
 - Answers live in the URL hash and nowhere else. Do not add storage here: the
   page deliberately needs no consent category and no row on `/cookies/`.
+- The result screen's "Show my mechanics on the section" links to
+  `/?hl=<holding>#section` — the mechanics the result holds, lit on sheet I.
+  It stands down when the result holds none. The gauge and the segment bars
+  are `src/styles/result.css`, shared with the home page's sample card.
 - Elements the engine builds (options, segment bars, the two find-lists) are not
   stamped with Astro's scope attribute — their CSS in `calculator.astro` has to
   go through `:global()` under a server-rendered ancestor.

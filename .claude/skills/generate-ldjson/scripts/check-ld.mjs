@@ -85,6 +85,7 @@ const KINDS = [
   [/^\/(ru\/)?calculator\/$/, "calculator", "WebPage", true],
   [/^\/(ru\/)?strategies\/$/, "strategies", "CollectionPage", true],
   [/^\/(ru\/)?strategies\/[a-z0-9-]+\/$/, "strategy", "WebPage", true],
+  [/^\/(ru\/)?about\/$/, "about", "AboutPage", false],
   [/^\/(ru\/)?credits\/$/, "credits", "AboutPage", false],
   [/^\/(ru\/)?cookies\/$/, "cookies", "WebPage", false],
 ];

@@ -1,0 +1,41 @@
+---
+import PageLayout from "../layouts/PageLayout.astro";
+import type { Locale } from "../i18n/config";
+import { getTranslations, getLocalizedPath } from "../i18n/index";
+import { aboutPage } from "../i18n/translations/pages/about";
+import { GUIDE_KEYS } from "../lib/guide";
+
+const headerLocale = Astro.request.headers.get("x-locale") as Locale | null;
+const lang: Locale = headerLocale ?? "en";
+const t = getTranslations(lang);
+const s = aboutPage[lang] ?? aboutPage.en;
+const guide = t.atlas.guide;
+---
+
+<PageLayout
+  lang={lang}
+  title={s.title}
+  description={s.description}
+  basePath="/about/"
+  section={s.heading}
+>
+  <div class="eyebrow">{s.eyebrow}</div>
+  <h1>{s.heading}</h1>
+  <p class="intro">{guide.lede}</p>
+
+  <!-- The whole reading guide, in the order the section is read: the home page
+       folds the first seven beside the drawing and keeps the fine print at its
+       foot; here nothing is folded. -->
+  {GUIDE_KEYS.map((key) => (
+    <section>
+      <h2>{guide.sections[key].title}</h2>
+      <p>{guide.sections[key].body}</p>
+    </section>
+  ))}
+
+  <p class="back"><a href={`${getLocalizedPath("/", lang)}#section`}>{s.backToSection}</a></p>
+</PageLayout>
+
+<style>
+  .back { margin-top: 28px; font-family: var(--mono); font-size: 11px; letter-spacing: 0.08em; }
+</style>

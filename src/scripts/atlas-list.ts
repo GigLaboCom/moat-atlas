@@ -43,7 +43,8 @@ if (data && container) {
       const section = document.createElement("section");
       section.className = "list-group";
 
-      const heading = document.createElement("h2");
+      // An h3: the page's h2 is the section heading above the stage.
+      const heading = document.createElement("h3");
       if (axis === "rock") {
         const dot = document.createElement("i");
         dot.className = "dot";
@@ -74,14 +75,16 @@ if (data && container) {
    * filter kept is always on the ruler-side of the heading.
    */
   function applyFilter(): void {
-    const { rock, depth } = sectionState();
+    const { rock, depth, hl } = sectionState();
     for (const [n, li] of entries) {
       const m = byNumber[n];
-      li.hidden = rock
-        ? m.rock !== rock
-        : depth
-          ? bucketOf(m, "depth") !== String(depth)
-          : false;
+      li.hidden = hl.length
+        ? !hl.includes(n)
+        : rock
+          ? m.rock !== rock
+          : depth
+            ? bucketOf(m, "depth") !== String(depth)
+            : false;
     }
     for (const group of groupsHost.querySelectorAll<HTMLElement>(".list-group")) {
       const shown = group.querySelectorAll(".entry:not([hidden])").length;
@@ -109,7 +112,7 @@ if (data && container) {
   // defaults, so catch the markup up once.
   const initial = sectionState();
   if (initial.axis !== "rock") regroup(initial.axis);
-  if (initial.rock || initial.depth) applyFilter();
+  if (initial.rock || initial.depth || initial.hl.length) applyFilter();
   decorateLinks();
 
   onSectionChange((s, change) => {

@@ -26,6 +26,7 @@
  */
 import { localeLabels, type Locale } from "../../i18n/config";
 import { getTranslations } from "../../i18n/index";
+import { aboutPage } from "../../i18n/translations/pages/about";
 import { strategyPage } from "../../i18n/translations/pages/strategy";
 import { nameOf } from "../strategies";
 import { neighboursOf } from "../strategy-pages";
@@ -98,6 +99,10 @@ function related(page: PageEntry): string[] {
   }
   if (page.kind !== "strategies") {
     out.push(`- ${f.strategies}: ${u(page.locale, "/strategies/")}`);
+  }
+  // The reading guide, from the two pages that fold or point at it.
+  if (page.kind === "atlas" || page.kind === "catalogue") {
+    out.push(`- ${aboutPage[page.locale].heading}: ${u(page.locale, "/about/")}`);
   }
   out.push(`- Site map for agents: ${LLMS_TXT_URL}`);
   return out;

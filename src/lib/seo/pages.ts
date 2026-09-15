@@ -16,9 +16,11 @@ import { pageOf } from "../../data/strategy-pages";
 import { defaultLocale, locales, type Locale } from "../../i18n/config";
 import { getLocalizedPath, getTranslations } from "../../i18n/index";
 import { getMoatStrings, isDraft } from "../../i18n/translations/moats/index";
+import { aboutPage } from "../../i18n/translations/pages/about";
 import { cookiesPage } from "../../i18n/translations/pages/cookies";
 import { creditsPage } from "../../i18n/translations/pages/credits";
 import { strategyPage } from "../../i18n/translations/pages/strategy";
+import { homeDescription } from "../home";
 import { descriptionOf } from "../strategy-pages";
 import { nameOf } from "../strategies";
 import { siteUrl } from "../url";
@@ -33,6 +35,7 @@ export type PageKind =
   | "calculator"
   | "strategies"
   | "strategy"
+  | "about"
   | "cookies"
   | "credits";
 
@@ -127,7 +130,9 @@ export function pagesFor(locale: Locale): PageEntry[] {
   };
 
   return [
-    entry("atlas", "atlas", "/", t.meta.title, t.meta.description, 1.0),
+    // The home page's description is the hero's own line, counts filled from
+    // the data — the same sentence the page, its twin and its graph carry.
+    entry("atlas", "atlas", "/", t.meta.title, homeDescription(locale), 1.0),
     entry(
       "catalogue",
       "catalogue",
@@ -166,6 +171,14 @@ export function pagesFor(locale: Locale): PageEntry[] {
         strategy: s,
       });
     }),
+    entry(
+      "about",
+      "about",
+      "/about/",
+      aboutPage[locale].title,
+      aboutPage[locale].description,
+      0.5,
+    ),
     entry(
       "credits",
       "about",

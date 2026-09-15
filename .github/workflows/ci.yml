@@ -64,6 +64,11 @@ jobs:
       # datasets, and the frozen hash of the rows. See scripts/check-strategy-pages.mjs.
       - run: npm run strategy-pages:check
 
+      # The home page: the copy above the fold, the sample card's arithmetic,
+      # /about/ and the twins. The browser half (the fold, the hand-off, the
+      # first contact, the network) runs locally — see scripts/check-home-browser.mjs.
+      - run: npm run home:check
+
   image:
     name: image builds
     runs-on: ubuntu-latest

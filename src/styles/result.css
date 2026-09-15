@@ -1,0 +1,70 @@
+/*
+ * A calculator result — the gauge, the verdict and the four segment bars.
+ * One stylesheet for the two places a result is drawn: the result screen of
+ * sheet II, which the engine fills, and the worked example on the home page,
+ * which Astro renders from the same scoring. The selectors are plain because
+ * the engine's elements carry no scope attribute; both pages import this file.
+ */
+.result .verdict {
+  display: grid;
+  grid-template-columns: 96px 1fr;
+  gap: 18px;
+  align-items: start;
+  border-top: 1px solid var(--line);
+  border-bottom: 1px solid var(--line);
+  padding: 16px 0;
+  margin-bottom: 18px;
+}
+
+.result .gauge { text-align: center; }
+
+.result .gauge strong {
+  display: block;
+  font-family: var(--display);
+  font-weight: 400;
+  font-size: 42px;
+  line-height: 1;
+  color: var(--ink);
+}
+
+.result .gauge span {
+  display: block;
+  margin-top: 6px;
+  font-family: var(--mono);
+  font-size: 10px;
+  letter-spacing: 0.12em;
+  color: var(--ink-dim);
+}
+
+.result .verdict p { font-size: 14px; line-height: 1.6; }
+.result .verdict .rival { margin-top: 8px; font-size: 12px; color: var(--ink-faint); }
+
+.result h3 {
+  font-family: var(--mono);
+  font-size: 10px;
+  font-weight: 400;
+  letter-spacing: 0.24em;
+  text-transform: uppercase;
+  color: var(--ink-faint);
+  margin-bottom: 10px;
+}
+
+.result .segbars { list-style: none; display: grid; gap: 9px; margin-bottom: 22px; padding: 0; }
+.result .segbars li { display: grid; grid-template-columns: 96px 1fr 34px; gap: 10px; align-items: center; }
+.result .segbars b { font-weight: 400; font-size: 12.5px; }
+.result .segbars .track { height: 6px; background: var(--line); }
+.result .segbars .track i { display: block; height: 100%; transition: width 0.3s ease; }
+.result .segbars .pct { font-family: var(--mono); font-size: 11px; color: var(--ink-dim); text-align: right; }
+/* Block, so the tag sits under the name in every locale instead of wrapping. */
+.result .segbars .tag {
+  display: block;
+  font-family: var(--mono);
+  font-size: 9px;
+  letter-spacing: 0.14em;
+  color: var(--ink-faint);
+}
+
+@media (max-width: 720px) {
+  .result .verdict { grid-template-columns: 1fr; }
+  .result .gauge { text-align: left; display: flex; align-items: baseline; gap: 12px; }
+}

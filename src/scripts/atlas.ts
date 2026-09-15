@@ -28,6 +28,7 @@ import {
 import { trackCoreTaken, trackSheetOpen } from "../lib/analytics";
 import {
   clearIsolation,
+  hasQueryState,
   onSectionChange,
   sectionState,
   setView,
@@ -45,9 +46,20 @@ export interface AtlasPayload {
   axisLabels: Record<GroupingAxis, string>;
   tools: Record<string, string>;
   depthLabels: Record<string, string>;
-  status: { atlas: string; grouping: string; isolated: string; isolatedDepth: string };
+  status: {
+    atlas: string;
+    grouping: string;
+    isolated: string;
+    isolatedDepth: string;
+    /** The one hint a bare section gives before the first hover or click. */
+    first: string;
+    /** "Your {k} mechanics…" — the status line under a `?hl=` highlight. */
+    highlighted: string;
+  };
   specimen: { eyebrow: string; rock: string };
   draft: string;
+  /** The shaft the bare section points at once, so the sample card and the drawing agree. */
+  firstContact: { pulse: number };
 }
 
 declare global {
@@ -361,6 +373,45 @@ function boot(data: AtlasPayload): void {
     scaleLabels();
   }
 
+  /* ── first contact ───────────────────────────────────── */
+  /**
+   * A bare section — no core, no query state — gets one hint in the status
+   * line and one shaft pointed at: the deepest mechanic of the sample result
+   * above, pulsed twice, or outlined where motion is turned off. Both go on
+   * the first hover or press and do not come back until the page is reloaded;
+   * nothing is stored to remember them, so the page needs no consent row.
+   */
+  const statusEl = tooltip.parentElement;
+  let firstContact = false;
+  let pulse: { rec: Record3D; start: number } | null = null;
+  let hintRing: THREE.Mesh<THREE.RingGeometry, THREE.MeshBasicMaterial> | null = null;
+  const PULSE_CYCLE = 1.2;
+  const PULSE_CYCLES = 2;
+
+  /** The pulse runs its two cycles and stops; the hint and the ring outlive it. */
+  function stopPulse(): void {
+    if (!pulse) return;
+    pulse.rec.shaft.material.emissiveIntensity = baseIntensity(pulse.rec.shaft);
+    pulse = null;
+    invalidate();
+  }
+
+  function endFirstContact(): void {
+    if (!firstContact) return;
+    firstContact = false;
+    stopPulse();
+    if (hintRing) {
+      atlas.remove(hintRing);
+      hintRing.geometry.dispose();
+      hintRing.material.dispose();
+      hintRing = null;
+    }
+    statusEl?.removeAttribute("data-first-contact");
+    statusEl?.removeAttribute("aria-live");
+    if (!selected && !hovered) tooltip.textContent = statusText();
+    invalidate();
+  }
+
   /* ── selection ring ──────────────────────────────────── */
   let ring: THREE.Mesh<THREE.RingGeometry, THREE.MeshBasicMaterial> | null = null;
   function placeRing(shaft: THREE.Mesh): void {
@@ -388,19 +439,36 @@ function boot(data: AtlasPayload): void {
   /** The depth row under the pointer — it lights its stratum without filtering. */
   let hoveredDepth: DepthLevel | null = null;
 
-  /** Both filters are exclusive; with neither set, every shaft is in focus. */
+  /** The filters are exclusive; with none set, every shaft is in focus. */
   function inFocus(m: Moat): boolean {
-    const { rock, depth } = sectionState();
+    const { rock, depth, hl } = sectionState();
+    if (hl.length) return hl.includes(m.n);
     if (rock) return m.rock === rock;
     if (depth) return bucketOf(m, "depth") === String(depth);
     return true;
   }
 
+  function isolating(): boolean {
+    const { rock, depth, hl } = sectionState();
+    return !!rock || !!depth || hl.length > 0;
+  }
+
   function baseIntensity(mesh: THREE.Mesh): number {
-    const { rock, depth } = sectionState();
     if (selected) return mesh === selected ? 0.95 : 0.07;
-    if (rock || depth) return inFocus(mesh.userData as Moat) ? 0.6 : 0.07;
+    if (isolating()) return inFocus(mesh.userData as Moat) ? 0.6 : 0.07;
     return 0.3;
+  }
+
+  /**
+   * What the status line says when nothing is hovered and no core is taken:
+   * the highlight's count, the isolated group, or the standing instruction.
+   */
+  function statusText(): string {
+    const s = sectionState();
+    if (s.hl.length) return data.status.highlighted.replace("{k}", String(s.hl.length));
+    if (s.rock) return `${data.status.isolated} ${data.rockNames[s.rock].toLowerCase()}`;
+    if (s.depth) return `${data.status.isolatedDepth} ${data.depthLabels[s.depth]}`;
+    return data.status.atlas;
   }
 
   function applyDimming(): void {
@@ -588,7 +656,7 @@ function boot(data: AtlasPayload): void {
     applyDimming();
     removeRing();
     resetCard();
-    tooltip.textContent = data.status.atlas;
+    tooltip.textContent = statusText();
     goal.target.set(HOME.x, HOME.y, 0);
     goal.radius = 14;
     setHash("");
@@ -670,6 +738,7 @@ function boot(data: AtlasPayload): void {
     // An open dialog — the sheet or the guide — closes itself and keeps the
     // key; only the bare section clears its selection.
     if (document.querySelector("dialog[open]")) return;
+    engaged = false;
     deselect();
   });
 
@@ -683,16 +752,11 @@ function boot(data: AtlasPayload): void {
         tooltip.textContent = `${data.status.grouping} ${data.axisLabels[s.axis].toLowerCase()}`;
       }
     } else if (change === "filter") {
-      if (s.rock || s.depth) deselect();
+      if (s.rock || s.depth || s.hl.length) deselect();
+      endFirstContact();
       applyDimming();
       paintStrata();
-      if (!selected) {
-        tooltip.textContent = s.rock
-          ? `${data.status.isolated} ${data.rockNames[s.rock].toLowerCase()}`
-          : s.depth
-            ? `${data.status.isolatedDepth} ${data.depthLabels[s.depth]}`
-            : data.status.atlas;
-      }
+      if (!selected) tooltip.textContent = statusText();
     }
   });
 
@@ -729,10 +793,11 @@ function boot(data: AtlasPayload): void {
     if (hovered && object !== hovered) {
       hovered.material.emissiveIntensity = baseIntensity(hovered);
       hovered = null;
-      tooltip.textContent = selected ? passport(selected.userData as Moat) : data.status.atlas;
+      tooltip.textContent = selected ? passport(selected.userData as Moat) : statusText();
       canvas.style.cursor = "grab";
     }
     if (object && object !== hovered) {
+      endFirstContact();
       hovered = object;
       hovered.material.emissiveIntensity = Math.max(0.85, baseIntensity(hovered));
       tooltip.textContent = passport(hovered.userData as Moat);
@@ -782,7 +847,20 @@ function boot(data: AtlasPayload): void {
     invalidate();
   }
 
+  /**
+   * The section sits in a page that scrolls, so the wheel is the page's until
+   * the visitor takes the section: a press on the canvas engages it and the
+   * wheel zooms; a press anywhere else, Esc, or scrolling it off the screen
+   * hands the wheel back. Without this a reader wheeling down the page would
+   * stop dead at the drawing, zooming instead of moving.
+   */
+  let engaged = false;
+  window.addEventListener("pointerdown", (e) => {
+    engaged = e.target === canvas;
+  });
+
   canvas.addEventListener("pointerdown", (e) => {
+    endFirstContact();
     active.set(e.pointerId, { x: e.clientX, y: e.clientY });
     if (active.size > 2) return;
     if (active.size === 2) {
@@ -872,6 +950,7 @@ function boot(data: AtlasPayload): void {
   canvas.addEventListener(
     "wheel",
     (e) => {
+      if (!engaged) return;
       e.preventDefault();
       zoom(e.deltaY * 0.01);
     },
@@ -890,6 +969,7 @@ function boot(data: AtlasPayload): void {
     grid = new THREE.GridHelper(17, 34, theme.gridMajor, theme.gridMinor);
     atlas.add(grid);
     ring?.material.color.set(theme.ring);
+    hintRing?.material.color.set(theme.ring);
     for (const rec of records) {
       retintSprite(rec.label, String(rec.moat.n), tint(rockHex(rec.moat.rock)), false);
     }
@@ -903,7 +983,7 @@ function boot(data: AtlasPayload): void {
   applyGrouping(sectionState().axis, reduceMotion);
   applyDimming();
   paintStrata();
-  tooltip.textContent = data.status.atlas;
+  tooltip.textContent = statusText();
 
   function selectFromHash(silent: boolean): void {
     const match = window.location.hash.match(/^#moat-(\d+)$/);
@@ -912,6 +992,26 @@ function boot(data: AtlasPayload): void {
     else deselect();
   }
   selectFromHash(true);
+
+  /* ── first contact: the bare section points at one shaft ── */
+  const firstRec = byN.get(data.firstContact.pulse);
+  if (!selected && !hasQueryState() && firstRec) {
+    firstContact = true;
+    tooltip.textContent = data.status.first;
+    statusEl?.setAttribute("data-first-contact", String(firstRec.moat.n));
+    // The outline stays until the first hover or press; the pulse is the
+    // motion on top of it, and reduced motion gets the outline alone.
+    const w = shaftWidth(firstRec.moat);
+    hintRing = new THREE.Mesh(
+      new THREE.RingGeometry(w * 0.85, w * 0.85 + 0.12, 40),
+      new THREE.MeshBasicMaterial({ color: theme.ring, side: THREE.DoubleSide, transparent: true, opacity: 0.8 }),
+    );
+    hintRing.rotation.x = -Math.PI / 2;
+    hintRing.position.set(firstRec.tx, 0.06, firstRec.tz);
+    atlas.add(hintRing);
+    if (!reduceMotion) pulse = { rec: firstRec, start: performance.now() };
+    invalidate();
+  }
   // A `#moat-N` link followed while already on this page, or a back/forward
   // step, re-aims the section instead of doing nothing.
   window.addEventListener("hashchange", () => selectFromHash(true));
@@ -971,6 +1071,18 @@ function boot(data: AtlasPayload): void {
       dirty = true;
     }
 
+    if (pulse) {
+      const t = (performance.now() - pulse.start) / 1000;
+      if (t >= PULSE_CYCLE * PULSE_CYCLES) {
+        stopPulse();
+      } else {
+        const base = baseIntensity(pulse.rec.shaft);
+        const wave = 0.5 - 0.5 * Math.cos((2 * Math.PI * t) / PULSE_CYCLE);
+        pulse.rec.shaft.material.emissiveIntensity = base + 0.65 * wave;
+        dirty = true;
+      }
+    }
+
     const camEase = Math.min(1, dt * 4);
     if (
       Math.abs(goal.radius - orbit.radius) > 1e-3 ||
@@ -999,6 +1111,10 @@ function boot(data: AtlasPayload): void {
       ring.position.x = selected.position.x;
       ring.position.z = selected.position.z;
     }
+    if (hintRing && firstRec) {
+      hintRing.position.x = firstRec.shaft.position.x;
+      hintRing.position.z = firstRec.shaft.position.z;
+    }
 
     if (dirty) {
       dirty = false;
@@ -1010,24 +1126,19 @@ function boot(data: AtlasPayload): void {
 
   document.addEventListener("visibilitychange", start);
   new IntersectionObserver((entries) => {
-    onScreen = entries[0].isIntersecting;
+    // The last entry is the current state: a canvas that left and came back
+    // between two callbacks delivers both, and the first would stop the loop
+    // for a drawing that is on screen. Below the fold that pair is routine —
+    // the page opens on the hero and a deep link scrolls the stage in.
+    onScreen = entries[entries.length - 1].isIntersecting;
+    if (!onScreen) engaged = false;
     start();
   }).observe(canvas);
   start();
 }
 
+// Importing this module is the decision to draw: `atlas-lazy.ts` does so
+// once the canvas is near the viewport in the scene view, never for a page
+// that opens into the list and never above the fold.
 const payload = window.__ATLAS__;
-if (payload) {
-  // A page opened straight into the list view has no scene to pay for: the
-  // renderer starts on the first switch to it, never sooner.
-  let booted = false;
-  const bootOnce = () => {
-    if (booted) return;
-    booted = true;
-    boot(payload);
-  };
-  if (sectionState().view === "scene") bootOnce();
-  else onSectionChange((s, change) => {
-    if (change === "view" && s.view === "scene") bootOnce();
-  });
-}
+if (payload) boot(payload);

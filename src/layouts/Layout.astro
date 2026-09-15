@@ -15,8 +15,6 @@ export interface Props {
   description?: string;
   lang?: Locale;
   ogImage?: string;
-  /** Full-bleed pages (the 3D section) opt out of page scrolling. */
-  fixed?: boolean;
 }
 
 const {
@@ -24,7 +22,6 @@ const {
   description = "The geology of defensibility.",
   lang: langProp,
   ogImage,
-  fixed = false,
 } = Astro.props;
 
 const headerLocale = Astro.request.headers.get("x-locale") as Locale | null;
@@ -125,7 +122,7 @@ const isPage = pageAt(lang, basePath) !== undefined;
       <script is:inline src={`https://www.googletagmanager.com/gtag/js?id=${GA_ID}`} async></script>
     )}
   </head>
-  <body class:list={[{ fixed }]}>
+  <body>
     <slot />
     <cookie-consent-banner lang={lang}></cookie-consent-banner>
     <CookieConsentLoader />
@@ -183,10 +180,30 @@ const isPage = pageAt(lang, basePath) !== undefined;
     min-height: 100svh;
   }
 
-  /* The cross-section owns the viewport — no page scroll behind it. */
-  body.fixed { height: 100%; overflow: hidden; }
-
   a { color: inherit; text-decoration: none; }
+
+  /* The one primary action a page has — filled, so it reads as the thing to
+     press; the calculator's quiet buttons are its own `.ghost`. */
+  .btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    border: 1px solid var(--ink);
+    background: var(--ink);
+    color: var(--earth);
+    padding: 12px 22px;
+    font-family: var(--mono);
+    font-size: 11px;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    cursor: pointer;
+    text-decoration: none;
+    transition: background 0.15s ease, color 0.15s ease;
+  }
+
+  .btn:hover:not([disabled]) { background: transparent; color: var(--ink); }
+  .btn[disabled] { opacity: 0.5; cursor: not-allowed; }
 
   .skip-link {
     position: absolute;

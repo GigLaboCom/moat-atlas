@@ -6,16 +6,23 @@
  * reads the other's DOM.
  *
  * The whole state lives in the URL — `?view=list&group=solo&rock=minds` (or
- * `&depth=2`) — so any configuration is a link, and the sheet pages' Atlas
- * crumb can send a reader back to exactly what they left. Defaults stay out
- * of the address: a bare `/` is the scene, grouped by rock, unfiltered. The
- * view's initial value is read off the `view-list` class the inline bootstrap
- * in `index.astro` puts on <html> before first paint; the rest is read here.
+ * `&depth=2`, or `&hl=19,6,5`) — so any configuration is a link, and the sheet
+ * pages' Atlas crumb can send a reader back to exactly what they left.
+ * Defaults stay out of the address: a bare `/` is the scene, grouped by rock,
+ * unfiltered. The view's initial value is read off the `view-list` class the
+ * inline bootstrap in `index.astro` puts on <html> before first paint; the
+ * rest is read here.
+ *
+ * `hl` is the third isolation: a set of shafts named outright, the way the
+ * calculator hands its result over (`/?hl=19,6,5#section`) and the same
+ * parameter name sheet III's map takes. Unknown numbers are dropped, never
+ * an error — `hl=99` lights nothing and says so in the address.
  */
 import {
   GROUPING_AXES,
   ROCK_ORDER,
   DEPTH_LEVELS,
+  byNumber,
   type DepthLevel,
   type GroupingAxis,
   type RockKey,
@@ -32,9 +39,11 @@ export type SectionView = "scene" | "list";
 export interface SectionState {
   view: SectionView;
   axis: GroupingAxis;
-  /** Isolated rock — exclusive with `depth`; both null means everything. */
+  /** Isolated rock — exclusive with `depth` and `hl`; all empty means everything. */
   rock: RockKey | null;
   depth: DepthLevel | null;
+  /** Shafts lit by name — the calculator's hand-off. Empty means no highlight. */
+  hl: number[];
 }
 
 /** What just changed — subscribers redraw only what the change touches. */
@@ -46,15 +55,33 @@ const urlAxis = params.get("group") as GroupingAxis | null;
 const urlRock = params.get("rock") as RockKey | null;
 const urlDepth = Number(params.get("depth")) as DepthLevel;
 
+/** A comma list of moat numbers, unknowns and repeats dropped, order kept. */
+function parseHighlight(raw: string | null): number[] {
+  if (!raw) return [];
+  const out: number[] = [];
+  for (const part of raw.split(",")) {
+    const n = Number(part);
+    if (Number.isInteger(n) && byNumber[n] && !out.includes(n)) out.push(n);
+  }
+  return out;
+}
+
 const state: SectionState = {
   view: document.documentElement.classList.contains("view-list") ? "list" : "scene",
   axis: urlAxis && GROUPING_AXES.includes(urlAxis) ? urlAxis : "rock",
   rock: urlRock && ROCK_ORDER.includes(urlRock) ? urlRock : null,
   depth: DEPTH_LEVELS.includes(urlDepth) ? urlDepth : null,
+  hl: parseHighlight(params.get("hl")),
 };
-// The two filters are exclusive everywhere else; a crafted URL carrying both
-// keeps the rock, as the legend click would have.
-if (state.rock) state.depth = null;
+// The filters are exclusive everywhere else. A crafted URL carrying several
+// keeps the most specific: shafts named outright, then the rock, as the
+// legend click would have.
+if (state.hl.length) {
+  state.rock = null;
+  state.depth = null;
+} else if (state.rock) {
+  state.depth = null;
+}
 
 const listeners: Listener[] = [];
 
@@ -119,7 +146,8 @@ export function stateSearch(): string {
   if (state.axis !== "rock") q.set("group", state.axis);
   if (state.rock) q.set("rock", state.rock);
   if (state.depth) q.set("depth", String(state.depth));
-  const s = q.toString();
+  if (state.hl.length) q.set("hl", state.hl.join(","));
+  const s = q.toString().replace(/%2C/g, ",");
   return s ? `?${s}` : "";
 }
 
@@ -134,6 +162,9 @@ function syncUrl(): void {
   write("group", state.axis === "rock" ? null : state.axis);
   write("rock", state.rock);
   write("depth", state.depth ? String(state.depth) : null);
+  write("hl", state.hl.length ? state.hl.join(",") : null);
+  // The comma list reads as one — sheet III writes its lists the same way.
+  url.search = url.searchParams.toString().replace(/%2C/g, ",");
   history.replaceState(null, "", url);
 }
 
@@ -150,6 +181,7 @@ export function setAxis(axis: GroupingAxis): void {
 export function toggleRock(rock: RockKey): void {
   state.rock = state.rock === rock ? null : rock;
   state.depth = null;
+  state.hl = [];
   sync();
   syncUrl();
   emit("filter");
@@ -159,13 +191,18 @@ export function toggleRock(rock: RockKey): void {
 export function toggleDepth(level: DepthLevel): void {
   state.depth = state.depth === level ? null : level;
   state.rock = null;
+  state.hl = [];
   sync();
   syncUrl();
   emit("filter");
   trackDepthIsolate(state.depth);
 }
 
-/** Taking a core clears both filters — untracked, as it always was. */
+/**
+ * Taking a core clears the rock and depth filters — untracked, as it always
+ * was. The highlight stays: it is the visitor's own map, and reading one of
+ * its shafts must not erase the rest of it.
+ */
 export function clearIsolation(): void {
   if (!state.rock && !state.depth) return;
   state.rock = null;
@@ -173,6 +210,25 @@ export function clearIsolation(): void {
   sync();
   syncUrl();
   emit("filter");
+}
+
+/** Light a set of shafts by number; an empty set clears the highlight. */
+export function setHighlight(ns: number[]): void {
+  const next = parseHighlight(ns.join(","));
+  if (next.join(",") === state.hl.join(",")) return;
+  state.hl = next;
+  if (next.length) {
+    state.rock = null;
+    state.depth = null;
+  }
+  sync();
+  syncUrl();
+  emit("filter");
+}
+
+/** Whether the address asked for anything at all — a bare section is the first-contact case. */
+export function hasQueryState(): boolean {
+  return state.view === "list" || state.axis !== "rock" || !!state.rock || !!state.depth || state.hl.length > 0;
 }
 
 export function setView(view: SectionView): void {
@@ -227,3 +283,6 @@ for (const a of viewLinks) {
 }
 
 sync();
+// What the address asked for and could not have — `hl=99`, `rock=granite` —
+// is dropped from it, so the address always says what the page shows.
+syncUrl();

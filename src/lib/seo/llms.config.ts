@@ -24,10 +24,10 @@ export const LLMS_LOCALE_NAMES: Record<Locale, string> = {
 export const LLMS_SITE = {
   name: "Moat Atlas",
   blurb:
-    "An interactive cross-section of 35 defensibility mechanics — what makes a product hard to copy, how deep each moat is, how it is built and how it is bypassed.",
+    "A calculator that measures how hard a product is to copy, a catalogue of the 35 defensibility mechanics it scores against — how deep each moat is, how it is built and how it is bypassed — and the 80 strategies that lead to them.",
   intro: [
-    "The atlas is a geological metaphor made literal. Every mechanic is a shaft in a cross-section: its *rock* is the kind of defensibility (human networks, minds, assets, mathematics, rules, locks, position), its *depth* is how long a rival needs to dig it out (1 shovel — weeks to months, 2 excavator — 1–3 years, 3 drill rig — 3–10 years, 4 mine — 10+ years), its *thickness* is the capital required. Three more axes say whether a solo builder can reach it, how it fares as AI commoditises software, and whether it can be rented instead of dug.",
-    "There are three sheets. Sheet I is the classification — the 3D cross-section on the home page and the same matrix flat in the catalogue, with one full sheet per mechanic. Sheet II is the calculator: twelve questions that measure the moat a product actually has, scored on the same 1–4 depth ruler. Sheet III is the strategy layer: the 80 strategies of kepano's essay \"Many ways to win\", each mapped to the moats it grows into.",
+    "Three things, in the order a visitor meets them. The *calculator* is the action: twelve questions that measure the moat a product actually has, scored on a 1–4 depth ruler, with the mechanics it holds and the cheapest ones to dig next. The *catalogue* is the ruler itself: 35 mechanics, each on a sheet of its own, drawn as a cross-section on the home page below the fold. The *strategies* are the third layer: the 80 strategies of kepano's essay \"Many ways to win\", each mapped to the moats it grows into.",
+    "The catalogue is a geological metaphor made literal. Every mechanic is a shaft in a cross-section: its *rock* is the kind of defensibility (human networks, minds, assets, mathematics, rules, locks, position), its *depth* is how long a rival needs to dig it out (1 shovel — weeks to months, 2 excavator — 1–3 years, 3 drill rig — 3–10 years, 4 mine — 10+ years), its *thickness* is the capital required. Three more axes say whether a solo builder can reach it, how it fares as AI commoditises software, and whether it can be rented instead of dug. The guide to reading the drawing is `/about/`.",
     "Built by Denis Esakov under the Heretic banner at GigLabo, open source under the MIT licence.",
   ].join("\n\n"),
 } as const;
@@ -36,9 +36,9 @@ export const LLMS_SITE = {
 export const LLMS_AREAS: { key: AreaKey; heading: string; summary: string }[] = [
   {
     key: "atlas",
-    heading: "Sheet I — the cross-section",
+    heading: "The home page and sheet I — the cross-section",
     summary:
-      "The home page: 35 mechanics drawn as shafts in a WebGL cross-section, re-laid along six grouping axes (rock, depth, capital, solo, AI, rent). Each core has its own address — `/#moat-7` opens the atlas with mechanic 7 selected, and `/?view=list` renders the same page as a text list with the same groupings and filters. For machine reading prefer the `.md` twin or the catalogue.",
+      "The home page leads with the calculator — what you get, the three steps, a worked example — and carries sheet I below it at `/#section`: 35 mechanics drawn as shafts in a WebGL cross-section, re-laid along six grouping axes (rock, depth, capital, solo, AI, rent). Each core has its own address — `/#moat-7` opens the section with mechanic 7 selected, `/?hl=19,6,5#section` lights a set of shafts (the calculator's hand-off), and `/?view=list` renders the same section as a text list with the same groupings and filters. For machine reading prefer the `.md` twin or the catalogue.",
   },
   {
     key: "catalogue",
@@ -61,7 +61,8 @@ export const LLMS_AREAS: { key: AreaKey; heading: string; summary: string }[] = 
   {
     key: "about",
     heading: "About the project",
-    summary: "The colophon — authorship, method, stack, licence — and the cookie policy.",
+    summary:
+      "The reading guide of the cross-section in full — the drawing, the seven rocks, the four depths, the groupings, the filters, the list, the controls, the calculator, the fine print — then the colophon (authorship, method, stack, licence) and the cookie policy.",
   },
 ];
 
@@ -70,6 +71,7 @@ export const LLMS_URL_CONVENTIONS = [
   "URLs are directory-style and keep the trailing slash: `{BASE}/calculator/`, not `/calculator`.",
   "Every page has a plain-Markdown twin: append `.md` to the URL, or `index.md` to a directory URL. `{BASE}/moats/7/index.md` and `{BASE}/moats/7.md` both serve the same Markdown; the home page is `{BASE}/index.md`. Fetch the twin rather than the HTML — the atlas page in particular ships a three.js bundle you have no use for.",
   "A moat's number is its identity across the whole site: sheet `/moats/7/`, anchor `/#moat-7`, translation key `7`. Mechanics are never renumbered.",
+  "Sheet I's state is the query string of the home page, defaults blank: `?view=list` for the text list, `group=` for the grouping axis, `rock=` or `depth=` to isolate a group, `hl=19,6,5` to light named shafts, `guide=1` to unfold the reading guide. A calculator result is its hash — `{BASE}/calculator/#s=` followed by twelve digits 0–4, one option per question in survey order, `-` for unanswered — and nothing about it is stored anywhere else.",
   "A strategy's slug is its identity: page `{BASE}/strategies/usership/`, row anchor `{BASE}/strategies/#usership`, the same under `/ru/`. Slugs are never renamed. The table's filters live in the query string — `?cat=accumulation,price&role=hold&q=net&sort=depth:desc` — and compose with the anchor. Strategy pages take no parameters.",
   "Content negotiation is not supported — `Accept: text/markdown` on a page URL returns the HTML. The `.md` suffix is the contract.",
 ];

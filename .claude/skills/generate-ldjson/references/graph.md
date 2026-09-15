@@ -70,7 +70,7 @@ reads exactly like the chrome. Trails:
 
 - catalogue, sheet → Atlas › Catalogue (› sheet)
 - strategies, strategy → Atlas › Strategies (› strategy)
-- calculator, credits, cookies → Atlas › page
+- calculator, about, credits, cookies → Atlas › page
 
 ## Per-kind entity nodes
 
@@ -80,6 +80,13 @@ reads exactly like the chrome. Trails:
 `hasDefinedTerm` refs the `#term` of every `sheet` page of that locale, taken
 from `pagesFor(locale)`. This is the only node that enumerates the sheets, and
 it does so by walking the index.
+
+The home page adds two nodes beside the set. A `HowTo` at `<page>#howto` —
+`name` is `homePage[locale].steps.title`, one `HowToStep` per step of
+`homeSteps(locale)` (counts filled from the data), `tool` a ref to the
+calculator's `#app`. And the calculator's own `WebApplication`, built by
+`calculatorApp(locale)` with the same `@id` it has on `/calculator/`, so the
+two graphs describe one instrument. The `mainEntity` stays the set.
 
 ### `catalogue` — `Dataset` + `ItemList`
 
@@ -170,10 +177,11 @@ of the strategy, not of the moat — see the `sheet` section.
 term — and is omitted for a row with no moats. `relatedLink` lists the combos
 and tensions as strategy-page URLs, and is omitted when there are none.
 
-### `credits`, `cookies`
+### `about`, `credits`, `cookies`
 
-`AboutPage` and `WebPage`, no entity nodes. Nothing to invent here: the author
-is already a node in every graph.
+`AboutPage`, `AboutPage` and `WebPage`, no entity nodes. Nothing to invent
+here: the author is already a node in every graph, and the reading guide on
+`/about/` is prose, not an entity.
 
 ## Adding a page kind
 
